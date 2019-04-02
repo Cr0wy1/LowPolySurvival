@@ -7,6 +7,7 @@
 #include "LowPolySurvivalCharacter.generated.h"
 
 class UInputComponent;
+class UDecalComponent;
 
 UCLASS(config=Game)
 class ALowPolySurvivalCharacter : public ACharacter
@@ -26,6 +27,8 @@ class ALowPolySurvivalCharacter : public ACharacter
 public:
 	ALowPolySurvivalCharacter();
 
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	virtual void BeginPlay();
 
@@ -38,12 +41,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class ALowPolySurvivalProjectile> ProjectileClass;
 
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Decals")
+	UDecalComponent* HitDecal;
+
+	APlayerController * controller = nullptr;
 	
 	/** Fires a projectile. */
 	void OnFire();

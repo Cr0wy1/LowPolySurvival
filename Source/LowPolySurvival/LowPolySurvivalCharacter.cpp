@@ -9,8 +9,8 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "MotionControllerComponent.h"
-#include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "DrawDebugHelpers.h"
+#include "Components/DecalComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -40,16 +40,50 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
-
+	
+	//Decal Component for hit marker
+	HitDecal = CreateDefaultSubobject<UDecalComponent>("Hit Decal");
+	HitDecal->SetupAttachment(Mesh1P);
 }
 
-void ALowPolySurvivalCharacter::BeginPlay()
-{
-	// Call the base class  
+
+
+void ALowPolySurvivalCharacter::BeginPlay(){
+
 	Super::BeginPlay();
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	Mesh1P->SetHiddenInGame(false, true);
+
+	controller = Cast<APlayerController>(GetController());
+}
+
+void ALowPolySurvivalCharacter::Tick(float DeltaTime){
+	Super::Tick(DeltaTime);
+
+	if (controller) {
+		//UE_LOG(LogTemp, Warning, TEXT("Ticking"));
+
+		int32 xSize, ySize;
+		controller->GetViewportSize(xSize, ySize);
+
+		FVector worldLocation, worldDirection;
+		controller->DeprojectScreenPositionToWorld(xSize * 0.5f, ySize * 0.5f, worldLocation, worldDirection);
+		
+		FVector startLocation = worldDirection * 100 + worldLocation;
+		FVector endLocation = worldDirection * 1000 + startLocation;
+
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *worldDirection.ToCompactString());
+
+		FHitResult hitResult;
+		GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_WorldStatic);
+
+		if (hitResult.GetActor()) {
+			DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
+			HitDecal->SetWorldLocation(hitResult.ImpactPoint);
+		}
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,28 +114,8 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ALowPolySurvivalCharacter::LookUpAtRate);
 }
 
-void ALowPolySurvivalCharacter::OnFire()
-{
-	// try and fire a projectile
-	if (ProjectileClass != NULL)
-	{
-		UWorld* const World = GetWorld();
-		if (World != NULL)
-		{
+void ALowPolySurvivalCharacter::OnFire(){
 
-			const FRotator SpawnRotation = GetControlRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation =  GetActorLocation();
-
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-			// spawn the projectile at the muzzle
-			World->SpawnActor<ALowPolySurvivalProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			
-		}
-	}
 
 
 }
