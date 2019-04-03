@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Components/DecalComponent.h"
+#include "Buildings.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -41,9 +42,6 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 	
-	//Decal Component for hit marker
-	HitDecal = CreateDefaultSubobject<UDecalComponent>("Hit Decal");
-	HitDecal->SetupAttachment(Mesh1P);
 }
 
 
@@ -56,6 +54,8 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	Mesh1P->SetHiddenInGame(false, true);
 
 	controller = Cast<APlayerController>(GetController());
+
+	controller->GetViewportSize(viewX, viewY);
 }
 
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
@@ -63,25 +63,19 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 
 	if (controller) {
 		//UE_LOG(LogTemp, Warning, TEXT("Ticking"));
-
-		int32 xSize, ySize;
-		controller->GetViewportSize(xSize, ySize);
-
-		FVector worldLocation, worldDirection;
-		controller->DeprojectScreenPositionToWorld(xSize * 0.5f, ySize * 0.5f, worldLocation, worldDirection);
 		
-		FVector startLocation = worldDirection * 100 + worldLocation;
-		FVector endLocation = worldDirection * 1000 + startLocation;
+		CrosshairLineTrace();
+	}
 
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *worldDirection.ToCompactString());
+	if (bIsHoldingPrimary) {
 
-		FHitResult hitResult;
-		GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_WorldStatic);
+		if (GetWorld()->GetTimeSeconds() >= nextHitSeconds) {
+			OnHit();
 
-		if (hitResult.GetActor()) {
-			DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
-			HitDecal->SetWorldLocation(hitResult.ImpactPoint);
+			nextHitSeconds = GetWorld()->GetTimeSeconds() + primaryHitCooldown;
 		}
+
+		
 	}
 	
 }
@@ -99,7 +93,8 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind fire event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ALowPolySurvivalCharacter::OnFire);
+	PlayerInputComponent->BindAction("PrimaryAction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnPrimaryPressed);
+	PlayerInputComponent->BindAction("PrimaryAction", IE_Released, this, &ALowPolySurvivalCharacter::OnPrimaryReleased);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &ALowPolySurvivalCharacter::MoveForward);
@@ -114,10 +109,45 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ALowPolySurvivalCharacter::LookUpAtRate);
 }
 
-void ALowPolySurvivalCharacter::OnFire(){
+void ALowPolySurvivalCharacter::OnHit(){
 
+	FHitResult hitResult = CrosshairLineTrace();
 
+	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
 
+	if (building) {
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName() );
+
+		building->ApplyDamage(10);
+	}
+
+}
+
+FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
+
+	FVector worldLocation, worldDirection;
+	controller->DeprojectScreenPositionToWorld(viewX * 0.5f, viewY * 0.5f, worldLocation, worldDirection);
+
+	FVector startLocation = worldDirection * 100 + worldLocation;
+	FVector endLocation = worldDirection * 1000 + startLocation;
+
+	FHitResult hitResult;
+	GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_WorldStatic);
+
+	if (hitResult.GetActor()) {
+		DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
+
+	}
+
+	return hitResult;
+}
+
+void ALowPolySurvivalCharacter::OnPrimaryPressed(){
+	bIsHoldingPrimary = true;
+}
+
+void ALowPolySurvivalCharacter::OnPrimaryReleased(){
+	bIsHoldingPrimary = false;
 }
 
 

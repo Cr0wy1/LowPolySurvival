@@ -45,13 +45,26 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Decals")
-	UDecalComponent* HitDecal;
 
 	APlayerController * controller = nullptr;
+
+	//Viewport Size
+	int32 viewX, viewY;
+
+	//bool for Primary key handling
+	bool bIsHoldingPrimary = false;
+
+	//cooldown for PrimaryHit
+	float primaryHitCooldown = 0.2f;
+	float nextHitSeconds = 0;
 	
 	/** Fires a projectile. */
-	void OnFire();
+	void OnHit();
+	
+	FHitResult CrosshairLineTrace();
+
+	void OnPrimaryPressed();
+	void OnPrimaryReleased();
 
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
