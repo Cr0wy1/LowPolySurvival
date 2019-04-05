@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/DecalComponent.h"
 #include "Buildings.h"
+#include "UserWidget.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -56,6 +57,12 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller = Cast<APlayerController>(GetController());
 
 	controller->GetViewportSize(viewX, viewY);
+	//CreateWidget(controller, )
+
+	if (quickSlotWidget_BP) {
+		quickSlotWidget = CreateWidget<UUserWidget>(controller, quickSlotWidget_BP);
+		quickSlotWidget->AddToViewport();
+	}
 }
 
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){

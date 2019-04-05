@@ -58,6 +58,12 @@ protected:
 	float primaryHitCooldown = 0.2f;
 	float nextHitSeconds = 0;
 	
+	//Widgets
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> quickSlotWidget_BP;
+
+	UUserWidget* quickSlotWidget = nullptr;
+
 	/** Fires a projectile. */
 	void OnHit();
 	
