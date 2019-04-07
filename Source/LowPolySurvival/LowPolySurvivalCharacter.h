@@ -8,6 +8,10 @@
 
 class UInputComponent;
 class UDecalComponent;
+class UPlayerHUDWidget;
+class UItem;
+struct FItemInfo;
+struct FItemStack;
 
 UCLASS(config=Game)
 class ALowPolySurvivalCharacter : public ACharacter
@@ -41,7 +45,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-
+	void AddItemToInventory(FItemStack* itemstack);
 
 protected:
 
@@ -60,9 +64,9 @@ protected:
 	
 	//Widgets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UUserWidget> quickSlotWidget_BP;
+	TSubclassOf<UPlayerHUDWidget> playerHUDWidget_BP;
 
-	UUserWidget* quickSlotWidget = nullptr;
+	UPlayerHUDWidget* playerHUDWidget = nullptr;
 
 	/** Fires a projectile. */
 	void OnHit();
@@ -72,6 +76,10 @@ protected:
 	void OnPrimaryPressed();
 	void OnPrimaryReleased();
 
+	void ToggleInventory();
+
+
+	//MOVEMENT
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 

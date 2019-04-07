@@ -6,6 +6,9 @@
 #include "HUDWidget.h"
 #include "PlayerHUDWidget.generated.h"
 
+
+
+class UInventoryWidget;
 /**
  * 
  */
@@ -15,6 +18,11 @@ class LOWPOLYSURVIVAL_API UPlayerHUDWidget : public UHUDWidget
 	GENERATED_BODY()
 	
 	
-	
+public:
+
+	UPROPERTY(meta = (BindWidget))
+	UInventoryWidget* inventory;
+
+	void ToggleInventory();
 	
 };

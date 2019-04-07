@@ -4,28 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "Buildings.generated.h"
 
 
 
 class UStaticMeshComponent;
 class ABuildings;
-
-
-USTRUCT(BlueprintType)
-struct LOWPOLYSURVIVAL_API FDropInfo {
-	GENERATED_BODY()
-
-
-		UPROPERTY(EditAnywhere)
-		TSubclassOf<ABuildings> buildingsBP;
-
-		UPROPERTY(EditAnywhere)
-		int32 amount;
-
-
-
-};
+class UItem;
+class ALowPolySurvivalCharacter;
+struct FItemDrops;
+class UDataTable;
 
 
 
@@ -40,7 +29,7 @@ struct LOWPOLYSURVIVAL_API FBuildingInfo {
 	int32 durability;
 
 	UPROPERTY(EditAnywhere)
-	TArray<FDropInfo> drops;
+	FDataTableRowHandle itemDrops;
 
 };
 
@@ -58,12 +47,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
 	FBuildingInfo info;
 
+	
+	
+
 protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
+	UDataTable* itemDataTable;
+
+
+	//Components
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
+	UStaticMeshComponent* mesh;
+
+	FItemDrops* dropInfo;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
-	UStaticMeshComponent* mesh;
+
+	void DropItems(ALowPolySurvivalCharacter * player = nullptr);
 
 
 public:	
@@ -71,5 +74,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	
-	void ApplyDamage(int32 amount);
+	void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
 };

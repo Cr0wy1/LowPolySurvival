@@ -3,6 +3,9 @@
 #include "Buildings.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
+#include "Engine/DataTable.h"
+#include "Item.h"
+#include "LowPolySurvivalCharacter.h"
 
 // Sets default values
 ABuildings::ABuildings()
@@ -16,10 +19,43 @@ ABuildings::ABuildings()
 }
 
 // Called when the game starts or when spawned
-void ABuildings::BeginPlay()
-{
+void ABuildings::BeginPlay(){
 	Super::BeginPlay();
+
+	dropInfo = info.itemDrops.DataTable->FindRow<FItemDrops>(info.itemDrops.RowName, FString(""));
 	
+}
+
+void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
+
+	//Drop into Player Inventorys
+	if (player) {
+
+		if (itemDataTable) {
+			for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
+
+				int32 rand = FMath::Rand() % dropInfo->itemId[i].amount;
+
+				if (rand != 0) {
+					FItemInfo* itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
+					FItemStack* itemStack = new FItemStack();
+					itemStack->itemInfo = *itemInfo;
+					itemStack->amount = rand;
+					player->AddItemToInventory(itemStack);
+				}
+			}
+		}
+	}
+	//Drop into the world
+	else {
+		for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
+			int32 rand = FMath::Rand() % dropInfo->itemId[i].amount;
+
+			UE_LOG(LogTemp, Warning, TEXT("Drop %i of %s"), rand, *dropInfo->itemId[i].itemId.ToString());
+
+		}
+	}
+
 }
 
 // Called every frame
@@ -29,25 +65,16 @@ void ABuildings::Tick(float DeltaTime)
 
 }
 
-void ABuildings::ApplyDamage(int32 amount){
+void ABuildings::ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer){
 
 	info.durability -= amount;
 
+	DropItems(causer);
+
 	if (info.durability <= 0) {
-
-		for (size_t i = 0; i < info.drops.Num(); ++i){
-			for (size_t j = 0; j < info.drops[i].amount; ++j) {
-				if (info.drops[i].buildingsBP) {
-					GetWorld()->SpawnActor<ABuildings>(info.drops[i].buildingsBP);
-				}
-			}
-		}
-
-		
 
 		Destroy();
 	}
-
 
 }
 

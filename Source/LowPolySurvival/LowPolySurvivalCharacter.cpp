@@ -1,18 +1,18 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "LowPolySurvivalCharacter.h"
-#include "LowPolySurvivalProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Components/DecalComponent.h"
 #include "Buildings.h"
-#include "UserWidget.h"
+#include "PlayerHUDWidget.h"
+#include "InventoryWidget.h"
+#include "Item.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -51,6 +51,8 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 
 	Super::BeginPlay();
 
+	UE_LOG(LogTemp, Warning, TEXT("Character: Begin Play"));
+
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	Mesh1P->SetHiddenInGame(false, true);
 
@@ -59,10 +61,16 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller->GetViewportSize(viewX, viewY);
 	//CreateWidget(controller, )
 
-	if (quickSlotWidget_BP) {
-		quickSlotWidget = CreateWidget<UUserWidget>(controller, quickSlotWidget_BP);
-		quickSlotWidget->AddToViewport();
+	if (playerHUDWidget_BP) {
+		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
+		playerHUDWidget->AddToViewport();
 	}
+}
+
+void ALowPolySurvivalCharacter::AddItemToInventory(FItemStack* itemstack){
+
+	playerHUDWidget->inventory->AddStack(itemstack);
+
 }
 
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
@@ -92,8 +100,11 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 
 void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Setup Input Compoennt"));
+
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
+	
 
 	// Bind jump events
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
@@ -106,6 +117,9 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &ALowPolySurvivalCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ALowPolySurvivalCharacter::MoveRight);
+
+	//Inventory
+	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -125,7 +139,7 @@ void ALowPolySurvivalCharacter::OnHit(){
 	if (building) {
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName() );
 
-		building->ApplyDamage(10);
+		building->ApplyDamage(10, this);
 	}
 
 }
@@ -155,6 +169,14 @@ void ALowPolySurvivalCharacter::OnPrimaryPressed(){
 
 void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 	bIsHoldingPrimary = false;
+}
+
+void ALowPolySurvivalCharacter::ToggleInventory(){
+	if (playerHUDWidget) {
+		playerHUDWidget->ToggleInventory();
+
+		controller->bShowMouseCursor = !controller->bShowMouseCursor;
+	}
 }
 
 
