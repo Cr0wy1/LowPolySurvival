@@ -63,6 +63,7 @@ void UInventoryWidget::AddToEmptySlots(FItemStack * itemstack){
 			slots[i]->SetItem(itemstack);
 			break;
 		}
+		
 	}
 }
 

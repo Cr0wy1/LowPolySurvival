@@ -17,12 +17,24 @@ class LOWPOLYSURVIVAL_API UPlayerHUDWidget : public UHUDWidget
 {
 	GENERATED_BODY()
 	
+
+protected:
+
+	virtual void NativeTick(const FGeometry &MyGeometry, float InDeltaTime) override;
+
 	
 public:
+
+	UFUNCTION()
+	FEventReply OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
 
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* inventory;
 
+	void OpenInventory();
+	void CloseInventory();
 	void ToggleInventory();
+
+	
 	
 };

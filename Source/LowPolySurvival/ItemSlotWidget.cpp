@@ -23,8 +23,6 @@ bool  UItemSlotWidget::Initialize() {
 
 		buttonSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 		buttonSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-
-		UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
 	}
 
 	return true;

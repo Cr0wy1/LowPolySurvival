@@ -5,3 +5,23 @@
 
 
 
+bool UHUDWidget::Initialize(){
+
+	Super::Initialize();
+
+	//bIsFocusable = false;
+
+	return true;
+}
+
+void UHUDWidget::NativeConstruct() {
+	
+
+	playerController = GetOwningPlayer();
+
+	if (!playerController) {
+		UE_LOG(LogTemp, Error, TEXT("HUDWidget playerController = nullptr"));
+	}
+
+	
+}

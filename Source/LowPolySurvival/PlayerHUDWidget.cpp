@@ -4,20 +4,61 @@
 #include "InventoryWidget.h"
 
 
+void UPlayerHUDWidget::NativeTick(const FGeometry &MyGeometry, float InDeltaTime) {
+
+	if (playerController->WasInputKeyJustPressed(EKeys::Tab)) {
+		UE_LOG(LogTemp, Warning, TEXT("asdasd"));
+		
+	}
+
+	
+
+}
+
+
+
+FEventReply UPlayerHUDWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
+
+	if (InKeyEvent.GetKey() == EKeys::Tab) {
+		UE_LOG(LogTemp, Warning, TEXT("KeyDown"));
+		CloseInventory();
+	}
+	else {
+
+	}
+
+	return FEventReply(true);
+}
+
+void UPlayerHUDWidget::OpenInventory(){
+	playerController->bShowMouseCursor = true;
+	inventory->SetVisibility(ESlateVisibility::Visible);
+	playerController->SetInputMode(FInputModeGameAndUI());
+	SetUserFocus(playerController);
+}
+
+void UPlayerHUDWidget::CloseInventory(){
+	playerController->bShowMouseCursor = false;
+	inventory->SetVisibility(ESlateVisibility::Hidden);
+	playerController->SetInputMode(FInputModeGameOnly());
+}
+
 void UPlayerHUDWidget::ToggleInventory() {
-	UE_LOG(LogTemp, Warning, TEXT("asdasd"));
+	
 	if (inventory) {
+
 		if (inventory->Visibility != ESlateVisibility::Hidden) {
-			inventory->SetVisibility(ESlateVisibility::Hidden);
+			CloseInventory();
 		}
 		else {
-			inventory->SetVisibility(ESlateVisibility::Visible);
+			OpenInventory();
 		}
 		
-
 	}
 	
 }
+
+
 
 
 

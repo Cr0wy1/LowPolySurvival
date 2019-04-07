@@ -15,6 +15,18 @@ class LOWPOLYSURVIVAL_API UHUDWidget : public UUserWidget
 	GENERATED_BODY()
 	
 	
+protected:
+
+	APlayerController * playerController = nullptr;
+
+	
+
+public:
+
+	virtual bool Initialize() override;
+
+	virtual void NativeConstruct() override;
+
 	
 	
 };

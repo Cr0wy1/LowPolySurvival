@@ -174,8 +174,6 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	if (playerHUDWidget) {
 		playerHUDWidget->ToggleInventory();
-
-		controller->bShowMouseCursor = !controller->bShowMouseCursor;
 	}
 }
 
