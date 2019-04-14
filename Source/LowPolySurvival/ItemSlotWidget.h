@@ -12,6 +12,7 @@ class UImage;
 struct FItemInfo;
 struct FItemStack;
 class UItemStackWidget;
+class UInventoryWidget;
 /**
  * 
  */
@@ -24,11 +25,19 @@ class LOWPOLYSURVIVAL_API UItemSlotWidget : public UHUDWidget
 protected:
 	bool bIsEmpty = true;
 
-	UButton* rootButton = nullptr;
+	UInventoryWidget* inventory;
+
+	size_t index = 0;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* rootButton;
 	UItemStackWidget* itemStackWidget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stack")
 	TSubclassOf<UItemStackWidget> itemStackWidget_W;
+
+	UFUNCTION()
+	void OnPressed();
 	
 public:
 
@@ -36,17 +45,12 @@ public:
 
 	virtual bool  Initialize() override;
 
-	//UPROPERTY(meta = (BindWidget))
-	//UButton* slotButton;
 
-	//UPROPERTY(meta = (BindWidget))
-	//UImage* slotImage;
+	void Init(UInventoryWidget * _inventory, FItemStack* itemStack);
 
 	bool IsEmpty() const;
-
-	bool FillStack(FItemStack* itemstack);
-
-	void SetItem(FItemStack* itemstack);
+	void RefreshSlot();
+	void SetIndex(size_t _index);
 
 	
 

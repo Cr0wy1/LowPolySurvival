@@ -12,7 +12,7 @@
 #include "Buildings.h"
 #include "PlayerHUDWidget.h"
 #include "InventoryWidget.h"
-#include "Item.h"
+#include "InventoryComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -42,6 +42,10 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
+
+	//Inventory
+	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
+
 	
 }
 
@@ -67,9 +71,9 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	}
 }
 
-void ALowPolySurvivalCharacter::AddItemToInventory(FItemStack* itemstack){
+void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 
-	playerHUDWidget->inventory->AddStack(itemstack);
+	inventory->AddStack(itemstack);
 
 }
 
@@ -120,6 +124,7 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 
 	//Inventory
 	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
+	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnInteraction);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -142,6 +147,7 @@ void ALowPolySurvivalCharacter::OnHit(){
 		building->ApplyDamage(10, this);
 	}
 
+	
 }
 
 FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
@@ -172,9 +178,11 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 }
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
-	if (playerHUDWidget) {
-		playerHUDWidget->ToggleInventory();
-	}
+	inventory->AddToPlayerViewport(controller);
+}
+
+void ALowPolySurvivalCharacter::OnInteraction(){
+	
 }
 
 

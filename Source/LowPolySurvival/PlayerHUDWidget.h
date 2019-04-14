@@ -25,8 +25,6 @@ protected:
 	
 public:
 
-	UFUNCTION()
-	FEventReply OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
 
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* inventory;

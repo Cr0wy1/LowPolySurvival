@@ -9,8 +9,13 @@
 
 class UItem;
 class UItemSlotWidget;
+class UItemStackWidget;
 struct FItemInfo;
 struct FItemStack;
+class UUniformGridPanel;
+class UCanvasPanel;
+class UCanvasPanelSlot;
+class UButton;
 /**
  * 
  */
@@ -22,10 +27,21 @@ class LOWPOLYSURVIVAL_API UInventoryWidget : public UHUDWidget
 
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Slot Widget")
+	//Stack for mouse slot
+	FItemStack * mouseStack;
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
 	TSubclassOf<UItemSlotWidget> itemSlotWidget_W;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
+	TSubclassOf<UItemStackWidget> itemStackWidget_W;
+
+	UItemStackWidget* itemStackHolder;
+	UCanvasPanelSlot* stackHolderSlot;
 	
 	TArray<UItemSlotWidget*> slots;
+
 
 	UPROPERTY(EditAnywhere)
 	int32 rows = 4;
@@ -33,12 +49,40 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int32 cols = 4;
 
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* root;
+
+	UUniformGridPanel *grid;
+	UButton* backButton;
+
 public:
+
+	bool bMouseIsHoldingStack = false;
 
 	virtual bool  Initialize() override;
 
-	void AddStack(FItemStack* itemstack);
-	bool AddToExistingStacks(FItemStack* itemstack);
-	void AddToEmptySlots(FItemStack* itemstack);
+
+	UFUNCTION()
+	FEventReply OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
+
+	UFUNCTION()
+	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
+
+	UFUNCTION()
+	FEventReply	OnMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
+
+	UFUNCTION()
+		void OnDragDetected
+		(
+			FGeometry MyGeometry,
+			const FPointerEvent & PointerEvent,
+			UDragDropOperation *& Operation
+		);
+
+	void CloseInventory();
+	void Init(TArray<FItemStack> &itemStacks);
+	void MouseTakeStack(FItemStack &itemStack);
+
+	FItemStack* GetMouseStack() const;
 	
 };

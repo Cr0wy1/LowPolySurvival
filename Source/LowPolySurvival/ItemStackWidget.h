@@ -20,14 +20,16 @@ class LOWPOLYSURVIVAL_API UItemStackWidget : public UHUDWidget
 
 protected:
 
-	
+	FItemStack * itemStack;
 
 	
 public:
 
-	FItemStack * itemStack;
+	
 
-	virtual bool Initialize() override;
+	virtual bool  Initialize() override;
+
+	
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* itemImage;
@@ -35,8 +37,12 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* amountText;
 
+	void Init(FItemStack* _itemStack);
+	void RefreshStack();
 
-	void UpdateItemStack();
-	void SetNewStack(FItemStack* stack);
+	void SetItemStack(FItemStack &_itemStack);
+	FItemStack*const GetItemStack()const;
+
+	
 	
 };

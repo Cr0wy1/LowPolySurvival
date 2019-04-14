@@ -16,20 +16,6 @@ void UPlayerHUDWidget::NativeTick(const FGeometry &MyGeometry, float InDeltaTime
 }
 
 
-
-FEventReply UPlayerHUDWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
-
-	if (InKeyEvent.GetKey() == EKeys::Tab) {
-		UE_LOG(LogTemp, Warning, TEXT("KeyDown"));
-		CloseInventory();
-	}
-	else {
-
-	}
-
-	return FEventReply(true);
-}
-
 void UPlayerHUDWidget::OpenInventory(){
 	playerController->bShowMouseCursor = true;
 	inventory->SetVisibility(ESlateVisibility::Visible);

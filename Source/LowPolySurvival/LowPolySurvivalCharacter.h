@@ -10,6 +10,7 @@ class UInputComponent;
 class UDecalComponent;
 class UPlayerHUDWidget;
 class UItem;
+class UInventoryComponent;
 struct FItemInfo;
 struct FItemStack;
 
@@ -34,6 +35,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	class UInventoryComponent* inventory;
+
+
 	virtual void BeginPlay();
 
 public:
@@ -45,7 +51,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	void AddItemToInventory(FItemStack* itemstack);
+	void AddItemStackToInventory(FItemStack &itemstack);
 
 protected:
 
@@ -57,6 +63,7 @@ protected:
 
 	//bool for Primary key handling
 	bool bIsHoldingPrimary = false;
+	bool bIsInventoryOpen = false;
 
 	//cooldown for PrimaryHit
 	float primaryHitCooldown = 0.2f;
@@ -77,6 +84,8 @@ protected:
 	void OnPrimaryReleased();
 
 	void ToggleInventory();
+
+	void OnInteraction();
 
 
 	//MOVEMENT

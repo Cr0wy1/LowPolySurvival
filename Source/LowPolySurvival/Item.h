@@ -33,8 +33,57 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	GENERATED_BODY()
 
-	FItemInfo itemInfo;
-	int32 amount;
+	FItemInfo* itemInfo = nullptr;
+	int32 amount = 0;
+
+
+
+	bool isEmpty() {
+		return (amount <= 0);
+	}
+
+	bool CompareIds(FItemStack &otherStack) {
+		return GetItemId() == otherStack.GetItemId();
+	}
+
+	bool Fill(FItemStack &otherStack) {
+
+		if (CompareIds(otherStack)) {
+			amount += otherStack.amount;
+			return true;
+		}
+
+		return false;
+	}
+
+	void Swap(FItemStack &otherStack) {
+		FItemStack tempStack;
+		tempStack = *this;
+		*this = otherStack;
+		otherStack = tempStack;
+	}
+
+	FString ToString() const{
+		FString strId = itemInfo ? FString::FromInt(itemInfo->itemid) : "nullptr";
+		FString str = "ItemStack(id:" + strId + ", amount:" + FString::FromInt(amount) + ")";
+		return str;
+	}
+
+	FItemStack& Set(FItemStack &otherStack) {
+		itemInfo = otherStack.itemInfo;
+		amount = otherStack.amount;
+		return *this;
+	}
+
+	FItemStack& Set(FItemInfo* _itemInfo, int32 _amount = 1) {
+		itemInfo = _itemInfo;
+		amount = _amount;
+		return *this;
+	}
+
+	int32 GetItemId() const {
+		return itemInfo ? itemInfo->itemid : 0;
+	}
 
 };
 

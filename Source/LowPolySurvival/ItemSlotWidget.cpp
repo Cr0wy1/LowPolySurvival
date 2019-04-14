@@ -7,19 +7,21 @@
 #include "ButtonSlot.h"
 #include "Image.h"
 #include "ItemStackWidget.h"
+#include "InventoryWidget.h"
+
 
 
 bool  UItemSlotWidget::Initialize() {
 
 	Super::Initialize();
 
-	if (WidgetTree && itemStackWidget_W) {
-		rootButton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass());
+	if (WidgetTree && itemStackWidget_W && rootButton) {
+		
+		rootButton->OnPressed.AddDynamic(this, &UItemSlotWidget::OnPressed);
 		itemStackWidget = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
 		
-		WidgetTree->RootWidget = rootButton;
-		UPanelSlot* slot = rootButton->AddChild(itemStackWidget);
-		UButtonSlot* buttonSlot = Cast<UButtonSlot>(slot);
+
+		UButtonSlot* buttonSlot = Cast<UButtonSlot>(rootButton->AddChild(itemStackWidget));
 
 		buttonSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 		buttonSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
@@ -29,27 +31,44 @@ bool  UItemSlotWidget::Initialize() {
 
 }
 
+
+void UItemSlotWidget::OnPressed(){
+	UE_LOG(LogTemp, Warning, TEXT("Button with index %i clicked!"), index);
+	if (inventory) {
+
+		inventory->MouseTakeStack(*itemStackWidget->GetItemStack());
+
+		itemStackWidget->RefreshStack();
+
+	}
+
+	rootButton->OnReleased.Broadcast();
+	rootButton->OnClicked.Broadcast();
+
+}
+
+
+void UItemSlotWidget::Init(UInventoryWidget * _inventory, FItemStack* itemStack){
+	inventory = _inventory;
+
+	if (itemStackWidget) {
+		itemStackWidget->Init(itemStack);
+	}
+}
+
 bool UItemSlotWidget::IsEmpty() const{
 	return bIsEmpty;
 }
 
-bool UItemSlotWidget::FillStack(FItemStack * itemstack){
 
-	if (!IsEmpty()) {
-		if (itemStackWidget->itemStack->itemInfo.itemid == itemstack->itemInfo.itemid) {
-			itemStackWidget->itemStack->amount += itemstack->amount;
 
-			itemStackWidget->UpdateItemStack();
-			return true;
-		}
-	}
 
-	return false;
+
+void UItemSlotWidget::RefreshSlot(){
+
+	itemStackWidget->RefreshStack();
 }
 
-void UItemSlotWidget::SetItem(FItemStack* itemstack){
-	UE_LOG(LogTemp, Warning, TEXT("Set Item %s in Slot"), *itemstack->itemInfo.name.ToString());
-	bIsEmpty = false;
-
-	itemStackWidget->SetNewStack(itemstack);
+void UItemSlotWidget::SetIndex(size_t _index){
+	index = _index;
 }

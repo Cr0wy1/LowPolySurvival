@@ -5,26 +5,41 @@
 #include "TextBlock.h"
 #include "Item.h"
 
-bool  UItemStackWidget::Initialize() {
-
+bool UItemStackWidget::Initialize() {
 	Super::Initialize();
 
+	SetVisibility(ESlateVisibility::HitTestInvisible);
 
 	return true;
-
 }
 
-void UItemStackWidget::UpdateItemStack(){
+void UItemStackWidget::Init(FItemStack *_itemStack){
+	itemStack = _itemStack;
+	RefreshStack();
+}
 
-	if (itemImage && amountText) {
+void UItemStackWidget::RefreshStack(){
+
+	if (!itemImage || !amountText) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *itemStack->ToString());
+
+	if (itemStack && itemStack->itemInfo) {
+		
 		amountText->SetText(FText::FromString(FString::FromInt(itemStack->amount)));
-		itemImage->SetBrushFromTexture(itemStack->itemInfo.texture);
+		itemImage->SetBrushFromTexture(itemStack->itemInfo->texture);
+		itemImage->SetColorAndOpacity(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+	}else {
+		amountText->SetText(FText::FromString(""));
+		itemImage->SetColorAndOpacity(FLinearColor::Transparent);
 	}
 
 }
 
-void UItemStackWidget::SetNewStack(FItemStack * stack){
-	itemStack = stack;
+void UItemStackWidget::SetItemStack(FItemStack & _itemStack){
+	*itemStack = _itemStack;
+}
 
-	UpdateItemStack();
+FItemStack * const UItemStackWidget::GetItemStack() const{
+	return itemStack;
 }
