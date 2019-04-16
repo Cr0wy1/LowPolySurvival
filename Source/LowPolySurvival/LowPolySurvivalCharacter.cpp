@@ -13,6 +13,7 @@
 #include "PlayerHUDWidget.h"
 #include "InventoryWidget.h"
 #include "InventoryComponent.h"
+#include "InventoryManagerWidget.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -45,7 +46,7 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 
 	//Inventory
 	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
-
+	
 	
 }
 
@@ -69,12 +70,30 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
 		playerHUDWidget->AddToViewport();
 	}
+
+	if (inventoryManager_BP) {
+		inventoryManager = CreateWidget<UInventoryManagerWidget>(controller, inventoryManager_BP);
+		inventoryManager->Init(inventory);
+		inventoryManager->AddToViewport();
+	}
 }
 
 void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 
 	inventory->AddStack(itemstack);
 
+}
+
+void ALowPolySurvivalCharacter::OpenInventory(UInventoryComponent* inventoryComp){
+	UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
+	if (inventoryManager) {
+		inventoryManager->ShowInventory(inventoryComp);
+	}
+	
+}
+
+APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
+	return controller;
 }
 
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
@@ -124,7 +143,7 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 
 	//Inventory
 	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
-	PlayerInputComponent->BindAction("Interaction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnInteraction);
+	PlayerInputComponent->BindAction("SecondaryAction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnInteraction);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -178,10 +197,18 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 }
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
-	inventory->AddToPlayerViewport(controller);
+	//inventory->AddToPlayerViewport(controller);
+	inventoryManager->ShowInventory(inventory);
 }
 
 void ALowPolySurvivalCharacter::OnInteraction(){
+	FHitResult hitResult = CrosshairLineTrace();
+
+	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
+
+	if (building) {
+		building->Interact(this);
+	}
 	
 }
 

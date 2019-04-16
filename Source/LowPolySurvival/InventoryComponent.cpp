@@ -29,20 +29,6 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 }
 
-void UInventoryComponent::AddToPlayerViewport(APlayerController * controller){
-	if (widget_BP && controller) {
-		widget = CreateWidget<UInventoryWidget>(controller, widget_BP);
-		widget->AddToViewport();
-		controller->bShowMouseCursor = true;
-		controller->SetInputMode(FInputModeGameAndUI());
-		widget->SetUserFocus(controller);
-		widget->Init(stackSlots);
-
-	}
-	if (widget_BP) {
-		UE_LOG(LogTemp, Warning, TEXT("AddToPlayerViewport inventory"));
-	}
-}
 
 void UInventoryComponent::AddStack(FItemStack &itemstack) {
 
@@ -73,5 +59,13 @@ void UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 		}
 
 	}
+}
+
+EInvType UInventoryComponent::GetInvType() const{
+	return invType;
+}
+
+TArray<FItemStack>& UInventoryComponent::GetItemStacksRef(){
+	return stackSlots;
 }
 

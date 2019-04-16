@@ -74,5 +74,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	
-	void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
+	virtual void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
+	virtual void Interact(ALowPolySurvivalCharacter* interactor);
 };

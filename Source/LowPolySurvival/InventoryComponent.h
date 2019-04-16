@@ -12,6 +12,15 @@
 class UInventoryWidget;
 
 
+UENUM(BlueprintType)
+enum class EInvType : uint8 {
+	NONE,
+	PLAYER,
+	CHEST,
+	FURNACE,
+};
+
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LOWPOLYSURVIVAL_API UInventoryComponent : public UActorComponent
@@ -25,11 +34,11 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-	TSubclassOf<UInventoryWidget> widget_BP;
+	EInvType invType = EInvType::NONE;
 
-	UInventoryWidget* widget = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	int32 slotNum = 10;
 
-	size_t slotNum = 10;
 	TArray<FItemStack> stackSlots;
 
 	// Called when the game starts
@@ -40,10 +49,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	
-	void AddToPlayerViewport(APlayerController* controller);
-
-
 	void AddStack(FItemStack &itemstack);
 	bool AddToExistingStacks(FItemStack &itemstack);
 	void AddToEmptySlots(FItemStack &itemstack);
+
+	EInvType GetInvType() const;
+	TArray<FItemStack>& GetItemStacksRef();
+
 };

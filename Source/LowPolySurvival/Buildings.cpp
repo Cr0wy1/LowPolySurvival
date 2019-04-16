@@ -77,3 +77,10 @@ void ABuildings::ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer){
 
 }
 
+void ABuildings::Interact(ALowPolySurvivalCharacter * interactor){
+
+	UE_LOG(LogTemp, Warning, TEXT("Buildings: Interact"));
+
+
+}
+

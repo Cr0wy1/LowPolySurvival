@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "HUDWidget.h"
+#include "InventoryComponent.h"
 #include "PlayerHUDWidget.generated.h"
 
 
@@ -20,19 +21,10 @@ class LOWPOLYSURVIVAL_API UPlayerHUDWidget : public UHUDWidget
 
 protected:
 
-	virtual void NativeTick(const FGeometry &MyGeometry, float InDeltaTime) override;
+	//virtual void NativeTick(const FGeometry &MyGeometry, float InDeltaTime) override;
 
 	
 public:
-
-
-	UPROPERTY(meta = (BindWidget))
-	UInventoryWidget* inventory;
-
-	void OpenInventory();
-	void CloseInventory();
-	void ToggleInventory();
-
 	
 	
 };

@@ -13,6 +13,7 @@ struct FItemInfo;
 struct FItemStack;
 class UItemStackWidget;
 class UInventoryWidget;
+class UInventoryManagerWidget;
 /**
  * 
  */
@@ -25,7 +26,7 @@ class LOWPOLYSURVIVAL_API UItemSlotWidget : public UHUDWidget
 protected:
 	bool bIsEmpty = true;
 
-	UInventoryWidget* inventory;
+	UInventoryManagerWidget* inventoryManager;
 
 	size_t index = 0;
 
@@ -46,7 +47,7 @@ public:
 	virtual bool  Initialize() override;
 
 
-	void Init(UInventoryWidget * _inventory, FItemStack* itemStack);
+	void Init(UInventoryManagerWidget * _inventoryManager, FItemStack* itemStack);
 
 	bool IsEmpty() const;
 	void RefreshSlot();

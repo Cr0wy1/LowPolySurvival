@@ -16,6 +16,7 @@ class UUniformGridPanel;
 class UCanvasPanel;
 class UCanvasPanelSlot;
 class UButton;
+class UInventoryManagerWidget;
 /**
  * 
  */
@@ -49,11 +50,11 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int32 cols = 4;
 
-	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* root;
+	//UPROPERTY(meta = (BindWidget))
+	//UCanvasPanel* root;
 
+	UPROPERTY(meta = (BindWidget))
 	UUniformGridPanel *grid;
-	UButton* backButton;
 
 public:
 
@@ -62,26 +63,12 @@ public:
 	virtual bool  Initialize() override;
 
 
-	UFUNCTION()
-	FEventReply OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
-
-	UFUNCTION()
-	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
-
-	UFUNCTION()
-	FEventReply	OnMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
-
-	UFUNCTION()
-		void OnDragDetected
-		(
-			FGeometry MyGeometry,
-			const FPointerEvent & PointerEvent,
-			UDragDropOperation *& Operation
-		);
-
 	void CloseInventory();
-	void Init(TArray<FItemStack> &itemStacks);
+	void Init(TArray<FItemStack> &itemStacks, UInventoryManagerWidget* inventoryManager);
 	void MouseTakeStack(FItemStack &itemStack);
+
+	void Show();
+	void Hide();
 
 	FItemStack* GetMouseStack() const;
 	

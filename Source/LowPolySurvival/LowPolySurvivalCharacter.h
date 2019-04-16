@@ -9,10 +9,12 @@
 class UInputComponent;
 class UDecalComponent;
 class UPlayerHUDWidget;
+class UInventoryManagerWidget;
 class UItem;
 class UInventoryComponent;
 struct FItemInfo;
 struct FItemStack;
+enum class EInvType : uint8;
 
 UCLASS(config=Game)
 class ALowPolySurvivalCharacter : public ACharacter
@@ -53,6 +55,12 @@ public:
 
 	void AddItemStackToInventory(FItemStack &itemstack);
 
+	void OpenInventory(UInventoryComponent* inventoryComp);
+
+	APlayerController* GetPlayerController() const;
+
+
+
 protected:
 
 
@@ -73,7 +81,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UPlayerHUDWidget> playerHUDWidget_BP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UInventoryManagerWidget> inventoryManager_BP;
+
 	UPlayerHUDWidget* playerHUDWidget = nullptr;
+	UInventoryManagerWidget* inventoryManager = nullptr;
 
 	/** Fires a projectile. */
 	void OnHit();

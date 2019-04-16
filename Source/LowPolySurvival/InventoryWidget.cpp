@@ -10,26 +10,21 @@
 #include "CanvasPanel.h"
 #include "CanvasPanelSlot.h"
 #include "Button.h"
+#include "InventoryManagerWidget.h"
 
 
 bool UInventoryWidget::Initialize(){
 	Super::Initialize();
 
-	if (WidgetTree && root) {
+	if (WidgetTree) {
 		
-		backButton = WidgetTree->ConstructWidget<UButton>();
-		backButton->SetBackgroundColor(FLinearColor(1.0f, 1.0f, 1.0f, 0.1f));
-		backButton->WidgetStyle.Hovered.TintColor = FSlateColor::UseForeground();
-		UCanvasPanelSlot* canvasBtnSlot = Cast<UCanvasPanelSlot>(root->AddChild(backButton));
-		canvasBtnSlot->SetAnchors(FAnchors(0.0f, 0.0f, 1.0f, 1.0f));
-		canvasBtnSlot->SetOffsets(FMargin(0.0f));
 
-		grid = WidgetTree->ConstructWidget<UUniformGridPanel>();
-		UCanvasPanelSlot* canvasGridSlot = Cast<UCanvasPanelSlot>(root->AddChild(grid));
-		canvasGridSlot->SetAnchors(FAnchors(0.5f));
-		canvasGridSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-		canvasGridSlot->SetSize(FVector2D(500, 500));
-		grid->SetSlotPadding(FMargin(3.0f));
+		//grid = WidgetTree->ConstructWidget<UUniformGridPanel>();
+		//UCanvasPanelSlot* canvasGridSlot = Cast<UCanvasPanelSlot>(root->AddChild(grid));
+		//canvasGridSlot->SetAnchors(FAnchors(0.5f));
+		//canvasGridSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+		//canvasGridSlot->SetSize(FVector2D(500, 500));
+		//grid->SetSlotPadding(FMargin(3.0f));
 
 
 		if (itemSlotWidget_W) {
@@ -51,10 +46,10 @@ bool UInventoryWidget::Initialize(){
 
 		if (itemStackWidget_W) {
 			itemStackHolder = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
-			stackHolderSlot = Cast<UCanvasPanelSlot>(root->AddChild(itemStackHolder));
+			//stackHolderSlot = Cast<UCanvasPanelSlot>(root->AddChild(itemStackHolder));
 
-			stackHolderSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-			stackHolderSlot->SetSize(FVector2D(100, 100));
+			//stackHolderSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+			//stackHolderSlot->SetSize(FVector2D(100, 100));
 		}
 
 		
@@ -66,43 +61,7 @@ bool UInventoryWidget::Initialize(){
 }
 
 
-FEventReply UInventoryWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent){
 
-	if (InKeyEvent.GetKey() == EKeys::Tab || InKeyEvent.GetKey() == EKeys::E || InKeyEvent.GetKey() == EKeys::Escape) {
-		CloseInventory();
-	}
-	else {
-
-	}
-
-	return FEventReply(true);
-}
-
-FEventReply UInventoryWidget::OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent){
-
-	if (bMouseIsHoldingStack) {
-		FVector2D pos = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
-
-		stackHolderSlot->SetPosition(pos);
-
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *pos.ToString());
-	}
-	
-	return FEventReply(true);
-}
-
-FEventReply UInventoryWidget::OnMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent){
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), "mousedown");
-
-
-	return FEventReply(true);
-}
-
-void UInventoryWidget::OnDragDetected(FGeometry MyGeometry, const FPointerEvent & PointerEvent, UDragDropOperation *& Operation){
-	UE_LOG(LogTemp, Warning, TEXT("%s"), "drag");
-
-}
 
 void UInventoryWidget::CloseInventory(){
 	RemoveFromViewport();
@@ -111,9 +70,9 @@ void UInventoryWidget::CloseInventory(){
 	playerController->SetInputMode(FInputModeGameOnly());
 }
 
-void UInventoryWidget::Init(TArray<FItemStack>& itemStacks){
+void UInventoryWidget::Init(TArray<FItemStack>& itemStacks, UInventoryManagerWidget* inventoryManager){
 	for (size_t i = 0; i < itemStacks.Num(); i++){
-		slots[i]->Init(this, &itemStacks[i]);
+		slots[i]->Init(inventoryManager, &itemStacks[i]);
 	}
 
 	itemStackHolder->Init(mouseStack);
@@ -132,6 +91,14 @@ void UInventoryWidget::MouseTakeStack(FItemStack &itemStack){
 	itemStackHolder->GetItemStack()->Swap(itemStack);
 	itemStackHolder->RefreshStack();
 	bMouseIsHoldingStack = true;
+}
+
+void UInventoryWidget::Show(){
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+}
+
+void UInventoryWidget::Hide(){
+	SetVisibility(ESlateVisibility::Collapsed);
 }
 
 FItemStack * UInventoryWidget::GetMouseStack() const{

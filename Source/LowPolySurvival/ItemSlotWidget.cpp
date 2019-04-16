@@ -8,6 +8,7 @@
 #include "Image.h"
 #include "ItemStackWidget.h"
 #include "InventoryWidget.h"
+#include "InventoryManagerWidget.h"
 
 
 
@@ -33,27 +34,27 @@ bool  UItemSlotWidget::Initialize() {
 
 
 void UItemSlotWidget::OnPressed(){
-	UE_LOG(LogTemp, Warning, TEXT("Button with index %i clicked!"), index);
-	if (inventory) {
+	//UE_LOG(LogTemp, Warning, TEXT("Button with index %i clicked!"), index);
+	if (inventoryManager) {
 
-		inventory->MouseTakeStack(*itemStackWidget->GetItemStack());
+		inventoryManager->MouseTakeStack(*itemStackWidget->GetItemStack());
 
 		itemStackWidget->RefreshStack();
 
 	}
 
-	rootButton->OnReleased.Broadcast();
-	rootButton->OnClicked.Broadcast();
 
 }
 
 
-void UItemSlotWidget::Init(UInventoryWidget * _inventory, FItemStack* itemStack){
-	inventory = _inventory;
+void UItemSlotWidget::Init(UInventoryManagerWidget * _inventoryManager, FItemStack* itemStack){
+	inventoryManager = _inventoryManager;
 
 	if (itemStackWidget) {
 		itemStackWidget->Init(itemStack);
 	}
+
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 }
 
 bool UItemSlotWidget::IsEmpty() const{
