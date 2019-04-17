@@ -17,17 +17,8 @@ bool UInventoryWidget::Initialize(){
 	Super::Initialize();
 
 	if (WidgetTree) {
-		
 
-		//grid = WidgetTree->ConstructWidget<UUniformGridPanel>();
-		//UCanvasPanelSlot* canvasGridSlot = Cast<UCanvasPanelSlot>(root->AddChild(grid));
-		//canvasGridSlot->SetAnchors(FAnchors(0.5f));
-		//canvasGridSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-		//canvasGridSlot->SetSize(FVector2D(500, 500));
-		//grid->SetSlotPadding(FMargin(3.0f));
-
-
-		if (itemSlotWidget_W) {
+		if (itemSlotWidget_W && grid) {
 
 			for (size_t r = 0; r < rows; r++) {
 				for (size_t c = 0; c < cols; c++) {
@@ -43,23 +34,20 @@ bool UInventoryWidget::Initialize(){
 
 			}
 		}
-
-		if (itemStackWidget_W) {
-			itemStackHolder = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
-			//stackHolderSlot = Cast<UCanvasPanelSlot>(root->AddChild(itemStackHolder));
-
-			//stackHolderSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-			//stackHolderSlot->SetSize(FVector2D(100, 100));
-		}
-
-		
+	
 	}
 
-	mouseStack = new FItemStack();
+	UE_LOG(LogTemp, Warning, TEXT("Check"));
+
+
 
 	return true;
 }
 
+void UInventoryWidget::NativeTick(const FGeometry & MyGeometry, float InDeltaTime){
+	//UE_LOG(LogTemp, Warning, TEXT("ticking"));
+	Refresh();
+}
 
 
 
@@ -70,28 +58,24 @@ void UInventoryWidget::CloseInventory(){
 	playerController->SetInputMode(FInputModeGameOnly());
 }
 
-void UInventoryWidget::Init(TArray<FItemStack>& itemStacks, UInventoryManagerWidget* inventoryManager){
+void UInventoryWidget::Init(TArray<FItemStack>& itemStacks, UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory){
+
+	inventoryManager = _inventoryManager;
+	bIsPlayerInventory = isPlayerInventory;
+
 	for (size_t i = 0; i < itemStacks.Num(); i++){
-		slots[i]->Init(inventoryManager, &itemStacks[i]);
-	}
-
-	itemStackHolder->Init(mouseStack);
-
-}
-
-void UInventoryWidget::MouseTakeStack(FItemStack &itemStack){
-
-	if (itemStackHolder && itemStackHolder->GetItemStack()) {
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *itemStack.ToString());
-
+		slots[i]->Init(this, &itemStacks[i]);
 	}
 
 
-
-	itemStackHolder->GetItemStack()->Swap(itemStack);
-	itemStackHolder->RefreshStack();
-	bMouseIsHoldingStack = true;
 }
+
+void UInventoryWidget::Refresh(){
+	for (size_t i = 0; i < slots.Num(); i++) {
+		slots[i]->RefreshSlot();
+	}
+}
+
 
 void UInventoryWidget::Show(){
 	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
@@ -101,10 +85,16 @@ void UInventoryWidget::Hide(){
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-FItemStack * UInventoryWidget::GetMouseStack() const{
+UInventoryManagerWidget * UInventoryWidget::GetInventoryManager() const{
 
-	return itemStackHolder->GetItemStack();
+	return inventoryManager;
 }
+
+bool UInventoryWidget::IsPlayerInventory() const
+{
+	return bIsPlayerInventory;
+}
+
 
 
 

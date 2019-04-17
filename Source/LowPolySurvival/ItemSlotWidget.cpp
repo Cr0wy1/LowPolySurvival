@@ -18,7 +18,7 @@ bool  UItemSlotWidget::Initialize() {
 
 	if (WidgetTree && itemStackWidget_W && rootButton) {
 		
-		rootButton->OnPressed.AddDynamic(this, &UItemSlotWidget::OnPressed);
+		//rootButton->OnPressed.AddDynamic(this, &UItemSlotWidget::OnPressed);
 		itemStackWidget = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
 		
 
@@ -32,23 +32,85 @@ bool  UItemSlotWidget::Initialize() {
 
 }
 
+FEventReply UItemSlotWidget::OnPreviewMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent){
 
-void UItemSlotWidget::OnPressed(){
+	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+
+		OnLeftClick(MouseEvent);
+
+	}else if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton) {
+
+		OnRightClick(MouseEvent);
+
+	}
+
+
+	return FEventReply(true);
+}
+
+
+void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 	//UE_LOG(LogTemp, Warning, TEXT("Button with index %i clicked!"), index);
 	if (inventoryManager) {
 
-		inventoryManager->MouseTakeStack(*itemStackWidget->GetItemStack());
+		FItemStack* mouseStack = inventoryManager->GetMouseStack();
+		FItemStack* slotStack = itemStackWidget->GetItemStack();
 
-		itemStackWidget->RefreshStack();
+		if (MouseEvent.IsLeftShiftDown()) {
+			UE_LOG(LogTemp, Warning, TEXT("OnLeftClick SHIFT + Left Click"));
+			
+			inventoryManager->AddStackToInventory(slotStack, inventoryWidget->IsPlayerInventory());
+
+		}else{
+
+			if (mouseStack->IsValid()) {
+				if (!slotStack->Fill(*mouseStack)) {
+					mouseStack->Swap(*slotStack);
+				}
+			}else {
+				if (slotStack->IsValid()) {
+					mouseStack->Swap(*slotStack);
+				}
+			}
+
+			inventoryManager->RefreshMouseStackWidget();
+
+		}
+
+	
+		
 
 	}
 
 
 }
 
+void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
+	UE_LOG(LogTemp, Warning, TEXT("%s"), "OnMouseButtonDown right mouse button");
 
-void UItemSlotWidget::Init(UInventoryManagerWidget * _inventoryManager, FItemStack* itemStack){
-	inventoryManager = _inventoryManager;
+	if (inventoryManager) {
+		FItemStack* mouseStack = inventoryManager->GetMouseStack();
+		FItemStack* slotStack = itemStackWidget->GetItemStack();
+
+		if (mouseStack->isEmpty()) {
+			if (slotStack->IsValid()) {
+				slotStack->PullHalf(*mouseStack);
+			}
+		}else{
+			if (slotStack->isEmpty() || slotStack->GetItemId() == mouseStack->GetItemId()) {
+				mouseStack->PullTo(*slotStack, 1);
+			}
+		}
+
+		itemStackWidget->RefreshStack();
+		inventoryManager->RefreshMouseStackWidget();
+	}
+}
+
+
+void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget, FItemStack* itemStack){
+	inventoryWidget = _inventoryWidget;
+	inventoryManager = inventoryWidget->GetInventoryManager();
 
 	if (itemStackWidget) {
 		itemStackWidget->Init(itemStack);

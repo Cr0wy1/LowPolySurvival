@@ -22,9 +22,7 @@ void UItemStackWidget::RefreshStack(){
 
 	if (!itemImage || !amountText) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *itemStack->ToString());
-
-	if (itemStack && itemStack->itemInfo) {
+	if (itemStack && itemStack->IsValid()) {
 		
 		amountText->SetText(FText::FromString(FString::FromInt(itemStack->amount)));
 		itemImage->SetBrushFromTexture(itemStack->itemInfo->texture);

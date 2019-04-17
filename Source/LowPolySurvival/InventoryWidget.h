@@ -28,9 +28,8 @@ class LOWPOLYSURVIVAL_API UInventoryWidget : public UHUDWidget
 
 protected:
 
-	//Stack for mouse slot
-	FItemStack * mouseStack;
-	
+	bool bIsPlayerInventory = false;
+	UInventoryManagerWidget* inventoryManager;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
 	TSubclassOf<UItemSlotWidget> itemSlotWidget_W;
@@ -38,8 +37,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
 	TSubclassOf<UItemStackWidget> itemStackWidget_W;
 
-	UItemStackWidget* itemStackHolder;
-	UCanvasPanelSlot* stackHolderSlot;
 	
 	TArray<UItemSlotWidget*> slots;
 
@@ -58,18 +55,20 @@ protected:
 
 public:
 
-	bool bMouseIsHoldingStack = false;
 
 	virtual bool  Initialize() override;
 
+	virtual void NativeTick(const FGeometry & MyGeometry, float InDeltaTime) override;
+
 
 	void CloseInventory();
-	void Init(TArray<FItemStack> &itemStacks, UInventoryManagerWidget* inventoryManager);
-	void MouseTakeStack(FItemStack &itemStack);
+	void Init(TArray<FItemStack> &itemStacks, UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory = false);
+	void Refresh();
 
 	void Show();
 	void Hide();
 
-	FItemStack* GetMouseStack() const;
+	UInventoryManagerWidget* GetInventoryManager() const;
+	bool IsPlayerInventory()const;
 	
 };

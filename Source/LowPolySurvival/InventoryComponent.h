@@ -49,9 +49,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	
-	void AddStack(FItemStack &itemstack);
+	bool AddStack(FItemStack &itemstack);
 	bool AddToExistingStacks(FItemStack &itemstack);
-	void AddToEmptySlots(FItemStack &itemstack);
+	bool AddToEmptySlots(FItemStack &itemstack);
 
 	EInvType GetInvType() const;
 	TArray<FItemStack>& GetItemStacksRef();

@@ -30,15 +30,15 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 }
 
 
-void UInventoryComponent::AddStack(FItemStack &itemstack) {
+bool UInventoryComponent::AddStack(FItemStack &itemstack) {
 
 	if (!AddToExistingStacks(itemstack)) {
-		AddToEmptySlots(itemstack);
+		if (AddToEmptySlots(itemstack)) {
+			return true;
+		}
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *stackSlots[0].ToString() );
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *stackSlots[1].ToString());
-
+	return false;
 }
 
 bool UInventoryComponent::AddToExistingStacks(FItemStack &itemstack) {
@@ -51,14 +51,18 @@ bool UInventoryComponent::AddToExistingStacks(FItemStack &itemstack) {
 	return false;
 }
 
-void UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
+bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 	for (size_t i = 0; i < slotNum; ++i) {
 		if (stackSlots[i].isEmpty()) {
 			stackSlots[i] = itemstack;
+			itemstack.Clear();
+			return true;
 			break;
 		}
 
 	}
+
+	return false;
 }
 
 EInvType UInventoryComponent::GetInvType() const{

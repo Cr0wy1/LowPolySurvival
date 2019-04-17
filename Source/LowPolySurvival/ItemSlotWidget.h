@@ -26,6 +26,7 @@ class LOWPOLYSURVIVAL_API UItemSlotWidget : public UHUDWidget
 protected:
 	bool bIsEmpty = true;
 
+	UInventoryWidget* inventoryWidget;
 	UInventoryManagerWidget* inventoryManager;
 
 	size_t index = 0;
@@ -37,8 +38,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stack")
 	TSubclassOf<UItemStackWidget> itemStackWidget_W;
 
-	UFUNCTION()
-	void OnPressed();
+
+	void OnLeftClick(const FPointerEvent & MouseEvent);
+	void OnRightClick(const FPointerEvent & MouseEvent);
 	
 public:
 
@@ -46,8 +48,11 @@ public:
 
 	virtual bool  Initialize() override;
 
+	UFUNCTION()
+	FEventReply OnPreviewMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
 
-	void Init(UInventoryManagerWidget * _inventoryManager, FItemStack* itemStack);
+
+	void Init(UInventoryWidget * _inventoryWidget, FItemStack* itemStack);
 
 	bool IsEmpty() const;
 	void RefreshSlot();

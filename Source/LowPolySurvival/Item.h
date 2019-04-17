@@ -46,10 +46,16 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 		return GetItemId() == otherStack.GetItemId();
 	}
 
+	void Clear() {
+		itemInfo = nullptr;
+		amount = 0;
+	}
+
 	bool Fill(FItemStack &otherStack) {
 
 		if (CompareIds(otherStack)) {
 			amount += otherStack.amount;
+			otherStack.Clear();
 			return true;
 		}
 
@@ -69,6 +75,26 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 		return str;
 	}
 
+	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1) {
+		//if (GetItemId() == otherStack.GetItemId()) {
+			if (itemsAmount > amount) {
+				itemsAmount = amount;
+			}
+			amount -= itemsAmount;
+			otherStack.amount += itemsAmount;
+			otherStack.itemInfo = itemInfo;
+
+			if (amount < 1) {
+				Clear();
+			}
+		//}
+	}
+
+	void PullHalf(FItemStack &otherStack) {
+		int32 half = FMath::CeilToInt((float)amount / 2.0f);
+		PullTo(otherStack, half);
+	}
+
 	FItemStack& Set(FItemStack &otherStack) {
 		itemInfo = otherStack.itemInfo;
 		amount = otherStack.amount;
@@ -83,6 +109,10 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	int32 GetItemId() const {
 		return itemInfo ? itemInfo->itemid : 0;
+	}
+
+	bool IsValid() const {
+		return itemInfo && amount > 0;
 	}
 
 };

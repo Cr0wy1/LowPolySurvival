@@ -17,6 +17,7 @@ class UItemStackWidget;
 class UCanvasPanelSlot;
 class UCanvasPanel;
 struct FItemStack;
+
 /**
  * 
  */
@@ -32,9 +33,13 @@ protected:
 	FItemStack * mouseStack;
 
 	bool bMouseIsHoldingStack = false;
-	UCanvasPanelSlot* stackHolderSlot;
-	UItemStackWidget* stackHolder;
+	//bool bIsShiftHolding = false;
+	UCanvasPanelSlot* mouseStackCanvasSlot;
+	UItemStackWidget* mouseStackWidget;
+
 	UInventoryComponent* playerInventory;
+	UInventoryComponent* currentInventory;
+	UInventoryWidget* currentInvWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
 	TSubclassOf<UItemStackWidget> itemStackWidget_W;
@@ -63,6 +68,10 @@ public:
 
 	void Init(UInventoryComponent* _playerInventory);
 	void ShowInventory(UInventoryComponent* inventory);
-	void MouseTakeStack(FItemStack &itemStack);
+	void RefreshMouseStackWidget();
+	bool AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory = true);
+
+	bool IsHoldingStack() const;
+	FItemStack* GetMouseStack() const;
 	
 };
