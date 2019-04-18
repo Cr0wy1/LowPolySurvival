@@ -11,33 +11,34 @@
 #include "CanvasPanelSlot.h"
 #include "Button.h"
 #include "InventoryManagerWidget.h"
+#include "InventoryComponent.h"
 
 
 bool UInventoryWidget::Initialize(){
 	Super::Initialize();
 
-	if (WidgetTree) {
+	//if (WidgetTree) {
 
-		if (itemSlotWidget_W && grid) {
+	//	if (bGenerateInventory) {
+	//		if (itemSlotWidget_W && grid) {
 
-			for (size_t r = 0; r < rows; r++) {
-				for (size_t c = 0; c < cols; c++) {
-					slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
-					slots.Last()->SetIndex(r*cols + c);
-					UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
+	//			for (size_t r = 0; r < rows; r++) {
+	//				for (size_t c = 0; c < cols; c++) {
+	//					slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
+	//					slots.Last()->SetIndex(r*cols + c);
+	//					UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
 
-					slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-					slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-					slot->Row = r;
-					slot->Column = c;
-				}
+	//					slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+	//					slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+	//					slot->Row = r;
+	//					slot->Column = c;
+	//				}
 
-			}
-		}
-	
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Check"));
+	//			}
+	//		}
+	//	}
+	//
+	//}
 
 
 
@@ -58,15 +59,19 @@ void UInventoryWidget::CloseInventory(){
 	playerController->SetInputMode(FInputModeGameOnly());
 }
 
-void UInventoryWidget::Init(TArray<FItemStack>& itemStacks, UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory){
+void UInventoryWidget::Init(UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory, UInventoryComponent* bindInventory){
 
 	inventoryManager = _inventoryManager;
 	bIsPlayerInventory = isPlayerInventory;
+	bindedInventory = bindInventory;
 
-	for (size_t i = 0; i < itemStacks.Num(); i++){
-		slots[i]->Init(this, &itemStacks[i]);
+}
+
+void UInventoryWidget::BindToInventory(UInventoryComponent * inventoryComp){
+	TArray<FItemStack>* itemStacks = &inventoryComp->GetItemStacksRef();
+	for (size_t i = 0; i < itemStacks->Num(); i++) {
+		slots[i]->BindToStack(&(*itemStacks)[i]);
 	}
-
 
 }
 
@@ -94,6 +99,31 @@ bool UInventoryWidget::IsPlayerInventory() const
 {
 	return bIsPlayerInventory;
 }
+
+void UInventoryWidget::AddItemSlotWidget(UItemSlotWidget * itemSlotWidget){
+	slots.Add(itemSlotWidget);
+}
+
+void UInventoryWidget::AddItemSlotWidgets(const TArray<UItemSlotWidget*>& _slots){
+	slots.Append(_slots);
+}
+
+void UInventoryWidget::SetItemSlotWidgetArray(const TArray<UItemSlotWidget*>& _slots){
+	slots = _slots;
+}
+
+void UInventoryWidget::OnSlotArrayReady(){
+	bIsSlotArrayReady = true;
+
+	for (size_t i = 0; i < slots.Num(); i++) {
+		slots[i]->Init(this);
+	}
+
+	if (bindedInventory) {
+		BindToInventory(bindedInventory);
+	}
+}
+
 
 
 

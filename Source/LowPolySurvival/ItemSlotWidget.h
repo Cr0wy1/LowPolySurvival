@@ -51,15 +51,21 @@ public:
 	UFUNCTION()
 	FEventReply OnPreviewMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
 
+	UFUNCTION()
+	void OnHovered();
 
-	void Init(UInventoryWidget * _inventoryWidget, FItemStack* itemStack);
+	UFUNCTION()
+	void OnUnhovered();
+
+
+	void Init(UInventoryWidget * _inventoryWidget);
+	void BindToStack(FItemStack* itemStack);
 
 	bool IsEmpty() const;
 	void RefreshSlot();
 	void SetIndex(size_t _index);
 
-	
-
+	FItemStack* GetItemStack() const;
 
 	
 };

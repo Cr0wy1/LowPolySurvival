@@ -22,7 +22,7 @@ class ALowPolySurvivalCharacter : public ACharacter
 	GENERATED_BODY()
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
+	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
 	class USkeletalMeshComponent* Mesh1P;
 
 
@@ -38,8 +38,18 @@ public:
 
 protected:
 
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class UStaticMeshComponent* meshRightHand;
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	class UInventoryComponent* inventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	class UInventoryComponent* quickInventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	class UInventoryComponent* equipmentInventory;
 
 
 	virtual void BeginPlay();
@@ -76,6 +86,8 @@ protected:
 	//cooldown for PrimaryHit
 	float primaryHitCooldown = 0.2f;
 	float nextHitSeconds = 0;
+
+	FItemStack* rightHandStack = nullptr;
 	
 	//Widgets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
@@ -83,6 +95,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UInventoryManagerWidget> inventoryManager_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimationAsset* hitAnimation;
 
 	UPlayerHUDWidget* playerHUDWidget = nullptr;
 	UInventoryManagerWidget* inventoryManager = nullptr;
@@ -98,6 +113,11 @@ protected:
 	void ToggleInventory();
 
 	void OnInteraction();
+
+	void OnScrollDown();
+	void OnScrollUp();
+
+	void UpdateMeshRightHand();
 
 
 	//MOVEMENT

@@ -14,6 +14,7 @@
 #include "InventoryWidget.h"
 #include "InventoryComponent.h"
 #include "InventoryManagerWidget.h"
+#include "Components/StaticMeshComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -44,9 +45,14 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 
-	//Inventory
-	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
+	meshRightHand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Right Hand"));
+	meshRightHand->SetupAttachment(Mesh1P, FName("tool_socket"));
 	
+
+	//Inventoriesy
+	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
+	quickInventory = CreateDefaultSubobject<UInventoryComponent>("Quick Inventory");
+	equipmentInventory = CreateDefaultSubobject<UInventoryComponent>("Equipment Inventory");
 	
 }
 
@@ -66,16 +72,22 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller->GetViewportSize(viewX, viewY);
 	//CreateWidget(controller, )
 
-	if (playerHUDWidget_BP) {
-		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
-		playerHUDWidget->AddToViewport();
-	}
+	meshRightHand->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("hand_R_tool"));
 
-	if (inventoryManager_BP) {
+
+	if (inventoryManager_BP && playerHUDWidget_BP) {
 		inventoryManager = CreateWidget<UInventoryManagerWidget>(controller, inventoryManager_BP);
-		inventoryManager->Init(inventory);
+		inventoryManager->Init(inventory, quickInventory, equipmentInventory);
+		
+
+		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
+		playerHUDWidget->BindQuickSlot(quickInventory, inventoryManager);
+
+
+		playerHUDWidget->AddToViewport();
 		inventoryManager->AddToViewport();
 	}
+
 }
 
 void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
@@ -145,6 +157,9 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
 	PlayerInputComponent->BindAction("SecondaryAction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnInteraction);
 
+	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
+	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
+
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
@@ -166,6 +181,12 @@ void ALowPolySurvivalCharacter::OnHit(){
 		building->ApplyDamage(10, this);
 	}
 
+	if (hitAnimation) {
+		Mesh1P->PlayAnimation(hitAnimation, false);
+		
+		Mesh1P->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	}
+	
 	
 }
 
@@ -181,7 +202,7 @@ FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
 	GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_WorldStatic);
 
 	if (hitResult.GetActor()) {
-		DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 
 	}
 
@@ -210,6 +231,29 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 		building->Interact(this);
 	}
 	
+}
+
+void ALowPolySurvivalCharacter::OnScrollDown(){
+
+	rightHandStack = playerHUDWidget->OnScrollDown();
+	UpdateMeshRightHand();
+}
+
+void ALowPolySurvivalCharacter::OnScrollUp(){
+
+	rightHandStack = playerHUDWidget->OnScrollUp();
+	UpdateMeshRightHand();
+}
+
+void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
+
+	if (rightHandStack && rightHandStack->IsValid()) {
+		meshRightHand->SetStaticMesh(rightHandStack->itemInfo->mesh);
+		meshRightHand->SetVisibility(true);
+	}
+	else {
+		meshRightHand->SetVisibility(false);
+	}
 }
 
 

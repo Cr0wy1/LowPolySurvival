@@ -46,10 +46,13 @@ FEventReply UInventoryManagerWidget::OnMouseMove(FGeometry MyGeometry, const FPo
 	return FEventReply(true);
 }
 
-void UInventoryManagerWidget::Init(UInventoryComponent * _playerInventory){
+void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory){
 	playerInventory = _playerInventory;
-
-
+	quickSlotInventory = _quickSlotInventory;
+	equipmentInventory = _equipmentInventory;
+	playerInv->Init(this, true);
+	playerQuickInv->Init(this, true);
+	chestInv->Init(this, false);
 }
 
 void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
@@ -60,7 +63,9 @@ void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
 
 	if (playerInv) {
 		playerInv->Show();
-		playerInv->Init(playerInventory->GetItemStacksRef(), this, true);
+		playerInv->BindToInventory(playerInventory);
+		playerQuickInv->BindToInventory(quickSlotInventory);
+
 		SetUserFocus(GetOwningPlayer());
 	}
 
@@ -76,7 +81,7 @@ void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
 		if (chestInv) {
 			currentInvWidget = chestInv;
 			chestInv->Show();
-			chestInv->Init(inventory->GetItemStacksRef(), this, false);
+			chestInv->BindToInventory(inventory);
 			
 		}
 

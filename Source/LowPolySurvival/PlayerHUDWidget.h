@@ -10,6 +10,8 @@
 
 
 class UInventoryWidget;
+class UInventoryManagerWidget;
+class UQuickSlotsWidget;
 /**
  * 
  */
@@ -21,10 +23,14 @@ class LOWPOLYSURVIVAL_API UPlayerHUDWidget : public UHUDWidget
 
 protected:
 
-	//virtual void NativeTick(const FGeometry &MyGeometry, float InDeltaTime) override;
+	UPROPERTY(meta = (BindWidget))
+	UQuickSlotsWidget* playerQuickInv;
 
 	
 public:
 	
-	
+	void BindQuickSlot(UInventoryComponent *quickInvComp, UInventoryManagerWidget* _inventoryManager);
+
+	FItemStack* OnScrollDown();
+	FItemStack* OnScrollUp();
 };

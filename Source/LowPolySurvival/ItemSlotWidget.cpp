@@ -18,7 +18,9 @@ bool  UItemSlotWidget::Initialize() {
 
 	if (WidgetTree && itemStackWidget_W && rootButton) {
 		
-		//rootButton->OnPressed.AddDynamic(this, &UItemSlotWidget::OnPressed);
+		rootButton->OnHovered.AddDynamic(this, &UItemSlotWidget::OnHovered);
+		rootButton->OnUnhovered.AddDynamic(this, &UItemSlotWidget::OnUnhovered);
+		
 		itemStackWidget = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
 		
 
@@ -46,6 +48,16 @@ FEventReply UItemSlotWidget::OnPreviewMouseButtonDown(FGeometry MyGeometry, cons
 
 
 	return FEventReply(true);
+}
+
+void UItemSlotWidget::OnHovered(){
+	itemStackWidget->SetRenderScale(FVector2D(1.2f, 1.2f));
+
+}
+
+void UItemSlotWidget::OnUnhovered() {
+	itemStackWidget->SetRenderScale(FVector2D(1.0f, 1.0f));
+
 }
 
 
@@ -108,10 +120,13 @@ void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
 }
 
 
-void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget, FItemStack* itemStack){
+void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget){
 	inventoryWidget = _inventoryWidget;
 	inventoryManager = inventoryWidget->GetInventoryManager();
 
+}
+
+void UItemSlotWidget::BindToStack(FItemStack * itemStack){
 	if (itemStackWidget) {
 		itemStackWidget->Init(itemStack);
 	}
@@ -134,4 +149,8 @@ void UItemSlotWidget::RefreshSlot(){
 
 void UItemSlotWidget::SetIndex(size_t _index){
 	index = _index;
+}
+
+FItemStack * UItemSlotWidget::GetItemStack() const{
+	return itemStackWidget->GetItemStack();
 }

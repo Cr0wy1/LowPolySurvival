@@ -34,6 +34,8 @@ void UItemStackWidget::RefreshStack(){
 
 }
 
+
+
 void UItemStackWidget::SetItemStack(FItemStack & _itemStack){
 	*itemStack = _itemStack;
 }

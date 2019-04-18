@@ -25,6 +25,9 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* texture;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMesh* mesh;
+
 };
 
 

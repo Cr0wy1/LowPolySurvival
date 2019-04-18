@@ -38,6 +38,9 @@ protected:
 	UItemStackWidget* mouseStackWidget;
 
 	UInventoryComponent* playerInventory;
+	UInventoryComponent* quickSlotInventory;
+	UInventoryComponent* equipmentInventory;
+
 	UInventoryComponent* currentInventory;
 	UInventoryWidget* currentInvWidget;
 
@@ -49,6 +52,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* playerInv;
+
+	UPROPERTY(meta = (BindWidget))
+	UInventoryWidget* playerQuickInv;
 
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* chestInv;
@@ -66,7 +72,7 @@ public:
 	UFUNCTION()
 	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
 
-	void Init(UInventoryComponent* _playerInventory);
+	void Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory);
 	void ShowInventory(UInventoryComponent* inventory);
 	void RefreshMouseStackWidget();
 	bool AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory = true);

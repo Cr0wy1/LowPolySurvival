@@ -17,6 +17,8 @@ class UCanvasPanel;
 class UCanvasPanelSlot;
 class UButton;
 class UInventoryManagerWidget;
+class UInventoryComponent;
+
 /**
  * 
  */
@@ -29,29 +31,12 @@ class LOWPOLYSURVIVAL_API UInventoryWidget : public UHUDWidget
 protected:
 
 	bool bIsPlayerInventory = false;
+	bool bIsSlotArrayReady = false;
 	UInventoryManagerWidget* inventoryManager;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
-	TSubclassOf<UItemSlotWidget> itemSlotWidget_W;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
-	TSubclassOf<UItemStackWidget> itemStackWidget_W;
-
+	UInventoryComponent* bindedInventory = nullptr;
 	
 	TArray<UItemSlotWidget*> slots;
 
-
-	UPROPERTY(EditAnywhere)
-	int32 rows = 4;
-
-	UPROPERTY(EditAnywhere)
-	int32 cols = 4;
-
-	//UPROPERTY(meta = (BindWidget))
-	//UCanvasPanel* root;
-
-	UPROPERTY(meta = (BindWidget))
-	UUniformGridPanel *grid;
 
 public:
 
@@ -62,7 +47,9 @@ public:
 
 
 	void CloseInventory();
-	void Init(TArray<FItemStack> &itemStacks, UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory = false);
+	void Init(UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory = false, UInventoryComponent* bindInventory = nullptr);
+	void BindToInventory(UInventoryComponent* inventoryComp);
+	
 	void Refresh();
 
 	void Show();
@@ -70,5 +57,17 @@ public:
 
 	UInventoryManagerWidget* GetInventoryManager() const;
 	bool IsPlayerInventory()const;
+
+	UFUNCTION(BlueprintCallable)
+	void AddItemSlotWidget(UItemSlotWidget* itemSlotWidget);
+
+	UFUNCTION(BlueprintCallable)
+	void AddItemSlotWidgets(const TArray<UItemSlotWidget*> &_slots);
+
+	UFUNCTION(BlueprintCallable)
+	void SetItemSlotWidgetArray(const TArray<UItemSlotWidget*> &_slots);
+
+	UFUNCTION(BlueprintCallable)
+	void OnSlotArrayReady();
 	
 };
