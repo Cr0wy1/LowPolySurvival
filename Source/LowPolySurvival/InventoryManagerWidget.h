@@ -16,6 +16,7 @@ enum class EInvType : uint8;
 class UItemStackWidget;
 class UCanvasPanelSlot;
 class UCanvasPanel;
+class UQuickSlotsWidget;
 struct FItemStack;
 
 /**
@@ -37,12 +38,14 @@ protected:
 	UCanvasPanelSlot* mouseStackCanvasSlot;
 	UItemStackWidget* mouseStackWidget;
 
-	UInventoryComponent* playerInventory;
-	UInventoryComponent* quickSlotInventory;
-	UInventoryComponent* equipmentInventory;
+	UInventoryComponent* playerInventoryComp;
+	UInventoryComponent* quickSlotInventoryComp;
+	UInventoryComponent* equipmentInventoryComp;
 
-	UInventoryComponent* currentInventory;
+	UInventoryComponent* currentInventoryComp;
 	UInventoryWidget* currentInvWidget;
+
+	UQuickSlotsWidget* inGameInventoryQuickWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
 	TSubclassOf<UItemStackWidget> itemStackWidget_W;
@@ -57,7 +60,12 @@ protected:
 	UInventoryWidget* playerQuickInv;
 
 	UPROPERTY(meta = (BindWidget))
+	UInventoryWidget* playerEquipInv;
+
+	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* chestInv;
+
+	
 
 
 
@@ -72,7 +80,7 @@ public:
 	UFUNCTION()
 	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
 
-	void Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory);
+	void Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget = nullptr);
 	void ShowInventory(UInventoryComponent* inventory);
 	void RefreshMouseStackWidget();
 	bool AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory = true);

@@ -19,7 +19,7 @@ bool UItemSlotGridWidget::Initialize() {
 				for (size_t r = 0; r < rows; r++) {
 					for (size_t c = 0; c < cols; c++) {
 						slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
-						slots.Last()->SetIndex(r*cols + c);
+						
 						UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
 
 						slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);

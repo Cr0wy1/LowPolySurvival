@@ -15,6 +15,7 @@
 #include "InventoryComponent.h"
 #include "InventoryManagerWidget.h"
 #include "Components/StaticMeshComponent.h"
+#include "AttributeComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -50,10 +51,13 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	
 
 	//Inventoriesy
-	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
-	quickInventory = CreateDefaultSubobject<UInventoryComponent>("Quick Inventory");
-	equipmentInventory = CreateDefaultSubobject<UInventoryComponent>("Equipment Inventory");
+	inventoryComp = CreateDefaultSubobject<UInventoryComponent>("Inventory");
+	quickInventoryComp = CreateDefaultSubobject<UInventoryComponent>("Quick Inventory");
+	equipmentInventoryComp = CreateDefaultSubobject<UInventoryComponent>("Equipment Inventory");
 	
+
+	//Attributes
+	attributeComp = CreateDefaultSubobject<UAttributeComponent>("Attributes");
 }
 
 
@@ -77,22 +81,23 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 
 	if (inventoryManager_BP && playerHUDWidget_BP) {
 		inventoryManager = CreateWidget<UInventoryManagerWidget>(controller, inventoryManager_BP);
-		inventoryManager->Init(inventory, quickInventory, equipmentInventory);
-		
-
 		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
-		playerHUDWidget->BindQuickSlot(quickInventory, inventoryManager);
 
+		inventoryManager->Init(inventoryComp, quickInventoryComp, equipmentInventoryComp, playerHUDWidget->playerQuickInv);
+		playerHUDWidget->Init(&attributeComp->GetAttributesRef());
+
+		playerHUDWidget->BindQuickSlot(quickInventoryComp, inventoryManager);
 
 		playerHUDWidget->AddToViewport();
 		inventoryManager->AddToViewport();
 	}
 
+
 }
 
 void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 
-	inventory->AddStack(itemstack);
+	inventoryComp->AddStack(itemstack);
 
 }
 
@@ -102,6 +107,13 @@ void ALowPolySurvivalCharacter::OpenInventory(UInventoryComponent* inventoryComp
 		inventoryManager->ShowInventory(inventoryComp);
 	}
 	
+}
+
+void ALowPolySurvivalCharacter::ApplyDamage(int32 amount, AActor * causer){
+
+	attributeComp->RemoveHealth(amount);
+
+	playerHUDWidget->UpdateHealth();
 }
 
 APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
@@ -187,6 +199,7 @@ void ALowPolySurvivalCharacter::OnHit(){
 		Mesh1P->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	}
 	
+	ApplyDamage(1);
 	
 }
 
@@ -219,7 +232,7 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
-	inventoryManager->ShowInventory(inventory);
+	inventoryManager->ShowInventory(inventoryComp);
 }
 
 void ALowPolySurvivalCharacter::OnInteraction(){
@@ -254,6 +267,11 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 	else {
 		meshRightHand->SetVisibility(false);
 	}
+}
+
+int32 ALowPolySurvivalCharacter::GetPlayerHealth() const
+{
+	return attributes.health;
 }
 
 

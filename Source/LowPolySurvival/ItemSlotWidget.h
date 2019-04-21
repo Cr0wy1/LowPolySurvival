@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "HUDWidget.h"
+#include "Item.h"
 #include "ItemSlotWidget.generated.h"
 
 
 class UButton;
 class UImage;
-struct FItemInfo;
-struct FItemStack;
 class UItemStackWidget;
 class UInventoryWidget;
 class UInventoryManagerWidget;
@@ -29,15 +28,21 @@ protected:
 	UInventoryWidget* inventoryWidget;
 	UInventoryManagerWidget* inventoryManager;
 
-	size_t index = 0;
+	FItemStack* mouseStack;
+	FItemStack* slotStack;
+
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* rootButton;
+
+	UPROPERTY(meta = (BindWidget))
 	UItemStackWidget* itemStackWidget = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stack")
-	TSubclassOf<UItemStackWidget> itemStackWidget_W;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
+	EItemType limitedItemType = EItemType::NONE;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
+	UTexture2D* slotImageOverride;
 
 	void OnLeftClick(const FPointerEvent & MouseEvent);
 	void OnRightClick(const FPointerEvent & MouseEvent);
@@ -63,7 +68,6 @@ public:
 
 	bool IsEmpty() const;
 	void RefreshSlot();
-	void SetIndex(size_t _index);
 
 	FItemStack* GetItemStack() const;
 

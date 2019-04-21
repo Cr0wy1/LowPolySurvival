@@ -12,9 +12,27 @@ class UPlayerHUDWidget;
 class UInventoryManagerWidget;
 class UItem;
 class UInventoryComponent;
+class UAttributeComponent;
 struct FItemInfo;
 struct FItemStack;
 enum class EInvType : uint8;
+
+
+
+USTRUCT()
+struct FPlayerAttributes {
+
+	GENERATED_BODY()
+
+	int32 health = 100;
+	int32 stamina = 100;
+	int32 food = 100;
+	int32 thirstSaturation = 100;
+	int32 hungerSaturation = 100;
+
+};
+
+
 
 UCLASS(config=Game)
 class ALowPolySurvivalCharacter : public ACharacter
@@ -43,13 +61,16 @@ protected:
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	class UInventoryComponent* inventory;
+	UInventoryComponent* inventoryComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	class UInventoryComponent* quickInventory;
+	UInventoryComponent* quickInventoryComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	class UInventoryComponent* equipmentInventory;
+	UInventoryComponent* equipmentInventoryComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UAttributeComponent* attributeComp;
 
 
 	virtual void BeginPlay();
@@ -66,6 +87,8 @@ public:
 	void AddItemStackToInventory(FItemStack &itemstack);
 
 	void OpenInventory(UInventoryComponent* inventoryComp);
+
+	void ApplyDamage(int32 amount, AActor * causer = nullptr);
 
 	APlayerController* GetPlayerController() const;
 
@@ -88,6 +111,9 @@ protected:
 	float nextHitSeconds = 0;
 
 	FItemStack* rightHandStack = nullptr;
+
+	//Attributes
+	FPlayerAttributes attributes;
 	
 	//Widgets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
@@ -118,6 +144,8 @@ protected:
 	void OnScrollUp();
 
 	void UpdateMeshRightHand();
+
+	int32 GetPlayerHealth() const;
 
 
 	//MOVEMENT

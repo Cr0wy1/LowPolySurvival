@@ -11,6 +11,20 @@ class UTexture2D;
 class UStaticMeshComponent;
 
 
+UENUM(BlueprintType)
+enum class EItemType : uint8 {
+	NONE,
+	BLOCK,
+	ORE,
+	CONSUMABLE,
+	TOOL,
+	HELM,
+	CHEST,
+	LEGS,
+	BOOTS
+};
+
+
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 
@@ -21,6 +35,12 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 stacksize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EItemType type;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* texture;
@@ -57,9 +77,22 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	bool Fill(FItemStack &otherStack) {
 
 		if (CompareIds(otherStack)) {
-			amount += otherStack.amount;
-			otherStack.Clear();
-			return true;
+
+			int32 tempAmount = amount + otherStack.amount;
+
+			if (tempAmount > itemInfo->stacksize) {
+				amount = itemInfo->stacksize;
+				otherStack.amount = tempAmount - itemInfo->stacksize;
+
+				return false;
+			}
+			else {
+				amount = tempAmount;
+				otherStack.Clear();
+
+				return true;
+			}
+
 		}
 
 		return false;

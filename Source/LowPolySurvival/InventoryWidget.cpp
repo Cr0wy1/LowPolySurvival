@@ -69,10 +69,10 @@ void UInventoryWidget::Init(UInventoryManagerWidget* _inventoryManager, bool isP
 
 void UInventoryWidget::BindToInventory(UInventoryComponent * inventoryComp){
 	TArray<FItemStack>* itemStacks = &inventoryComp->GetItemStacksRef();
-	for (size_t i = 0; i < itemStacks->Num(); i++) {
+	for (size_t i = 0; i < slots.Num() && i < itemStacks->Num(); i++) {
 		slots[i]->BindToStack(&(*itemStacks)[i]);
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("%i"), itemStacks->Num());
 }
 
 void UInventoryWidget::Refresh(){
@@ -120,6 +120,8 @@ void UInventoryWidget::OnSlotArrayReady(){
 	}
 
 	if (bindedInventory) {
+		
+
 		BindToInventory(bindedInventory);
 	}
 }

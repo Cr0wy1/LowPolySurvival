@@ -24,9 +24,17 @@ void UItemStackWidget::RefreshStack(){
 
 	if (itemStack && itemStack->IsValid()) {
 		
-		amountText->SetText(FText::FromString(FString::FromInt(itemStack->amount)));
+		if (itemStack->amount < 2) {
+			amountText->SetText(FText::FromString(""));
+		}
+		else {
+			amountText->SetText(FText::FromString(FString::FromInt(itemStack->amount)));
+		}
+		
+		
 		itemImage->SetBrushFromTexture(itemStack->itemInfo->texture);
 		itemImage->SetColorAndOpacity(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+
 	}else {
 		amountText->SetText(FText::FromString(""));
 		itemImage->SetColorAndOpacity(FLinearColor::Transparent);

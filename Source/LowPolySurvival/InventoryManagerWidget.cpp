@@ -7,6 +7,7 @@
 #include "WidgetTree.h"
 #include "CanvasPanel.h"
 #include "CanvasPanelSlot.h"
+#include "QuickSlotsWidget.h"
 
 
 bool UInventoryManagerWidget::Initialize(){
@@ -20,8 +21,7 @@ bool UInventoryManagerWidget::Initialize(){
 		mouseStackCanvasSlot->SetSize(FVector2D(100, 100));
 	}
 
-	mouseStack = new FItemStack();
-	mouseStackWidget->Init(mouseStack);
+
 
 	return true;
 }
@@ -29,6 +29,7 @@ bool UInventoryManagerWidget::Initialize(){
 FEventReply UInventoryManagerWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
 
 	if (InKeyEvent.GetKey() == EKeys::Tab || InKeyEvent.GetKey() == EKeys::E || InKeyEvent.GetKey() == EKeys::Escape) {
+		inGameInventoryQuickWidget->Show();
 		chestInv->Hide();
 		CloseUI();
 	}
@@ -46,25 +47,34 @@ FEventReply UInventoryManagerWidget::OnMouseMove(FGeometry MyGeometry, const FPo
 	return FEventReply(true);
 }
 
-void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory){
-	playerInventory = _playerInventory;
-	quickSlotInventory = _quickSlotInventory;
-	equipmentInventory = _equipmentInventory;
-	playerInv->Init(this, true);
-	playerQuickInv->Init(this, true);
+void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget){
+	
+	mouseStack = new FItemStack();
+	mouseStackWidget->Init(mouseStack);
+	
+	playerInventoryComp = _playerInventory;
+	quickSlotInventoryComp = _quickSlotInventory;
+	equipmentInventoryComp = _equipmentInventory;
+	inGameInventoryQuickWidget = _inGameQuickInventoryWidget;
+	playerInv->Init(this, true, playerInventoryComp);
+	playerQuickInv->Init(this, true, quickSlotInventoryComp);
+	playerEquipInv->Init(this, true, equipmentInventoryComp);
 	chestInv->Init(this, false);
+	
 }
 
 void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
 	if (!inventory) return;
 
-	currentInventory = inventory;
+	if (inGameInventoryQuickWidget) {
+		inGameInventoryQuickWidget->Hide();
+	}
+
+	currentInventoryComp = inventory;
 	
 
 	if (playerInv) {
 		playerInv->Show();
-		playerInv->BindToInventory(playerInventory);
-		playerQuickInv->BindToInventory(quickSlotInventory);
 
 		SetUserFocus(GetOwningPlayer());
 	}
@@ -80,8 +90,9 @@ void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
 
 		if (chestInv) {
 			currentInvWidget = chestInv;
-			chestInv->Show();
 			chestInv->BindToInventory(inventory);
+			chestInv->Show();
+			
 			
 		}
 
@@ -104,10 +115,10 @@ void UInventoryManagerWidget::RefreshMouseStackWidget(){
 bool UInventoryManagerWidget::AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory) {
 
 	bool bIsAdded = false;
-	UInventoryComponent* targetInventory = playerInventory;
+	UInventoryComponent* targetInventory = playerInventoryComp;
 
 	if (fromPlayerInventory) {
-		targetInventory = currentInventory;
+		targetInventory = currentInventoryComp;
 	}
 
 	bIsAdded = targetInventory->AddStack(*targetStack);
