@@ -84,7 +84,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
 
 		inventoryManager->Init(inventoryComp, quickInventoryComp, equipmentInventoryComp, playerHUDWidget->playerQuickInv);
-		playerHUDWidget->Init(&attributeComp->GetAttributesRef());
+		playerHUDWidget->Init(&attributeComp->GetAttributesRef(), equipmentInventoryComp);
 
 		playerHUDWidget->BindQuickSlot(quickInventoryComp, inventoryManager);
 
@@ -114,6 +114,7 @@ void ALowPolySurvivalCharacter::ApplyDamage(int32 amount, AActor * causer){
 	attributeComp->RemoveHealth(amount);
 
 	playerHUDWidget->UpdateHealth();
+	playerHUDWidget->UpdateArmor();
 }
 
 APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
@@ -261,7 +262,9 @@ void ALowPolySurvivalCharacter::OnScrollUp(){
 void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 	if (rightHandStack && rightHandStack->IsValid()) {
-		meshRightHand->SetStaticMesh(rightHandStack->itemInfo->mesh);
+		if (meshRightHand->GetStaticMesh() != rightHandStack->itemInfo->mesh) {
+			meshRightHand->SetStaticMesh(rightHandStack->itemInfo->mesh);
+		}
 		meshRightHand->SetVisibility(true);
 	}
 	else {

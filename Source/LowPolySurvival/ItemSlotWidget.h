@@ -42,6 +42,9 @@ protected:
 	EItemType limitedItemType = EItemType::NONE;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
+	int32 limitedTypeIndex = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
 	UTexture2D* slotImageOverride;
 
 	void OnLeftClick(const FPointerEvent & MouseEvent);

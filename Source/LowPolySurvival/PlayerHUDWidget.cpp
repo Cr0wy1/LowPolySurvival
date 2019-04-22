@@ -7,9 +7,11 @@
 #include "LowPolySurvivalCharacter.h"
 #include "AttributeComponent.h"
 #include "HeartWidget.h"
+#include "InventoryComponent.h"
 
-void UPlayerHUDWidget::Init(FAttributes * attributes){
+void UPlayerHUDWidget::Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp){
 	playerAttributes = attributes;
+	equipInventoryComp = _equipInventoryComp;
 }
 
 void UPlayerHUDWidget::BindQuickSlot(UInventoryComponent *quickInvComp, UInventoryManagerWidget* _inventoryManager){
@@ -26,7 +28,22 @@ FItemStack* UPlayerHUDWidget::OnScrollUp(){
 
 void UPlayerHUDWidget::UpdateHealth(){
 	heartWidget->SetHeartValues(playerAttributes->health * 0.01, playerAttributes->health);
-	heartWidget->SetArmorPercent(playerAttributes->health * 0.01);
+	
+}
+
+void UPlayerHUDWidget::UpdateArmor(){
+	TArray<FItemStack>* equipArr = &equipInventoryComp->GetItemStacksRef();
+
+	int32 armorCount = 0;
+	for (size_t i = 0; i < equipArr->Num(); ++i){
+		if ((*equipArr)[i].IsValid()) {
+			armorCount += (*equipArr)[i].itemInfo->armor;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("armor %i"), armorCount);
+
+	heartWidget->SetArmorPercent(armorCount * 0.1);
 }
 
 int32 UPlayerHUDWidget::GetPlayerHealth() const

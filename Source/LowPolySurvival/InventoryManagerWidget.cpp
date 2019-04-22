@@ -18,10 +18,13 @@ bool UInventoryManagerWidget::Initialize(){
 		mouseStackCanvasSlot = Cast<UCanvasPanelSlot>(rootCanvas->AddChild(mouseStackWidget));
 		
 		mouseStackCanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-		mouseStackCanvasSlot->SetSize(FVector2D(100, 100));
+		mouseStackCanvasSlot->SetSize(FVector2D(80, 80));
+
+		//mouseStackWidget->SetRenderScale(FVector2D(1.2f, 1.2f));
 	}
 
-
+	mouseStack = new FItemStack();
+	mouseStackWidget->Init(mouseStack);
 
 	return true;
 }
@@ -49,8 +52,7 @@ FEventReply UInventoryManagerWidget::OnMouseMove(FGeometry MyGeometry, const FPo
 
 void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget){
 	
-	mouseStack = new FItemStack();
-	mouseStackWidget->Init(mouseStack);
+
 	
 	playerInventoryComp = _playerInventory;
 	quickSlotInventoryComp = _quickSlotInventory;

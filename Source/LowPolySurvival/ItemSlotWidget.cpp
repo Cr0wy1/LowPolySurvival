@@ -90,10 +90,15 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 			if (mouseStack->IsValid()) {
 
 				if (limitedItemType == EItemType::NONE || limitedItemType == mouseStack->itemInfo->type) {
-					if (!slotStack->Fill(*mouseStack)) {
-						mouseStack->Swap(*slotStack);
+					if (limitedTypeIndex == 0 || mouseStack->itemInfo->typeindex == limitedTypeIndex) {
+
+						if (!slotStack->Fill(*mouseStack)) {
+							mouseStack->Swap(*slotStack);
+						}
+
 					}
 				}
+
 
 			}else {
 				if (slotStack->IsValid()) {
@@ -124,9 +129,15 @@ void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
 			}
 		}else{
 			if (slotStack->isEmpty() || slotStack->GetItemId() == mouseStack->GetItemId()) {
+
 				if (limitedItemType == EItemType::NONE || limitedItemType == mouseStack->itemInfo->type) {
-					mouseStack->PullTo(*slotStack, 1);
+					if (limitedTypeIndex == 0 || mouseStack->itemInfo->typeindex == limitedTypeIndex) {
+
+						mouseStack->PullTo(*slotStack, 1);
+
+					}
 				}
+
 				
 			}
 		}
@@ -141,7 +152,10 @@ void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget){
 	inventoryWidget = _inventoryWidget;
 	inventoryManager = inventoryWidget->GetInventoryManager();
 
-	mouseStack = inventoryManager->GetMouseStack();
+	if (inventoryManager) {
+		mouseStack = inventoryManager->GetMouseStack();
+	}
+	
 	
 
 }

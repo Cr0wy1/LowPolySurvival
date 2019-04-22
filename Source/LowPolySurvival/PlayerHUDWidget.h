@@ -8,7 +8,6 @@
 #include "PlayerHUDWidget.generated.h"
 
 
-
 class UInventoryWidget;
 class UInventoryManagerWidget;
 class UQuickSlotsWidget;
@@ -26,17 +25,18 @@ class LOWPOLYSURVIVAL_API UPlayerHUDWidget : public UHUDWidget
 
 public:
 
+	FAttributes * playerAttributes;
+	UInventoryComponent* equipInventoryComp = nullptr;
+
 	UPROPERTY(meta = (BindWidget))
 	UQuickSlotsWidget* playerQuickInv;
-
-	FAttributes * playerAttributes;
 	
 	UPROPERTY(meta = (BindWidget))
 	UHeartWidget* heartWidget;
 
 public:
 
-	void Init(FAttributes * attributes);
+	void Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp);
 	
 	void BindQuickSlot(UInventoryComponent *quickInvComp, UInventoryManagerWidget* _inventoryManager);
 
@@ -44,6 +44,7 @@ public:
 	FItemStack* OnScrollUp();
 
 	void UpdateHealth();
+	void UpdateArmor();
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerHealth() const;

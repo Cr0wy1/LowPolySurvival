@@ -18,10 +18,51 @@ enum class EItemType : uint8 {
 	ORE,
 	CONSUMABLE,
 	TOOL,
+	ARMOR,
+};
+
+
+UENUM(BlueprintType)
+enum class EArmorType : uint8 {
+	NONE,
 	HELM,
 	CHEST,
 	LEGS,
-	BOOTS
+	BOOTS,
+	CHAIN,
+	RING,
+	BELT,
+};
+
+
+UENUM(BlueprintType)
+enum class EToolType : uint8 {
+	PICKAXE,
+	AXE,
+	SHOVEL,
+};
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FMetaItemInfo : public FTableRowBase {
+
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 itemid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 typeindex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 durability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 armor;
+
 };
 
 
@@ -43,12 +84,27 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	EItemType type;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 typeindex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* texture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* mesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 durability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 armor;
+
 };
+
+
+
 
 
 USTRUCT(BlueprintType)

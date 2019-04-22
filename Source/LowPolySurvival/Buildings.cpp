@@ -40,6 +40,10 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 					FItemStack itemStack;
 					itemStack.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
 					itemStack.amount = rand;
+
+					//UE_LOG(LogTemp, Warning, TEXT("size info: %i, meta: %i, name: %i"), sizeof(itemStack.itemInfo), sizeof(itemStack.itemInfo->meta), sizeof(itemStack.itemInfo->name));
+
+
 					player->AddItemStackToInventory(itemStack);
 				}
 			}
