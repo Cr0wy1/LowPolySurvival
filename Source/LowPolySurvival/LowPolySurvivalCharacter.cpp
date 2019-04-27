@@ -102,7 +102,7 @@ void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 }
 
 void ALowPolySurvivalCharacter::OpenInventory(UInventoryComponent* inventoryComp){
-	UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
+	UE_LOG(LogTemp, Warning, TEXT("Open Inventory"));
 	if (inventoryManager) {
 		inventoryManager->ShowInventory(inventoryComp);
 	}
@@ -233,6 +233,8 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
+	UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
+
 	inventoryManager->ShowInventory(inventoryComp);
 }
 

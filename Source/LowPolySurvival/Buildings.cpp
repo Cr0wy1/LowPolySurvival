@@ -34,7 +34,7 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 		if (itemDataTable) {
 			for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
 
-				int32 rand = FMath::Rand() % dropInfo->itemId[i].amount;
+				int32 rand = FMath::Rand() % (dropInfo->itemId[i].amount + 1);
 
 				if (rand != 0) {
 					FItemStack itemStack;

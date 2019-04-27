@@ -34,7 +34,8 @@ protected:
 	FItemStack * mouseStack;
 
 	bool bMouseIsHoldingStack = false;
-	//bool bIsShiftHolding = false;
+	bool bIsOtherInventoryOpen = false;
+	
 	UCanvasPanelSlot* mouseStackCanvasSlot;
 	UItemStackWidget* mouseStackWidget;
 
@@ -79,6 +80,8 @@ public:
 
 	UFUNCTION()
 	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
+
+	void OnShiftLeftClick(FItemStack* clickedStack, UInventoryWidget* clickedInventoryWidget);
 
 	void Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget = nullptr);
 	void ShowInventory(UInventoryComponent* inventory);

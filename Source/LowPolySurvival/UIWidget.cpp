@@ -17,7 +17,9 @@ void UUIWidget::OpenUI(){
 		SetUserFocus(playerController);
 		SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
+	bIsUIOpen = true;
 }
+
 
 void UUIWidget::CloseUI(){
 	APlayerController* playerController = GetOwningPlayer();
@@ -26,4 +28,11 @@ void UUIWidget::CloseUI(){
 		playerController->bShowMouseCursor = false;
 		SetVisibility(ESlateVisibility::Collapsed);
 	}
+	bIsUIOpen = false;
 }
+
+bool UUIWidget::IsUIOpen() const
+{
+	return bIsUIOpen;
+}
+

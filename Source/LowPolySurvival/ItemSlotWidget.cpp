@@ -10,6 +10,7 @@
 #include "InventoryWidget.h"
 #include "InventoryManagerWidget.h"
 #include "Engine/Texture2D.h"
+#include "InventoryComponent.h"
 
 
 
@@ -26,8 +27,8 @@ bool  UItemSlotWidget::Initialize() {
 		//itemStackWidget = WidgetTree->ConstructWidget<UItemStackWidget>(itemStackWidget_W);
 		
 
-		//UButtonSlot* buttonSlot = Cast<UButtonSlot>(rootButton->AddChild(itemStackWidget));
-
+		UButtonSlot* buttonSlot = Cast<UButtonSlot>(itemStackWidget->Slot);
+		buttonSlot->SetPadding(FMargin(slotPaddingOverride));
 		//buttonSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 		//buttonSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
 
@@ -75,13 +76,18 @@ void UItemSlotWidget::OnUnhovered() {
 
 
 void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
+
+	UE_LOG(LogTemp, Warning, TEXT("%i"), index);
+
 	
-	if (inventoryManager) {
+	if (inventoryManager && inventoryWidget->bindedInventory) {
 
 		if (MouseEvent.IsLeftShiftDown()) {
 			
 			if (slotStack->IsValid()) {
-				inventoryManager->AddStackToInventory(slotStack, inventoryWidget->IsPlayerInventory());
+				inventoryManager->OnShiftLeftClick(slotStack, inventoryWidget);
+				//inventoryManager->AddStackToInventory(slotStack, inventoryWidget->IsPlayerInventory());
+
 			}
 			
 
@@ -92,8 +98,11 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 				if (limitedItemType == EItemType::NONE || limitedItemType == mouseStack->itemInfo->type) {
 					if (limitedTypeIndex == 0 || mouseStack->itemInfo->typeindex == limitedTypeIndex) {
 
-						if (!slotStack->Fill(*mouseStack)) {
-							mouseStack->Swap(*slotStack);
+						if (!inventoryWidget->bindedInventory->FillSlot(index, *mouseStack)) {
+							UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
+
+							inventoryWidget->bindedInventory->Swap(index, *mouseStack);
+
 						}
 
 					}
@@ -102,7 +111,9 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 
 			}else {
 				if (slotStack->IsValid()) {
-					mouseStack->Swap(*slotStack);
+
+					inventoryWidget->bindedInventory->Swap(index, *mouseStack);
+
 				}
 			}
 
@@ -120,7 +131,7 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 
 void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
 
-	if (inventoryManager) {
+	if (inventoryManager && inventoryWidget->bindedInventory) {
 
 
 		if (mouseStack->isEmpty()) {
@@ -133,7 +144,7 @@ void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
 				if (limitedItemType == EItemType::NONE || limitedItemType == mouseStack->itemInfo->type) {
 					if (limitedTypeIndex == 0 || mouseStack->itemInfo->typeindex == limitedTypeIndex) {
 
-						mouseStack->PullTo(*slotStack, 1);
+						inventoryWidget->bindedInventory->AddToSlot(index, *mouseStack, 1);
 
 					}
 				}
@@ -148,9 +159,11 @@ void UItemSlotWidget::OnRightClick(const FPointerEvent & MouseEvent){
 }
 
 
-void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget){
+void UItemSlotWidget::Init(UInventoryWidget * _inventoryWidget, int32 _index){
 	inventoryWidget = _inventoryWidget;
 	inventoryManager = inventoryWidget->GetInventoryManager();
+
+	index = _index;
 
 	if (inventoryManager) {
 		mouseStack = inventoryManager->GetMouseStack();

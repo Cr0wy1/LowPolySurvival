@@ -46,6 +46,9 @@ public:
 	void UpdateHealth();
 	void UpdateArmor();
 
+	UFUNCTION()
+	void OnEquipCompUpdate();
+
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerHealth() const;
 };

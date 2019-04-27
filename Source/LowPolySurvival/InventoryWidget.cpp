@@ -17,39 +17,9 @@
 bool UInventoryWidget::Initialize(){
 	Super::Initialize();
 
-	//if (WidgetTree) {
-
-	//	if (bGenerateInventory) {
-	//		if (itemSlotWidget_W && grid) {
-
-	//			for (size_t r = 0; r < rows; r++) {
-	//				for (size_t c = 0; c < cols; c++) {
-	//					slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
-	//					slots.Last()->SetIndex(r*cols + c);
-	//					UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
-
-	//					slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-	//					slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-	//					slot->Row = r;
-	//					slot->Column = c;
-	//				}
-
-	//			}
-	//		}
-	//	}
-	//
-	//}
-
-
 
 	return true;
 }
-
-void UInventoryWidget::NativeTick(const FGeometry & MyGeometry, float InDeltaTime){
-	//UE_LOG(LogTemp, Warning, TEXT("ticking"));
-	Refresh();
-}
-
 
 
 void UInventoryWidget::CloseInventory(){
@@ -59,20 +29,32 @@ void UInventoryWidget::CloseInventory(){
 	playerController->SetInputMode(FInputModeGameOnly());
 }
 
-void UInventoryWidget::Init(UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory, UInventoryComponent* bindInventory){
+void UInventoryWidget::Init(UInventoryManagerWidget* _inventoryManager, EWidgetInvType _widgetInvType, UInventoryComponent* bindInventory){
 
 	inventoryManager = _inventoryManager;
-	bIsPlayerInventory = isPlayerInventory;
+	widgetInvType = _widgetInvType;
 	bindedInventory = bindInventory;
 
 }
 
 void UInventoryWidget::BindToInventory(UInventoryComponent * inventoryComp){
+	bindedInventory = inventoryComp;
 	TArray<FItemStack>* itemStacks = &inventoryComp->GetItemStacksRef();
 	for (size_t i = 0; i < slots.Num() && i < itemStacks->Num(); i++) {
 		slots[i]->BindToStack(&(*itemStacks)[i]);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%i"), itemStacks->Num());
+	UE_LOG(LogTemp, Warning, TEXT("bindtoinventory"));
+
+	bindedInventory->OnInventoryUpdate.AddDynamic(this, &UInventoryWidget::Refresh);
+	//UE_LOG(LogTemp, Warning, TEXT("%i"), itemStacks->Num());
+}
+
+void UInventoryWidget::RemoveInventoryBinding(){
+	if (bindedInventory) {
+		bindedInventory->OnInventoryUpdate.RemoveDynamic(this, &UInventoryWidget::Refresh);
+	}
+	
+	bindedInventory = nullptr;
 }
 
 void UInventoryWidget::Refresh(){
@@ -95,10 +77,10 @@ UInventoryManagerWidget * UInventoryWidget::GetInventoryManager() const{
 	return inventoryManager;
 }
 
-bool UInventoryWidget::IsPlayerInventory() const
-{
-	return bIsPlayerInventory;
+EWidgetInvType UInventoryWidget::GetWidgetInvType() const{
+	return widgetInvType;
 }
+
 
 void UInventoryWidget::AddItemSlotWidget(UItemSlotWidget * itemSlotWidget){
 	slots.Add(itemSlotWidget);
@@ -116,12 +98,11 @@ void UInventoryWidget::OnSlotArrayReady(){
 	bIsSlotArrayReady = true;
 
 	for (size_t i = 0; i < slots.Num(); i++) {
-		slots[i]->Init(this);
+		slots[i]->Init(this, i);
 	}
 
 	if (bindedInventory) {
 		
-
 		BindToInventory(bindedInventory);
 	}
 }

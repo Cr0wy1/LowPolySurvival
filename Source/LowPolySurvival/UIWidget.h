@@ -14,6 +14,10 @@ class LOWPOLYSURVIVAL_API UUIWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+
+	bool bIsUIOpen = false;
+
 	
 public:
 
@@ -22,5 +26,5 @@ public:
 	void CloseUI();
 	void OpenUI();
 
-	
+	bool IsUIOpen() const;
 };

@@ -169,6 +169,8 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1) {
 		//if (GetItemId() == otherStack.GetItemId()) {
+		if (otherStack.isEmpty() || otherStack.amount < otherStack.itemInfo->stacksize) {
+
 			if (itemsAmount > amount) {
 				itemsAmount = amount;
 			}
@@ -179,7 +181,7 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 			if (amount < 1) {
 				Clear();
 			}
-		//}
+		}
 	}
 
 	void PullHalf(FItemStack &otherStack) {

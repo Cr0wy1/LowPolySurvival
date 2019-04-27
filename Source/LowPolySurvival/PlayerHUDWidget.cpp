@@ -12,10 +12,11 @@
 void UPlayerHUDWidget::Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp){
 	playerAttributes = attributes;
 	equipInventoryComp = _equipInventoryComp;
+	equipInventoryComp->OnInventoryUpdate.AddDynamic(this, &UPlayerHUDWidget::OnEquipCompUpdate);
 }
 
 void UPlayerHUDWidget::BindQuickSlot(UInventoryComponent *quickInvComp, UInventoryManagerWidget* _inventoryManager){
-	playerQuickInv->Init(_inventoryManager, true, quickInvComp);
+	playerQuickInv->Init(_inventoryManager, EWidgetInvType::QUICKSLOTS, quickInvComp);
 }
 
 FItemStack* UPlayerHUDWidget::OnScrollDown(){
@@ -43,7 +44,11 @@ void UPlayerHUDWidget::UpdateArmor(){
 
 	UE_LOG(LogTemp, Warning, TEXT("armor %i"), armorCount);
 
-	heartWidget->SetArmorPercent(armorCount * 0.1);
+	heartWidget->SetArmorPercent((float)armorCount/16.0f);
+}
+
+void UPlayerHUDWidget::OnEquipCompUpdate(){
+	UpdateArmor();
 }
 
 int32 UPlayerHUDWidget::GetPlayerHealth() const

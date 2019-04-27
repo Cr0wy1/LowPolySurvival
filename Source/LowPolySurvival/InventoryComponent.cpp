@@ -32,13 +32,17 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 bool UInventoryComponent::AddStack(FItemStack &itemstack) {
 
+	bool bReturn = false;
+
 	if (!AddToExistingStacks(itemstack)) {
 		if (AddToEmptySlots(itemstack)) {
-			return true;
+			bReturn = true;
 		}
 	}
-
-	return false;
+	
+	BroadcastOnInventoryUpdate();
+	
+	return bReturn;
 }
 
 bool UInventoryComponent::AddToExistingStacks(FItemStack &itemstack) {
@@ -63,6 +67,42 @@ bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 	}
 
 	return false;
+}
+
+bool UInventoryComponent::AddToSlot(int32 slotIndex, FItemStack & itemstack, int32 amount){
+
+	itemstack.PullTo(stackSlots[slotIndex], amount);
+	BroadcastOnInventoryUpdate();
+
+	return true;
+}
+
+bool UInventoryComponent::Swap(int32 slotIndex, FItemStack & itemstack){
+	stackSlots[slotIndex].Swap(itemstack);
+	BroadcastOnInventoryUpdate();
+
+	return true;
+}
+
+bool UInventoryComponent::Swap(int32 slotIndex, UInventoryComponent * otherInventory, int32 otherSlotIndex){
+	Swap(slotIndex, otherInventory->stackSlots[otherSlotIndex]);
+	otherInventory->BroadcastOnInventoryUpdate();
+	BroadcastOnInventoryUpdate();
+
+	return true;
+}
+
+bool UInventoryComponent::FillSlot(int32 slotIndex, FItemStack & itemstack){
+	bool bReturn = stackSlots[slotIndex].Fill(itemstack);
+	BroadcastOnInventoryUpdate();
+
+	return bReturn;
+}
+
+
+void UInventoryComponent::BroadcastOnInventoryUpdate(){
+	OnInventoryUpdate.Broadcast();
+	UE_LOG(LogTemp, Warning, TEXT("adding stack"));
 }
 
 EInvType UInventoryComponent::GetInvType() const{

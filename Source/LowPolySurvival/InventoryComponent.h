@@ -8,6 +8,8 @@
 #include "InventoryComponent.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdate);
+
 
 class UInventoryWidget;
 
@@ -45,6 +47,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	FOnInventoryUpdate OnInventoryUpdate;
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -52,6 +57,14 @@ public:
 	bool AddStack(FItemStack &itemstack);
 	bool AddToExistingStacks(FItemStack &itemstack);
 	bool AddToEmptySlots(FItemStack &itemstack);
+
+	bool AddToSlot(int32 slotIndex, FItemStack &itemstack, int32 amount);
+	bool Swap(int32 slotIndex, FItemStack &itemstack);
+	bool Swap(int32 slotIndex, UInventoryComponent* otherInventory, int32 otherSlotIndex);
+	bool FillSlot(int32 slotIndex, FItemStack &itemstack);
+	//bool PullFromSlotTo(int32 slotIndex, FItemStack &targetStack)
+
+	void BroadcastOnInventoryUpdate();
 
 	EInvType GetInvType() const;
 	TArray<FItemStack>& GetItemStacksRef();

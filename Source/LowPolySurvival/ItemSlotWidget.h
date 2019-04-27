@@ -25,6 +25,8 @@ class LOWPOLYSURVIVAL_API UItemSlotWidget : public UHUDWidget
 protected:
 	bool bIsEmpty = true;
 
+	int32 index = -1;
+
 	UInventoryWidget* inventoryWidget;
 	UInventoryManagerWidget* inventoryManager;
 
@@ -47,6 +49,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
 	UTexture2D* slotImageOverride;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
+	float slotPaddingOverride = 5.0f;
+
 	void OnLeftClick(const FPointerEvent & MouseEvent);
 	void OnRightClick(const FPointerEvent & MouseEvent);
 	
@@ -66,7 +71,7 @@ public:
 	void OnUnhovered();
 
 
-	void Init(UInventoryWidget * _inventoryWidget);
+	void Init(UInventoryWidget * _inventoryWidget, int32 _index);
 	void BindToStack(FItemStack* itemStack);
 
 	bool IsEmpty() const;

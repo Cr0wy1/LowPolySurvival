@@ -19,6 +19,15 @@ class UButton;
 class UInventoryManagerWidget;
 class UInventoryComponent;
 
+
+
+UENUM()
+enum class EWidgetInvType : uint8 {
+	OTHER,
+	PLAYERINV,
+	QUICKSLOTS,
+	EQUIPMENT,
+};
 /**
  * 
  */
@@ -30,33 +39,34 @@ class LOWPOLYSURVIVAL_API UInventoryWidget : public UHUDWidget
 
 protected:
 
-	bool bIsPlayerInventory = false;
 	bool bIsSlotArrayReady = false;
 	UInventoryManagerWidget* inventoryManager;
-	UInventoryComponent* bindedInventory = nullptr;
+	
 	
 	TArray<UItemSlotWidget*> slots;
 
+	EWidgetInvType widgetInvType = EWidgetInvType::OTHER;
 
 public:
 
+	UInventoryComponent * bindedInventory = nullptr;
 
 	virtual bool  Initialize() override;
 
-	virtual void NativeTick(const FGeometry & MyGeometry, float InDeltaTime) override;
-
 
 	void CloseInventory();
-	void Init(UInventoryManagerWidget* _inventoryManager, bool isPlayerInventory = false, UInventoryComponent* bindInventory = nullptr);
+	void Init(UInventoryManagerWidget* _inventoryManager, EWidgetInvType _widgetInvType = EWidgetInvType::OTHER, UInventoryComponent* bindInventory = nullptr);
 	void BindToInventory(UInventoryComponent* inventoryComp);
+	void RemoveInventoryBinding();
 	
+	UFUNCTION()
 	void Refresh();
 
 	void Show();
 	void Hide();
 
 	UInventoryManagerWidget* GetInventoryManager() const;
-	bool IsPlayerInventory()const;
+	EWidgetInvType GetWidgetInvType() const;
 
 	UFUNCTION(BlueprintCallable)
 	void AddItemSlotWidget(UItemSlotWidget* itemSlotWidget);
