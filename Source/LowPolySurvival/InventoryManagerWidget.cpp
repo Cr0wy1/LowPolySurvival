@@ -8,6 +8,7 @@
 #include "CanvasPanel.h"
 #include "CanvasPanelSlot.h"
 #include "QuickSlotsWidget.h"
+#include "LowPolySurvivalCharacter.h"
 
 
 bool UInventoryManagerWidget::Initialize(){
@@ -33,11 +34,7 @@ bool UInventoryManagerWidget::Initialize(){
 FEventReply UInventoryManagerWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
 
 	if (InKeyEvent.GetKey() == EKeys::Tab || InKeyEvent.GetKey() == EKeys::E || InKeyEvent.GetKey() == EKeys::Escape) {
-		bIsOtherInventoryOpen = false;
-		inGameInventoryQuickWidget->Show();
-		chestInv->Hide();
-		chestInv->RemoveInventoryBinding();
-		CloseUI();
+		CloseInventory();
 	}
 
 	return FEventReply(true);
@@ -51,57 +48,57 @@ FEventReply UInventoryManagerWidget::OnMouseMove(FGeometry MyGeometry, const FPo
 	return FEventReply(true);
 }
 
-void UInventoryManagerWidget::OnShiftLeftClick(FItemStack * clickedStack, UInventoryWidget * clickedInventoryWidget){
+void UInventoryManagerWidget::OnShiftLeftClick(int32 clickedBtnIndex, UInventoryWidget * clickedInventoryWidget){
 	
 	EWidgetInvType widgetInvType = clickedInventoryWidget->GetWidgetInvType();
-
-	if (bIsOtherInventoryOpen && currentInventoryComp) {
-
-	}
+	UInventoryComponent* targetInventoryComp = playerInventoryComp;
 
 	switch (widgetInvType){
 	case EWidgetInvType::OTHER:
 
-		if (!playerInventoryComp->AddStack(*clickedStack)) {
-			quickSlotInventoryComp->AddStack(*clickedStack);
-
+		if (playerInventoryComp->HasEmptySlot()) {
+			targetInventoryComp = playerInventoryComp;
+		}
+		else {
+			targetInventoryComp = quickSlotInventoryComp;
 		}
 
 		break;
 	case EWidgetInvType::PLAYERINV:
 
 		if (bIsOtherInventoryOpen) {
-			currentInventoryComp->AddStack(*clickedStack);
+			targetInventoryComp = currentInventoryComp;
 		}
 		else {
-			quickSlotInventoryComp->AddStack(*clickedStack);
+			targetInventoryComp = quickSlotInventoryComp;
 		}
 
 		break;
 	case EWidgetInvType::QUICKSLOTS:
 
-		currentInventoryComp->AddStack(*clickedStack);
+		targetInventoryComp = currentInventoryComp;
 
 		break;
 	case EWidgetInvType::EQUIPMENT:
 
-		currentInventoryComp->AddStack(*clickedStack);
+		targetInventoryComp = currentInventoryComp;
 		
 		break;
 	default:
 		break;
 	}
 
+	targetInventoryComp->AddStack(clickedInventoryWidget->bindedInventory, clickedBtnIndex);
 	mouseStackWidget->RefreshStack();
 }
 
-void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget){
+void UInventoryManagerWidget::Init(ALowPolySurvivalCharacter* _playerCharacter, UQuickSlotsWidget* _inGameQuickInventoryWidget){
 	
-
+	playerCharacter = _playerCharacter;
 	
-	playerInventoryComp = _playerInventory;
-	quickSlotInventoryComp = _quickSlotInventory;
-	equipmentInventoryComp = _equipmentInventory;
+	playerInventoryComp = playerCharacter->inventoryComp;
+	quickSlotInventoryComp = playerCharacter->quickInventoryComp;
+	equipmentInventoryComp = playerCharacter->equipmentInventoryComp;
 	inGameInventoryQuickWidget = _inGameQuickInventoryWidget;
 
 	playerInv->Init(this, EWidgetInvType::PLAYERINV, playerInventoryComp);
@@ -112,11 +109,11 @@ void UInventoryManagerWidget::Init(UInventoryComponent* _playerInventory, UInven
 }
 
 void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
-	UE_LOG(LogTemp, Warning, TEXT("Show Inventory"));
+	
 
 
 	if (!inventory || IsUIOpen()) return;
-
+	//UE_LOG(LogTemp, Warning, TEXT("Show Inventory"));
 	if (inGameInventoryQuickWidget) {
 		inGameInventoryQuickWidget->Hide();
 	}
@@ -155,31 +152,33 @@ void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){
 		break;
 	}
 
-	OpenUI();
+	OpenInventory();
 }
 
 
 
 void UInventoryManagerWidget::RefreshMouseStackWidget(){
 	mouseStackWidget->RefreshStack();
-}
-
-bool UInventoryManagerWidget::AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory) {
-
-	bool bIsAdded = false;
-	UInventoryComponent* targetInventory = playerInventoryComp;
-
-	if (fromPlayerInventory) {
-		targetInventory = currentInventoryComp;
-	}
-
-	bIsAdded = targetInventory->AddStack(*targetStack);
-	mouseStackWidget->RefreshStack();
-		
-	return bIsAdded;
-}
 
 	
+}
+
+void UInventoryManagerWidget::OpenInventory(){
+	OpenUI();
+
+	playerCharacter->OnInventoryOpen();
+}
+
+void UInventoryManagerWidget::CloseInventory(){
+	bIsOtherInventoryOpen = false;
+	inGameInventoryQuickWidget->Show();
+	chestInv->Hide();
+	chestInv->RemoveInventoryBinding();
+	CloseUI();
+
+	playerCharacter->OnInventoryClose();
+}
+
 
 bool UInventoryManagerWidget::IsHoldingStack() const{
 	return mouseStackWidget->GetItemStack()->IsValid();

@@ -31,13 +31,16 @@ protected:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UInventoryComponent * inventory;
+	UInventoryComponent * inventoryComp;
 
 
 	AConstruction();
 
 	//virtual void Tick(float deltaTime) override;
 
+	
 	virtual void Interact(ALowPolySurvivalCharacter* interactor) override;
+
+
 	
 };

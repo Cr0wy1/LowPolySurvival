@@ -12,8 +12,11 @@ FItemStack* UQuickSlotsWidget::SelectSlot(int32 slotIndex) {
 	if (slotIndex >= 0 && slotIndex < 10) {
 		
 		slots[currentSlotIndex]->OnUnhovered();
+		slots[currentSlotIndex]->OnUnselected();
 
 		slots[slotIndex]->OnHovered();
+		slots[slotIndex]->OnSelected();
+		
 
 		currentSlotIndex = slotIndex;
 	}

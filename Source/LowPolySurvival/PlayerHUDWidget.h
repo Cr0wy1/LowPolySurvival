@@ -47,7 +47,7 @@ public:
 	void UpdateArmor();
 
 	UFUNCTION()
-	void OnEquipCompUpdate();
+	void OnEquipCompUpdate(const TArray<int32> updatedSlots);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerHealth() const;

@@ -16,6 +16,7 @@
 #include "InventoryManagerWidget.h"
 #include "Components/StaticMeshComponent.h"
 #include "AttributeComponent.h"
+#include "Construction.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -46,8 +47,14 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 
+	sceneRightHand = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Right Hand"));
+	sceneRightHand->SetupAttachment(Mesh1P, FName("tool_socket"));
+
 	meshRightHand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Right Hand"));
-	meshRightHand->SetupAttachment(Mesh1P, FName("tool_socket"));
+	meshRightHand->SetupAttachment(sceneRightHand);
+
+	skeletalMeshRightHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh Right Hand"));
+	skeletalMeshRightHand->SetupAttachment(sceneRightHand);
 	
 
 	//Inventoriesy
@@ -66,7 +73,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("Character: Begin Play"));
+	//UE_LOG(LogTemp, Warning, TEXT("Character: Begin Play"));
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	Mesh1P->SetHiddenInGame(false, true);
@@ -76,14 +83,14 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller->GetViewportSize(viewX, viewY);
 	//CreateWidget(controller, )
 
-	meshRightHand->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("hand_R_tool"));
+	sceneRightHand->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("hand_R_tool"));
 
 
 	if (inventoryManager_BP && playerHUDWidget_BP) {
 		inventoryManager = CreateWidget<UInventoryManagerWidget>(controller, inventoryManager_BP);
 		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
 
-		inventoryManager->Init(inventoryComp, quickInventoryComp, equipmentInventoryComp, playerHUDWidget->playerQuickInv);
+		inventoryManager->Init(this, playerHUDWidget->playerQuickInv);
 		playerHUDWidget->Init(&attributeComp->GetAttributesRef(), equipmentInventoryComp);
 
 		playerHUDWidget->BindQuickSlot(quickInventoryComp, inventoryManager);
@@ -101,10 +108,10 @@ void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 
 }
 
-void ALowPolySurvivalCharacter::OpenInventory(UInventoryComponent* inventoryComp){
-	UE_LOG(LogTemp, Warning, TEXT("Open Inventory"));
+void ALowPolySurvivalCharacter::OpenInventory(AConstruction* construction){
+	//UE_LOG(LogTemp, Warning, TEXT("Open Inventory"));
 	if (inventoryManager) {
-		inventoryManager->ShowInventory(inventoryComp);
+		inventoryManager->ShowInventory(construction->inventoryComp);
 	}
 	
 }
@@ -114,7 +121,7 @@ void ALowPolySurvivalCharacter::ApplyDamage(int32 amount, AActor * causer){
 	attributeComp->RemoveHealth(amount);
 
 	playerHUDWidget->UpdateHealth();
-	playerHUDWidget->UpdateArmor();
+	
 }
 
 APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
@@ -148,7 +155,7 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 
 void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Setup Input Compoennt"));
+	//UE_LOG(LogTemp, Warning, TEXT("Setup Input Compoennt"));
 
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
@@ -233,7 +240,7 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
-	UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
+	//UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
 
 	inventoryManager->ShowInventory(inventoryComp);
 }
@@ -244,6 +251,7 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
 
 	if (building) {
+		currentInteractionBuilding = building;
 		building->Interact(this);
 	}
 	
@@ -261,17 +269,61 @@ void ALowPolySurvivalCharacter::OnScrollUp(){
 	UpdateMeshRightHand();
 }
 
+void ALowPolySurvivalCharacter::OnInventoryOpen()
+{
+}
+
+void ALowPolySurvivalCharacter::OnInventoryClose(){
+	if (currentInteractionBuilding) {
+		currentInteractionBuilding->OnInteractEnd();
+		currentInteractionBuilding = nullptr;
+	}
+}
+
 void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
-	if (rightHandStack && rightHandStack->IsValid()) {
-		if (meshRightHand->GetStaticMesh() != rightHandStack->itemInfo->mesh) {
-			meshRightHand->SetStaticMesh(rightHandStack->itemInfo->mesh);
+	meshRightHand->SetVisibility(false);
+	skeletalMeshRightHand->SetVisibility(false);
+	
+	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->building_BP) {
+
+		ABuildings* itemBuilding = rightHandStack->itemInfo->building_BP->GetDefaultObject<ABuildings>();
+
+		if (rightHandStack->itemInfo->type == EItemType::TOOL) {
+			sceneRightHand->SetRelativeScale3D(FVector(1.0f));
 		}
-		meshRightHand->SetVisibility(true);
+		else {
+			sceneRightHand->SetRelativeScale3D(FVector(0.3f));
+		}
+
+		if (itemBuilding->IsSkeletalMesh()) {
+
+			if (skeletalMeshRightHand->SkeletalMesh != itemBuilding->GetSkeletalMesh()) {
+				skeletalMeshRightHand->SetSkeletalMesh(itemBuilding->GetSkeletalMesh());
+
+			}
+
+			skeletalMeshRightHand->SetVisibility(true);
+
+		}
+		else {
+
+			if (meshRightHand->GetStaticMesh() != itemBuilding->GetStaticMesh()) {
+				meshRightHand->SetStaticMesh(itemBuilding->GetStaticMesh());
+			}
+
+			meshRightHand->SetVisibility(true);
+			
+		}
+		
+
+		
+
 	}
 	else {
-		meshRightHand->SetVisibility(false);
+		UE_LOG(LogTemp, Warning, TEXT("UpdateMeshRightHand: itemBuidling not found!"));
 	}
+
 }
 
 int32 ALowPolySurvivalCharacter::GetPlayerHealth() const

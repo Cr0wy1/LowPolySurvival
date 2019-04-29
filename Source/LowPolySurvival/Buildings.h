@@ -15,6 +15,7 @@ class UItem;
 class ALowPolySurvivalCharacter;
 struct FItemDrops;
 class UDataTable;
+class USkeletalMesh;
 
 
 
@@ -52,6 +53,8 @@ public:
 
 protected:
 
+	bool bIsSkeletalMesh = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable* itemDataTable;
 
@@ -60,8 +63,14 @@ protected:
 
 
 	//Components
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
+	USceneComponent* sceneComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
-	UStaticMeshComponent* mesh;
+	UStaticMeshComponent* meshComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
+	USkeletalMeshComponent* skeletalMeshComp;
 
 	FItemDrops* dropInfo;
 
@@ -79,4 +88,14 @@ public:
 	
 	virtual void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
 	virtual void Interact(ALowPolySurvivalCharacter* interactor);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnInteractBegin();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnInteractEnd();
+
+	bool IsSkeletalMesh() const;
+	UStaticMesh* GetStaticMesh() const;
+	USkeletalMesh* GetSkeletalMesh() const;
 };

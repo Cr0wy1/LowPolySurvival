@@ -33,12 +33,16 @@ protected:
 	FItemStack* mouseStack;
 	FItemStack* slotStack;
 
+	FSlateBrush normalSlateBrush;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* rootButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UItemStackWidget* itemStackWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
+	UTexture2D* slotSelectedIcon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
 	EItemType limitedItemType = EItemType::NONE;
@@ -69,6 +73,9 @@ public:
 
 	UFUNCTION()
 	void OnUnhovered();
+
+	void OnSelected();
+	void OnUnselected();
 
 
 	void Init(UInventoryWidget * _inventoryWidget, int32 _index);

@@ -5,10 +5,11 @@
 #include "LowPolySurvivalCharacter.h"
 
 AConstruction::AConstruction(){
-	inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
+	inventoryComp = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 }
 
 void AConstruction::Interact(ALowPolySurvivalCharacter * interactor){
-	//inventory->AddToPlayerViewport(interactor->GetPlayerController());
-	interactor->OpenInventory(inventory);
+	Super::Interact(interactor);
+
+	interactor->OpenInventory(this);
 }

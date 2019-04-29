@@ -6,6 +6,9 @@
 #include "Engine/DataTable.h"
 #include "Item.h"
 #include "LowPolySurvivalCharacter.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/SceneComponent.h"
+#include "Engine/SkeletalMesh.h"
 
 // Sets default values
 ABuildings::ABuildings()
@@ -13,8 +16,16 @@ ABuildings::ABuildings()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	SetRootComponent(mesh);
+	sceneComp = CreateAbstractDefaultSubobject<USceneComponent>("Scene");
+	SetRootComponent(sceneComp);
+
+	meshComp = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
+	meshComp->SetupAttachment(sceneComp);
+
+	skeletalMeshComp = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh");
+	skeletalMeshComp->SetupAttachment(sceneComp);
+
+
 
 }
 
@@ -22,7 +33,9 @@ ABuildings::ABuildings()
 void ABuildings::BeginPlay(){
 	Super::BeginPlay();
 
-	dropInfo = info.itemDrops.DataTable->FindRow<FItemDrops>(info.itemDrops.RowName, FString(""));
+
+
+	dropInfo = info.itemDrops.GetRow<FItemDrops>(FString("")); // info.itemDrops.DataTable->FindRow<FItemDrops>(info.itemDrops.RowName, FString(""));
 	
 }
 
@@ -83,8 +96,28 @@ void ABuildings::ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer){
 
 void ABuildings::Interact(ALowPolySurvivalCharacter * interactor){
 
-	UE_LOG(LogTemp, Warning, TEXT("Buildings: Interact"));
+	//UE_LOG(LogTemp, Warning, TEXT("Buildings: Interact"));
 
+	OnInteractBegin();
+}
 
+bool ABuildings::IsSkeletalMesh() const{
+
+	if (skeletalMeshComp->SkeletalMesh) {
+		//UE_LOG(LogTemp, Warning, TEXT("Is Skeletal Mesh"));
+
+		return true;
+	}
+
+	return false;
+}
+
+UStaticMesh * ABuildings::GetStaticMesh() const{
+	return meshComp->GetStaticMesh();
+} 
+
+USkeletalMesh * ABuildings::GetSkeletalMesh() const{
+
+	return skeletalMeshComp->SkeletalMesh;
 }
 

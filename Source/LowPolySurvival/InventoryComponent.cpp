@@ -45,11 +45,30 @@ bool UInventoryComponent::AddStack(FItemStack &itemstack) {
 	return bReturn;
 }
 
+bool UInventoryComponent::AddStack(UInventoryComponent * otherInventory, int32 otherSlotIndex){
+
+	AddStack(otherInventory->stackSlots[otherSlotIndex]);
+	
+	otherInventory->lastUpdatedSlots.AddUnique(otherSlotIndex);
+
+	otherInventory->BroadcastOnInventoryUpdate();
+	
+
+	return true;
+}
+
 bool UInventoryComponent::AddToExistingStacks(FItemStack &itemstack) {
 	for (size_t i = 0; i < slotNum; i++) {
+
+		//Maybe optimize
+		lastUpdatedSlots.AddUnique(i);
+
 		if (stackSlots[i].Fill(itemstack)) {
+			
 			return true;
 		}
+
+		
 	}
 
 	return false;
@@ -60,8 +79,9 @@ bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 		if (stackSlots[i].isEmpty()) {
 			stackSlots[i] = itemstack;
 			itemstack.Clear();
+
+			lastUpdatedSlots.AddUnique(i);
 			return true;
-			break;
 		}
 
 	}
@@ -72,6 +92,7 @@ bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 bool UInventoryComponent::AddToSlot(int32 slotIndex, FItemStack & itemstack, int32 amount){
 
 	itemstack.PullTo(stackSlots[slotIndex], amount);
+	lastUpdatedSlots.AddUnique(slotIndex);
 	BroadcastOnInventoryUpdate();
 
 	return true;
@@ -79,21 +100,16 @@ bool UInventoryComponent::AddToSlot(int32 slotIndex, FItemStack & itemstack, int
 
 bool UInventoryComponent::Swap(int32 slotIndex, FItemStack & itemstack){
 	stackSlots[slotIndex].Swap(itemstack);
+	lastUpdatedSlots.AddUnique(slotIndex);
 	BroadcastOnInventoryUpdate();
 
 	return true;
 }
 
-bool UInventoryComponent::Swap(int32 slotIndex, UInventoryComponent * otherInventory, int32 otherSlotIndex){
-	Swap(slotIndex, otherInventory->stackSlots[otherSlotIndex]);
-	otherInventory->BroadcastOnInventoryUpdate();
-	BroadcastOnInventoryUpdate();
-
-	return true;
-}
 
 bool UInventoryComponent::FillSlot(int32 slotIndex, FItemStack & itemstack){
 	bool bReturn = stackSlots[slotIndex].Fill(itemstack);
+	lastUpdatedSlots.AddUnique(slotIndex);
 	BroadcastOnInventoryUpdate();
 
 	return bReturn;
@@ -101,8 +117,20 @@ bool UInventoryComponent::FillSlot(int32 slotIndex, FItemStack & itemstack){
 
 
 void UInventoryComponent::BroadcastOnInventoryUpdate(){
-	OnInventoryUpdate.Broadcast();
-	UE_LOG(LogTemp, Warning, TEXT("adding stack"));
+	OnInventoryUpdate.Broadcast(lastUpdatedSlots);
+	lastUpdatedSlots.Empty();
+	//UE_LOG(LogTemp, Warning, TEXT("adding stack"));
+}
+
+bool UInventoryComponent::HasEmptySlot(){
+
+	for (size_t i = 0; i < stackSlots.Num(); i++){
+		if (stackSlots[i].isEmpty()) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 EInvType UInventoryComponent::GetInvType() const{

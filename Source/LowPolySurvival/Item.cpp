@@ -2,6 +2,7 @@
 
 #include "Item.h"
 #include "Components/StaticMeshComponent.h"
+#include "Buildings.h"
 
 
 // Sets default values

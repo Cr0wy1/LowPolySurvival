@@ -38,9 +38,10 @@ bool  UItemSlotWidget::Initialize() {
 			rootButton->WidgetStyle.Normal.SetResourceObject(slotImageOverride);
 			rootButton->WidgetStyle.Hovered.SetResourceObject(slotImageOverride);
 			rootButton->WidgetStyle.Pressed.SetResourceObject(slotImageOverride);
+			
 		}
 		
-		//rootButton->WidgetStyle.SetNormal( FSlateBrush::From )
+		normalSlateBrush = rootButton->WidgetStyle.Normal;
 			
 	}
 
@@ -74,10 +75,25 @@ void UItemSlotWidget::OnUnhovered() {
 
 }
 
+void UItemSlotWidget::OnSelected(){
+	if (slotSelectedIcon) {
+		rootButton->WidgetStyle.Normal.SetResourceObject(slotSelectedIcon);
+		rootButton->WidgetStyle.Normal.TintColor = FSlateColor(FColor::White);
+		
+	}
+	
+}
+
+void UItemSlotWidget::OnUnselected(){
+
+	rootButton->WidgetStyle.SetNormal(normalSlateBrush);
+
+}
+
 
 void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 
-	UE_LOG(LogTemp, Warning, TEXT("%i"), index);
+	//UE_LOG(LogTemp, Warning, TEXT("%i"), index);
 
 	
 	if (inventoryManager && inventoryWidget->bindedInventory) {
@@ -85,7 +101,7 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 		if (MouseEvent.IsLeftShiftDown()) {
 			
 			if (slotStack->IsValid()) {
-				inventoryManager->OnShiftLeftClick(slotStack, inventoryWidget);
+				inventoryManager->OnShiftLeftClick(index, inventoryWidget);
 				//inventoryManager->AddStackToInventory(slotStack, inventoryWidget->IsPlayerInventory());
 
 			}
@@ -99,7 +115,7 @@ void UItemSlotWidget::OnLeftClick(const FPointerEvent & MouseEvent){
 					if (limitedTypeIndex == 0 || mouseStack->itemInfo->typeindex == limitedTypeIndex) {
 
 						if (!inventoryWidget->bindedInventory->FillSlot(index, *mouseStack)) {
-							UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
+							//UE_LOG(LogTemp, Warning, TEXT("%s"), "Hallo");
 
 							inventoryWidget->bindedInventory->Swap(index, *mouseStack);
 

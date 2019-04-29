@@ -7,6 +7,7 @@
 #include "Item.generated.h"
 
 
+class ABuildings;
 class UTexture2D;
 class UStaticMeshComponent;
 
@@ -90,7 +91,7 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UTexture2D* texture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMesh* mesh;
+	TSubclassOf<ABuildings> building_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 durability;

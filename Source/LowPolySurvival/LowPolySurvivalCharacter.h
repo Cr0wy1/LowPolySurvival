@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "LowPolySurvivalCharacter.generated.h"
 
+class ABuildings;
+class AConstruction;
+class USkeletalMeshComponent;
+class UCameraComponent;
 class UInputComponent;
 class UDecalComponent;
 class UPlayerHUDWidget;
@@ -39,14 +43,6 @@ class ALowPolySurvivalCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
-	class USkeletalMeshComponent* Mesh1P;
-
-
-	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FirstPersonCameraComponent;
 
 
 public:
@@ -56,48 +52,9 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-	class UStaticMeshComponent* meshRightHand;
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UInventoryComponent* inventoryComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UInventoryComponent* quickInventoryComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UInventoryComponent* equipmentInventoryComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UAttributeComponent* attributeComp;
-
-
-	virtual void BeginPlay();
-
-public:
-	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseTurnRate;
-
-	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseLookUpRate;
-
-	void AddItemStackToInventory(FItemStack &itemstack);
-
-	void OpenInventory(UInventoryComponent* inventoryComp);
-
-	void ApplyDamage(int32 amount, AActor * causer = nullptr);
-
-	APlayerController* GetPlayerController() const;
-
-
-
-protected:
-
-
 	APlayerController * controller = nullptr;
+
+	ABuildings* currentInteractionBuilding = nullptr;
 
 	//Viewport Size
 	int32 viewX, viewY;
@@ -114,7 +71,7 @@ protected:
 
 	//Attributes
 	FPlayerAttributes attributes;
-	
+
 	//Widgets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UPlayerHUDWidget> playerHUDWidget_BP;
@@ -125,12 +82,34 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimationAsset* hitAnimation;
 
-	UPlayerHUDWidget* playerHUDWidget = nullptr;
-	UInventoryManagerWidget* inventoryManager = nullptr;
+	//COMPONENTS
+	/** Pawn mesh: 1st person view (arms; seen only by self) */
+	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
+	USkeletalMeshComponent* Mesh1P;
 
-	/** Fires a projectile. */
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FirstPersonCameraComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Scene")
+	USceneComponent* sceneRightHand;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	UStaticMeshComponent* meshRightHand;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	USkeletalMeshComponent* skeletalMeshRightHand;
+
+
+	virtual void BeginPlay();
+
+	// APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+	// End of APawn interface
+
+
 	void OnHit();
-	
+
 	FHitResult CrosshairLineTrace();
 
 	void OnPrimaryPressed();
@@ -147,37 +126,61 @@ protected:
 
 	int32 GetPlayerHealth() const;
 
-
 	//MOVEMENT
-	/** Handles moving forward/backward */
+	/** Handles moving */
 	void MoveForward(float Val);
-
-	/** Handles stafing movement, left and right */
 	void MoveRight(float Val);
 
 	/**
-	 * Called via input to turn at a given rate.
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
+	* Called via input to turn at a given rate.
+	* @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
+	*/
 	void TurnAtRate(float Rate);
-
-	/**
-	 * Called via input to turn look up/down at a given rate.
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
 	void LookUpAtRate(float Rate);
 
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-
 public:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UInventoryComponent* inventoryComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UInventoryComponent* quickInventoryComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UInventoryComponent* equipmentInventoryComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UAttributeComponent* attributeComp;
+
+	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	float BaseTurnRate;
+
+	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	float BaseLookUpRate;
+
+	UPlayerHUDWidget* playerHUDWidget = nullptr;
+	UInventoryManagerWidget* inventoryManager = nullptr;
+
+	void AddItemStackToInventory(FItemStack &itemstack);
+
+	void OpenInventory(AConstruction* construction);
+
+	void ApplyDamage(int32 amount, AActor * causer = nullptr);
+
+	APlayerController* GetPlayerController() const;
+
+	void OnInventoryOpen();
+	void OnInventoryClose();
+
+
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+
 
 };
 

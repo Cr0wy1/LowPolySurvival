@@ -13,6 +13,9 @@ void UPlayerHUDWidget::Init(FAttributes * attributes, UInventoryComponent* _equi
 	playerAttributes = attributes;
 	equipInventoryComp = _equipInventoryComp;
 	equipInventoryComp->OnInventoryUpdate.AddDynamic(this, &UPlayerHUDWidget::OnEquipCompUpdate);
+
+	UpdateHealth();
+	UpdateArmor();
 }
 
 void UPlayerHUDWidget::BindQuickSlot(UInventoryComponent *quickInvComp, UInventoryManagerWidget* _inventoryManager){
@@ -47,7 +50,7 @@ void UPlayerHUDWidget::UpdateArmor(){
 	heartWidget->SetArmorPercent((float)armorCount/16.0f);
 }
 
-void UPlayerHUDWidget::OnEquipCompUpdate(){
+void UPlayerHUDWidget::OnEquipCompUpdate(const TArray<int32> updatedSlots){
 	UpdateArmor();
 }
 

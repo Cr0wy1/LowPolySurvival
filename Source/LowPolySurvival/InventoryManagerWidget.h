@@ -7,6 +7,7 @@
 #include "InventoryManagerWidget.generated.h"
 
 
+class ALowPolySurvivalCharacter;
 class UInventoryWidget;
 class UInventoryComponent;
 
@@ -29,6 +30,8 @@ class LOWPOLYSURVIVAL_API UInventoryManagerWidget : public UUIWidget
 	
 	
 protected:
+
+	ALowPolySurvivalCharacter * playerCharacter = nullptr;
 
 	//Stack for mouse slot
 	FItemStack * mouseStack;
@@ -81,12 +84,14 @@ public:
 	UFUNCTION()
 	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
 
-	void OnShiftLeftClick(FItemStack* clickedStack, UInventoryWidget* clickedInventoryWidget);
+	void OnShiftLeftClick(int32 clickedBtnIndex, UInventoryWidget* clickedInventoryWidget);
 
-	void Init(UInventoryComponent* _playerInventory, UInventoryComponent* _quickSlotInventory, UInventoryComponent* _equipmentInventory, UQuickSlotsWidget* _inGameQuickInventoryWidget = nullptr);
+	void Init(ALowPolySurvivalCharacter* _playerCharacter, UQuickSlotsWidget* _inGameQuickInventoryWidget = nullptr);
 	void ShowInventory(UInventoryComponent* inventory);
 	void RefreshMouseStackWidget();
-	bool AddStackToInventory(FItemStack* targetStack, bool fromPlayerInventory = true);
+
+	void OpenInventory();
+	void CloseInventory();
 
 	bool IsHoldingStack() const;
 	FItemStack* GetMouseStack() const;
