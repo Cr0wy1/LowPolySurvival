@@ -17,6 +17,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "AttributeComponent.h"
 #include "Construction.h"
+#include "Animation/AnimMontage.h"
+#include "MechArmActor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -46,6 +48,11 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
+
+	armActorComp = CreateDefaultSubobject<UChildActorComponent>("Arm Actor");
+	armActorComp->SetupAttachment(Mesh1P, FName("arm_socket"));
+	
+	
 
 	sceneRightHand = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Right Hand"));
 	sceneRightHand->SetupAttachment(Mesh1P, FName("tool_socket"));
@@ -79,6 +86,12 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	Mesh1P->SetHiddenInGame(false, true);
 
 	controller = Cast<APlayerController>(GetController());
+	armActor = Cast<AMechArmActor>(armActorComp->GetChildActor());
+
+	if (armActor) {
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *armActor->GetName());
+
+	}
 
 	controller->GetViewportSize(viewX, viewY);
 	//CreateWidget(controller, )
@@ -99,7 +112,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 		inventoryManager->AddToViewport();
 	}
 
-
+	
 }
 
 void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
@@ -138,9 +151,9 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 	}
 
 	if (bIsHoldingPrimary) {
-
-		if (GetWorld()->GetTimeSeconds() >= nextHitSeconds) {
-			OnHit();
+		
+		if (!Mesh1P->GetAnimInstance()->Montage_IsPlaying(hitMontage)) {
+			//OnHit();
 
 			nextHitSeconds = GetWorld()->GetTimeSeconds() + primaryHitCooldown;
 		}
@@ -193,21 +206,31 @@ void ALowPolySurvivalCharacter::OnHit(){
 
 	FHitResult hitResult = CrosshairLineTrace();
 
-	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
+	FVector dir;
+	float length;
+	(hitResult.ImpactPoint - GetActorLocation()).ToDirectionAndLength(dir, length);
 
-	if (building) {
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName() );
+	//UE_LOG(LogTemp, Warning, TEXT("%f"), length);
+	 
 
-		building->ApplyDamage(10, this);
+	if (length <= attributeComp->GetAttributes().hitRange) {
+
+
+		ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
+
+		if (building) {
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName());
+
+			building->ApplyDamage(10, this);
+		}
+
+
+		bIsInHit = true;
+
+		ApplyDamage(1);
+
 	}
 
-	if (hitAnimation) {
-		Mesh1P->PlayAnimation(hitAnimation, false);
-		
-		Mesh1P->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	}
-	
-	ApplyDamage(1);
 	
 }
 
@@ -236,6 +259,7 @@ void ALowPolySurvivalCharacter::OnPrimaryPressed(){
 
 void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 	bIsHoldingPrimary = false;
+	Mesh1P->GetAnimInstance()->StopSlotAnimation();
 }
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
@@ -280,6 +304,21 @@ void ALowPolySurvivalCharacter::OnInventoryClose(){
 	}
 }
 
+bool ALowPolySurvivalCharacter::GetIsInHitAnimation() const{
+
+	return bIsInHit;
+}
+
+void ALowPolySurvivalCharacter::SetIsInHitAnimationb(bool b){
+	bIsInHit = b;
+
+	
+}
+
+AMechArmActor * ALowPolySurvivalCharacter::GetArmActor() const{
+	return armActor;
+}
+
 void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 	meshRightHand->SetVisibility(false);
@@ -289,12 +328,6 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 		ABuildings* itemBuilding = rightHandStack->itemInfo->building_BP->GetDefaultObject<ABuildings>();
 
-		if (rightHandStack->itemInfo->type == EItemType::TOOL) {
-			sceneRightHand->SetRelativeScale3D(FVector(1.0f));
-		}
-		else {
-			sceneRightHand->SetRelativeScale3D(FVector(0.3f));
-		}
 
 		if (itemBuilding->IsSkeletalMesh()) {
 
@@ -308,11 +341,13 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 		}
 		else {
 
-			if (meshRightHand->GetStaticMesh() != itemBuilding->GetStaticMesh()) {
-				meshRightHand->SetStaticMesh(itemBuilding->GetStaticMesh());
+			if (rightHandStack->itemInfo->type == EItemType::TOOL) {
+				armActor->SetInHandMesh(itemBuilding->GetStaticMesh());
 			}
-
-			meshRightHand->SetVisibility(true);
+			else {
+				armActor->RemoveInHandMesh();
+			}
+				
 			
 		}
 		
@@ -321,7 +356,8 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("UpdateMeshRightHand: itemBuidling not found!"));
+		//UE_LOG(LogTemp, Warning, TEXT("UpdateMeshRightHand: itemBuidling not found!"));
+		armActor->RemoveInHandMesh();
 	}
 
 }

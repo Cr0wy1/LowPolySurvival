@@ -8,10 +8,12 @@
 
 class ABuildings;
 class AConstruction;
+class AMechArmActor;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputComponent;
 class UDecalComponent;
+class UAnimMontage;
 class UPlayerHUDWidget;
 class UInventoryManagerWidget;
 class UItem;
@@ -33,6 +35,7 @@ struct FPlayerAttributes {
 	int32 food = 100;
 	int32 thirstSaturation = 100;
 	int32 hungerSaturation = 100;
+	float hitRange = 200.0f;
 
 };
 
@@ -51,6 +54,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+
+	bool bIsInHit = false;
 
 	APlayerController * controller = nullptr;
 
@@ -72,6 +77,9 @@ protected:
 	//Attributes
 	FPlayerAttributes attributes;
 
+	//Arm Actor
+	AMechArmActor* armActor = nullptr;
+
 	//Widgets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UPlayerHUDWidget> playerHUDWidget_BP;
@@ -82,10 +90,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimationAsset* hitAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* hitMontage;
+
 	//COMPONENTS
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* Mesh1P;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Arm Actor")
+	UChildActorComponent* armActorComp;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -107,7 +121,7 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
-
+	UFUNCTION(BlueprintCallable)
 	void OnHit();
 
 	FHitResult CrosshairLineTrace();
@@ -139,6 +153,8 @@ protected:
 	void LookUpAtRate(float Rate);
 
 public:
+
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UInventoryComponent* inventoryComp;
@@ -180,7 +196,13 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UFUNCTION(BlueprintCallable)
+	bool GetIsInHitAnimation()const;
 
+	UFUNCTION(BlueprintCallable)
+	void SetIsInHitAnimationb(bool b);
 
+	UFUNCTION(BlueprintCallable)
+	AMechArmActor* GetArmActor() const;
 };
 
