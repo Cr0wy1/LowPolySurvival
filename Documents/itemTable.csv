@@ -8,3 +8,4 @@
 7,7,Chest,4,BLOCK,0,chest,Chest_BP,0,0,0
 8,8,Grass,60,BLOCK,1,grass,Grass_BP,0,0,0
 9,9,Blow Flower,60,BLOCK,2,blow_flower,BlowFlower_BP,0,0,0
+10,10,Axe,1,TOOL,2,Axe,Axe_BP,50,1,0
