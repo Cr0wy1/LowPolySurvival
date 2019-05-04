@@ -115,6 +115,15 @@ bool UInventoryComponent::FillSlot(int32 slotIndex, FItemStack & itemstack){
 	return bReturn;
 }
 
+bool UInventoryComponent::TakeOffFromSlot(int32 slotIndex, int32 amount){
+	stackSlots[slotIndex].TakeOff(amount);
+
+	lastUpdatedSlots.AddUnique(slotIndex);
+	BroadcastOnInventoryUpdate();
+
+	return true;
+}
+
 
 void UInventoryComponent::BroadcastOnInventoryUpdate(){
 	OnInventoryUpdate.Broadcast(lastUpdatedSlots);

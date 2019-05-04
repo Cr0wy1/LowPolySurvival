@@ -51,4 +51,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerHealth() const;
+
+	int32 GetCurrentSelectedQuickSlot() const;
 };

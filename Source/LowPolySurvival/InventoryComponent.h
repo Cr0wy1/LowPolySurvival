@@ -63,7 +63,7 @@ public:
 	bool AddToSlot(int32 slotIndex, FItemStack &itemstack, int32 amount);
 	bool Swap(int32 slotIndex, FItemStack &itemstack);
 	bool FillSlot(int32 slotIndex, FItemStack &itemstack);
-	//bool PullFromSlotTo(int32 slotIndex, FItemStack &targetStack)
+	bool TakeOffFromSlot(int32 slotIndex, int32 amount = 1);
 
 	void BroadcastOnInventoryUpdate();
 

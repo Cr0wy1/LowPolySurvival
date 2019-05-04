@@ -25,8 +25,12 @@ ABuildings::ABuildings()
 	skeletalMeshComp = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh");
 	skeletalMeshComp->SetupAttachment(sceneComp);
 
-
-
+	meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
+	
+	meshComp->OnComponentBeginOverlap.AddDynamic(this, &ABuildings::OnBeginOverlap);
+	meshComp->OnComponentEndOverlap.AddDynamic(this, &ABuildings::OnEndOverlap);
+	
+	
 }
 
 // Called when the game starts or when spawned
@@ -101,8 +105,45 @@ void ABuildings::Interact(ALowPolySurvivalCharacter * interactor){
 	OnInteractBegin();
 }
 
-bool ABuildings::IsSkeletalMesh() const{
+void ABuildings::SetCollisionEnabled(ECollisionEnabled::Type collisionType, bool ignoreCrosshairTrace){
+	meshComp->SetCollisionEnabled(collisionType);
 
+	if (ignoreCrosshairTrace) {
+		
+	}
+	else {
+		meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
+	}
+	
+	
+}
+
+void ABuildings::SetHolo(bool isHolo){
+	if (isHolo) {
+		meshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+		meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		//meshComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	else {
+		meshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
+		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
+		//meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+}
+
+void ABuildings::OnBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult){
+	UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
+
+}
+
+void ABuildings::OnEndOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
+{
+}
+
+bool ABuildings::IsSkeletalMesh() const{
+	
 	if (skeletalMeshComp->SkeletalMesh) {
 		//UE_LOG(LogTemp, Warning, TEXT("Is Skeletal Mesh"));
 

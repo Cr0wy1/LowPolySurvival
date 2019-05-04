@@ -168,6 +168,14 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 		return str;
 	}
 
+	void TakeOff(int32 itemsAmount = 1) {
+		amount -= itemsAmount;
+
+		if (amount < 1) {
+			Clear();
+		}
+	}
+
 	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1) {
 		//if (GetItemId() == otherStack.GetItemId()) {
 		if (otherStack.isEmpty() || otherStack.amount < otherStack.itemInfo->stacksize) {

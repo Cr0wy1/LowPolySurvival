@@ -58,3 +58,8 @@ int32 UPlayerHUDWidget::GetPlayerHealth() const
 {
 	return playerAttributes->health;
 }
+
+int32 UPlayerHUDWidget::GetCurrentSelectedQuickSlot() const
+{
+	return playerQuickInv->GetCurrentSelectedSlot();
+}

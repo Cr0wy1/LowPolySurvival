@@ -1,14 +1,12 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "LowPolySurvivalCharacter.h"
-#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "Components/DecalComponent.h"
 #include "Buildings.h"
 #include "PlayerHUDWidget.h"
 #include "InventoryWidget.h"
@@ -17,8 +15,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "AttributeComponent.h"
 #include "Construction.h"
-#include "Animation/AnimMontage.h"
 #include "MechArmActor.h"
+#include "PlacementComponent.h"
+#include "Animation/AnimInstance.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -72,6 +71,10 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 
 	//Attributes
 	attributeComp = CreateDefaultSubobject<UAttributeComponent>("Attributes");
+
+	//Placement
+	placementComp = CreateDefaultSubobject<UPlacementComponent>("Placement");
+	placementComp->Init(this);
 }
 
 
@@ -144,22 +147,6 @@ APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
-	if (controller) {
-		//UE_LOG(LogTemp, Warning, TEXT("Ticking"));
-		
-		CrosshairLineTrace();
-	}
-
-	if (bIsHoldingPrimary) {
-		
-		if (!Mesh1P->GetAnimInstance()->Montage_IsPlaying(hitMontage)) {
-			//OnHit();
-
-			nextHitSeconds = GetWorld()->GetTimeSeconds() + primaryHitCooldown;
-		}
-
-		
-	}
 	
 }
 
@@ -168,7 +155,6 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 
 void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Setup Input Compoennt"));
 
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
@@ -243,7 +229,7 @@ FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
 	FVector endLocation = worldDirection * 1000 + startLocation;
 
 	FHitResult hitResult;
-	GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_WorldStatic);
+	GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2);
 
 	if (hitResult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
@@ -255,6 +241,18 @@ FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
 
 void ALowPolySurvivalCharacter::OnPrimaryPressed(){
 	bIsHoldingPrimary = true;
+	
+
+	if (placementComp->IsPlacementActive()) {
+		
+		if (placementComp->PlaceBuilding()) {
+			int32 selecQSlot = playerHUDWidget->GetCurrentSelectedQuickSlot();
+			quickInventoryComp->TakeOffFromSlot(selecQSlot);
+
+			OnUpdateHandStack();
+		}
+	}
+
 }
 
 void ALowPolySurvivalCharacter::OnPrimaryReleased(){
@@ -284,13 +282,21 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 void ALowPolySurvivalCharacter::OnScrollDown(){
 
 	rightHandStack = playerHUDWidget->OnScrollDown();
-	UpdateMeshRightHand();
+	
+	OnScroll();
 }
 
 void ALowPolySurvivalCharacter::OnScrollUp(){
 
 	rightHandStack = playerHUDWidget->OnScrollUp();
-	UpdateMeshRightHand();
+
+	OnScroll();
+}
+
+void ALowPolySurvivalCharacter::OnScroll(){
+
+	OnUpdateHandStack();
+
 }
 
 void ALowPolySurvivalCharacter::OnInventoryOpen()
@@ -302,6 +308,19 @@ void ALowPolySurvivalCharacter::OnInventoryClose(){
 		currentInteractionBuilding->OnInteractEnd();
 		currentInteractionBuilding = nullptr;
 	}
+}
+
+void ALowPolySurvivalCharacter::OnUpdateHandStack(){
+
+	placementComp->DeactivatePlacement();
+
+	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->building_BP) {
+		if (rightHandStack->itemInfo->type != EItemType::TOOL) {
+			placementComp->ActivatePlacement(rightHandStack->itemInfo->building_BP);
+		}
+	}
+
+	UpdateMeshRightHand();
 }
 
 bool ALowPolySurvivalCharacter::GetIsInHitAnimation() const{
@@ -360,11 +379,6 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 		armActor->RemoveInHandMesh();
 	}
 
-}
-
-int32 ALowPolySurvivalCharacter::GetPlayerHealth() const
-{
-	return attributes.health;
 }
 
 

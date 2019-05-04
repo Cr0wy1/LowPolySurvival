@@ -26,5 +26,7 @@ public:
 	FItemStack* SelectSlot(int32 slotIndex);
 	FItemStack* SelectNextSlot();
 	FItemStack* SelectPreviousSlot();
+
+	int32 GetCurrentSelectedSlot() const;
 	
 };

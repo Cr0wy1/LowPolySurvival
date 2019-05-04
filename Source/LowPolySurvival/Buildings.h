@@ -89,6 +89,16 @@ public:
 	virtual void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
 	virtual void Interact(ALowPolySurvivalCharacter* interactor);
 
+	void SetCollisionEnabled(ECollisionEnabled::Type collisionType, bool ignoreCrosshairTrace);
+	
+	void SetHolo(bool isHolo = true);
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractBegin();
 

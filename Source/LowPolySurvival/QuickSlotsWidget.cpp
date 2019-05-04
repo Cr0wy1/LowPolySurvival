@@ -39,3 +39,8 @@ FItemStack* UQuickSlotsWidget::SelectPreviousSlot(){
 	}
 	return SelectSlot(nextSlotIndex);
 }
+
+int32 UQuickSlotsWidget::GetCurrentSelectedSlot() const
+{
+	return currentSlotIndex;
+}

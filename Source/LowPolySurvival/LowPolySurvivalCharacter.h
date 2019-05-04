@@ -12,32 +12,12 @@ class AMechArmActor;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputComponent;
-class UDecalComponent;
-class UAnimMontage;
 class UPlayerHUDWidget;
 class UInventoryManagerWidget;
-class UItem;
 class UInventoryComponent;
 class UAttributeComponent;
-struct FItemInfo;
+class UPlacementComponent;
 struct FItemStack;
-enum class EInvType : uint8;
-
-
-
-USTRUCT()
-struct FPlayerAttributes {
-
-	GENERATED_BODY()
-
-	int32 health = 100;
-	int32 stamina = 100;
-	int32 food = 100;
-	int32 thirstSaturation = 100;
-	int32 hungerSaturation = 100;
-	float hitRange = 200.0f;
-
-};
 
 
 
@@ -68,14 +48,9 @@ protected:
 	bool bIsHoldingPrimary = false;
 	bool bIsInventoryOpen = false;
 
-	//cooldown for PrimaryHit
-	float primaryHitCooldown = 0.2f;
-	float nextHitSeconds = 0;
 
 	FItemStack* rightHandStack = nullptr;
 
-	//Attributes
-	FPlayerAttributes attributes;
 
 	//Arm Actor
 	AMechArmActor* armActor = nullptr;
@@ -86,12 +61,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UInventoryManagerWidget> inventoryManager_BP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimationAsset* hitAnimation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* hitMontage;
 
 	//COMPONENTS
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
@@ -124,7 +93,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnHit();
 
-	FHitResult CrosshairLineTrace();
 
 	void OnPrimaryPressed();
 	void OnPrimaryReleased();
@@ -135,10 +103,10 @@ protected:
 
 	void OnScrollDown();
 	void OnScrollUp();
+	void OnScroll();
 
 	void UpdateMeshRightHand();
 
-	int32 GetPlayerHealth() const;
 
 	//MOVEMENT
 	/** Handles moving */
@@ -168,6 +136,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UAttributeComponent* attributeComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Placement")
+	UPlacementComponent* placementComp;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -178,6 +149,8 @@ public:
 
 	UPlayerHUDWidget* playerHUDWidget = nullptr;
 	UInventoryManagerWidget* inventoryManager = nullptr;
+
+	FHitResult CrosshairLineTrace();
 
 	void AddItemStackToInventory(FItemStack &itemstack);
 
@@ -190,6 +163,7 @@ public:
 	void OnInventoryOpen();
 	void OnInventoryClose();
 
+	void OnUpdateHandStack();
 
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
