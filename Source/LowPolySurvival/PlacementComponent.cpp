@@ -7,6 +7,7 @@
 #include "Materials/MaterialInstance.h"
 #include "Engine/StaticMesh.h"
 #include "LowPolySurvivalCharacter.h"
+#include "Engine/StaticMeshSocket.h"
 
 // Sets default values for this component's properties
 UPlacementComponent::UPlacementComponent()
@@ -38,6 +39,47 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		FHitResult hitResult = character->CrosshairLineTrace();
 
 		currentBuilding->SetActorLocation(hitResult.Location, false);
+
+		if (bObjectSnapping) {
+			ABuildings* hittedBuilding = Cast<ABuildings>(hitResult.GetActor());
+			if (hittedBuilding) {
+				//UE_LOG(LogTemp, Warning, TEXT("Building Hitet"));
+
+				TArray<UStaticMeshSocket*> sockets = hittedBuilding->GetStaticMesh()->Sockets;
+
+				if (sockets.Num() > 0) {
+
+					FVector dir;
+					float length;
+
+					(hitResult.Location - (hittedBuilding->GetActorLocation() + sockets[0]->RelativeLocation)).ToDirectionAndLength(dir, length);
+
+					UStaticMeshSocket* closestSocket = sockets[0];
+					float closestDistance = length;
+
+					for (size_t i = 1; i < sockets.Num(); i++) {
+						(hitResult.Location - (hittedBuilding->GetActorLocation() + sockets[i]->RelativeLocation)).ToDirectionAndLength(dir, length);
+
+						if (length < closestDistance) {
+							closestDistance = length;
+							closestSocket = sockets[i];
+						}
+						//UE_LOG(LogTemp, Warning, TEXT("%s"), *sockets[i]->RelativeLocation.ToString());
+					}
+
+					//FVector hittetOrigin, BoxExtented;
+					//currentBuilding->GetActorBounds(true, hittetOrigin, BoxExtented);
+
+					FVector placeLocation = hittedBuilding->GetActorLocation() + closestSocket->RelativeLocation;
+					FRotator placeRotation = hittedBuilding->GetActorRotation() - closestSocket->RelativeRotation;
+
+					currentBuilding->SetActorLocation(placeLocation);
+					currentBuilding->SetActorRotation(placeRotation);
+
+				}
+
+			}
+		}
 	}
 }
 

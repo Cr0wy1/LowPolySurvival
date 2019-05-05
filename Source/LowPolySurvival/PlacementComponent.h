@@ -24,6 +24,7 @@ public:
 protected:
 
 	bool bIsActive = false;
+	bool bObjectSnapping = false;
 
 	ALowPolySurvivalCharacter* character = nullptr;
 

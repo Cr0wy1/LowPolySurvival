@@ -1,11 +1,13 @@
 ,itemid,name,stacksize,type,typeindex,texture,building_BP,durability,damage,armor
-1,1,Pickaxe,1,TOOL,1,Pickaxe,Pickaxe_BP,50,1,0
-2,2,Log,16,BLOCK,0,log,SpruceTree001,0,0,0
-3,3,Leather Helm,1,ARMOR,1,helm_leather,helm_leather,80,0,3
-4,4,Leather Chest,1,ARMOR,2,chest_leather,chest_leather,100,0,6
-5,5,Leather Pants,1,ARMOR,3,pants_leather,pants_leather,70,0,5
-6,6,Leather Boots,1,ARMOR,4,boots_leather,boots_leather,50,0,2
-7,7,Chest,4,BLOCK,0,chest,Chest_BP,0,0,0
-8,8,Grass,60,BLOCK,1,grass,Grass_BP,0,0,0
-9,9,Blow Flower,60,BLOCK,2,blow_flower,BlowFlower_BP,0,0,0
-10,10,Axe,1,TOOL,2,Axe,Axe_BP,50,1,0
+1,1,Pickaxe,1,TOOL,1,Pickaxe,Pickaxe_BP_C,50,1,0
+2,2,Log,16,BLOCK,0,log,Log_BP_C,0,0,0
+3,3,Leather Helm,1,ARMOR,1,helm_leather,LeatherHelm_BP_C,80,0,3
+4,4,Leather Chest,1,ARMOR,2,chest_leather,LeatherChest_BP_C,100,0,6
+5,5,Leather Pants,1,ARMOR,3,pants_leather,LeatherPants_BP_C,70,0,5
+6,6,Leather Boots,1,ARMOR,4,boots_leather,LeatherBoots_BP_C,50,0,2
+7,7,Chest,4,BLOCK,0,chest,Chest_BP_C,0,0,0
+8,8,Grass,60,BLOCK,1,grass,Grass_BP_C,0,0,0
+9,9,Blow Flower,60,BLOCK,2,blow_flower,BlowFlower_BP_C,0,0,0
+10,10,Axe,1,TOOL,2,Axe,Axe_BP_C,50,1,0
+11,11,Floor Frame,20,BLOCK,0,FloorFrame01,FloorFrame01_BP_C,100,0,0
+12,12,Wall Frame,20,BLOCK,0,WallFrame01,WallFrame01_BP_C,100,0,0
