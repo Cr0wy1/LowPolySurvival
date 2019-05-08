@@ -175,6 +175,10 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	//Inventory
 	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
 	PlayerInputComponent->BindAction("SecondaryAction", IE_Pressed, this, &ALowPolySurvivalCharacter::OnInteraction);
+	
+	//Placement 
+	PlayerInputComponent->BindAction("GridSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleGridSnapping);
+	PlayerInputComponent->BindAction("ObjectSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleObjectSnapping);
 
 	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
 	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
@@ -190,7 +194,9 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 
 void ALowPolySurvivalCharacter::OnHit(){
 
-	FHitResult hitResult = CrosshairLineTrace();
+	FHitResult hitResult;
+	FVector direction;
+	CrosshairLineTrace(hitResult, direction);
 
 	FVector dir;
 	float length;
@@ -220,23 +226,23 @@ void ALowPolySurvivalCharacter::OnHit(){
 	
 }
 
-FHitResult ALowPolySurvivalCharacter::CrosshairLineTrace(){
+bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction){
 
-	FVector worldLocation, worldDirection;
-	controller->DeprojectScreenPositionToWorld(viewX * 0.5f, viewY * 0.5f, worldLocation, worldDirection);
+	FVector worldLocation;
+	controller->DeprojectScreenPositionToWorld(viewX * 0.5f, viewY * 0.5f, worldLocation, OUT_Direction);
 
-	FVector startLocation = worldDirection * 100 + worldLocation;
-	FVector endLocation = worldDirection * 1000 + startLocation;
+	FVector startLocation = OUT_Direction * 100 + worldLocation;
+	FVector endLocation = OUT_Direction * 1000 + startLocation;
 
-	FHitResult hitResult;
-	GetWorld()->LineTraceSingleByChannel(hitResult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2);
+	GetWorld()->LineTraceSingleByChannel(OUT_hitresult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2);
 
-	if (hitResult.GetActor()) {
+	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 
 	}
 
-	return hitResult;
+
+	return true;
 }
 
 void ALowPolySurvivalCharacter::OnPrimaryPressed(){
@@ -268,7 +274,9 @@ void ALowPolySurvivalCharacter::ToggleInventory(){
 }
 
 void ALowPolySurvivalCharacter::OnInteraction(){
-	FHitResult hitResult = CrosshairLineTrace();
+	FHitResult hitResult;
+	FVector direction;
+	CrosshairLineTrace(hitResult, direction);
 
 	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
 

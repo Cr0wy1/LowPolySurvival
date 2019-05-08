@@ -36,9 +36,21 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (currentBuilding) {
-		FHitResult hitResult = character->CrosshairLineTrace();
+		FHitResult hitResult;
+		FVector hitDirection;
+		character->CrosshairLineTrace(hitResult, hitDirection);
+
+		FMatrix rotMatrix = FRotationMatrix::MakeFromZX(hitResult.ImpactNormal, hitDirection);
+		//FVector surfaceDot =
+		//FVector::CrossProduct(hitResult.ImpactNormal, hitResult.ImpactNormal.world);
+
+			
+		
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
+
 
 		currentBuilding->SetActorLocation(hitResult.Location, false);
+		currentBuilding->SetActorRotation(rotMatrix.Rotator());
 
 		if (bObjectSnapping) {
 			ABuildings* hittedBuilding = Cast<ABuildings>(hitResult.GetActor());
@@ -91,7 +103,10 @@ void UPlacementComponent::ActivatePlacement(TSubclassOf<ABuildings> building_BP)
 	UE_LOG(LogTemp, Warning, TEXT("Activate Placement"));
 	currentBuilding_BP = building_BP;
 
-	FHitResult hitResult = character->CrosshairLineTrace();
+	FHitResult hitResult;
+	FVector hitDirection;
+	
+	character->CrosshairLineTrace(hitResult, hitDirection);
 
 	currentBuilding = GetWorld()->SpawnActor<ABuildings>(building_BP, hitResult.Location, FRotator(0.0f) );
 	//currentBuilding->SetActorEnableCollision(false);
@@ -134,5 +149,13 @@ bool UPlacementComponent::PlaceBuilding(){
 
 bool UPlacementComponent::IsPlacementActive() const{
 	return bIsActive;
+}
+
+void UPlacementComponent::ToggleGridSnapping(){
+	bGridSnapping = !bGridSnapping;
+}
+
+void UPlacementComponent::ToggleObjectSnapping(){
+	bObjectSnapping = !bObjectSnapping;
 }
 

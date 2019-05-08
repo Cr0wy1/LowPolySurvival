@@ -25,6 +25,7 @@ protected:
 
 	bool bIsActive = false;
 	bool bObjectSnapping = false;
+	bool bGridSnapping = false;
 
 	ALowPolySurvivalCharacter* character = nullptr;
 
@@ -55,4 +56,7 @@ public:
 	bool PlaceBuilding();
 
 	bool IsPlacementActive() const;
+
+	void ToggleGridSnapping();
+	void ToggleObjectSnapping();
 };

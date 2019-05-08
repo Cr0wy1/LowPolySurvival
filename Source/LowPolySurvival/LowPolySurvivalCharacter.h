@@ -150,7 +150,7 @@ public:
 	UPlayerHUDWidget* playerHUDWidget = nullptr;
 	UInventoryManagerWidget* inventoryManager = nullptr;
 
-	FHitResult CrosshairLineTrace();
+	bool CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction);
 
 	void AddItemStackToInventory(FItemStack &itemstack);
 
