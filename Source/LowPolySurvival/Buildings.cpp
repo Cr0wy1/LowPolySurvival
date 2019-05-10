@@ -153,6 +153,10 @@ bool ABuildings::IsSkeletalMesh() const{
 	return false;
 }
 
+UStaticMeshComponent * ABuildings::GetStaticMeshComp() const{
+	return meshComp;
+}
+
 UStaticMesh * ABuildings::GetStaticMesh() const{
 	return meshComp->GetStaticMesh();
 } 

@@ -46,6 +46,7 @@ protected:
 
 	//bool for Primary key handling
 	bool bIsHoldingPrimary = false;
+	bool bIsHoldingAlt = false;
 	bool bIsInventoryOpen = false;
 
 
@@ -96,6 +97,9 @@ protected:
 
 	void OnPrimaryPressed();
 	void OnPrimaryReleased();
+
+	void OnAltPressed();
+	void OnAltReleased();
 
 	void ToggleInventory();
 

@@ -106,6 +106,8 @@ public:
 	void OnInteractEnd();
 
 	bool IsSkeletalMesh() const;
+
+	UStaticMeshComponent* GetStaticMeshComp() const;
 	UStaticMesh* GetStaticMesh() const;
 	USkeletalMesh* GetSkeletalMesh() const;
 };

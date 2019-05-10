@@ -36,62 +36,25 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (currentBuilding) {
-		FHitResult hitResult;
-		FVector hitDirection;
-		character->CrosshairLineTrace(hitResult, hitDirection);
 
-		FMatrix rotMatrix = FRotationMatrix::MakeFromZX(hitResult.ImpactNormal, hitDirection);
-		//FVector surfaceDot =
-		//FVector::CrossProduct(hitResult.ImpactNormal, hitResult.ImpactNormal.world);
+		character->CrosshairLineTrace(cHitResult, cHitDirection);
 
-			
 		
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
-
-
-		currentBuilding->SetActorLocation(hitResult.Location, false);
-		currentBuilding->SetActorRotation(rotMatrix.Rotator());
 
 		if (bObjectSnapping) {
-			ABuildings* hittedBuilding = Cast<ABuildings>(hitResult.GetActor());
-			if (hittedBuilding) {
-				//UE_LOG(LogTemp, Warning, TEXT("Building Hitet"));
+			
+			SnapToObjectSocket();
 
-				TArray<UStaticMeshSocket*> sockets = hittedBuilding->GetStaticMesh()->Sockets;
-
-				if (sockets.Num() > 0) {
-
-					FVector dir;
-					float length;
-
-					(hitResult.Location - (hittedBuilding->GetActorLocation() + sockets[0]->RelativeLocation)).ToDirectionAndLength(dir, length);
-
-					UStaticMeshSocket* closestSocket = sockets[0];
-					float closestDistance = length;
-
-					for (size_t i = 1; i < sockets.Num(); i++) {
-						(hitResult.Location - (hittedBuilding->GetActorLocation() + sockets[i]->RelativeLocation)).ToDirectionAndLength(dir, length);
-
-						if (length < closestDistance) {
-							closestDistance = length;
-							closestSocket = sockets[i];
-						}
-						//UE_LOG(LogTemp, Warning, TEXT("%s"), *sockets[i]->RelativeLocation.ToString());
-					}
-
-					//FVector hittetOrigin, BoxExtented;
-					//currentBuilding->GetActorBounds(true, hittetOrigin, BoxExtented);
-
-					FVector placeLocation = hittedBuilding->GetActorLocation() + closestSocket->RelativeLocation;
-					FRotator placeRotation = hittedBuilding->GetActorRotation() - closestSocket->RelativeRotation;
-
-					currentBuilding->SetActorLocation(placeLocation);
-					currentBuilding->SetActorRotation(placeRotation);
-
-				}
+		}
+		else {
+			SnapToHitSurface();
+			if (bGridSnapping) {
+				SnapToWorldGrid();
 
 			}
 		}
+
+		currentBuilding->AddActorLocalRotation(FRotator(0, placeRotation, 0));
 	}
 }
 
@@ -135,6 +98,7 @@ bool UPlacementComponent::PlaceBuilding(){
 
 		FActorSpawnParameters params;
 		params.Template = currentBuilding;
+		
 
 		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuilding_BP, params);
 		//placedBuilding->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics, false);
@@ -147,8 +111,82 @@ bool UPlacementComponent::PlaceBuilding(){
 	return true;
 }
 
+bool UPlacementComponent::SnapToObjectSocket(){
+
+	ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
+
+	if (!targetBuilding) { return false; }
+
+	TArray<UStaticMeshSocket*> sockets = targetBuilding->GetStaticMesh()->Sockets;
+	
+	if (sockets.Num() < 1) { return false; }
+
+
+	FVector dir;
+	float length;
+
+	(cHitResult.Location - (targetBuilding->GetActorLocation() + sockets[0]->RelativeLocation)).ToDirectionAndLength(dir, length);
+
+	UStaticMeshSocket* closestSocket = sockets[0];
+	float closestDistance = length;
+
+	for (size_t i = 1; i < sockets.Num(); i++) {
+		(cHitResult.Location - (targetBuilding->GetActorLocation() + sockets[i]->RelativeLocation)).ToDirectionAndLength(dir, length);
+
+		if (length < closestDistance) {
+			closestDistance = length;
+			closestSocket = sockets[i];
+		}
+		
+	}
+
+	FTransform socketTransform;
+	closestSocket->GetSocketTransform(socketTransform, targetBuilding->GetStaticMeshComp());
+
+	currentBuilding->SetActorTransform(socketTransform);
+
+	return true;
+}
+
+bool UPlacementComponent::SnapToHitSurface(){
+
+	FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
+
+	currentBuilding->SetActorLocation(cHitResult.Location, false);
+	currentBuilding->SetActorRotation(rotMatrix.Rotator());
+
+	return false;
+}
+
+bool UPlacementComponent::SnapToWorldGrid(){
+
+	FVector cLocation = currentBuilding->GetActorLocation() / worldGridSize;
+
+	cLocation.X = FMath::RoundToInt(cLocation.X);
+	cLocation.Y = FMath::RoundToInt(cLocation.Y);
+	cLocation.Z = FMath::RoundToInt(cLocation.Z);
+
+	currentBuilding->SetActorLocation(cLocation*worldGridSize);
+
+	return true;
+}
+
+void UPlacementComponent::SetPlaceRotation(float value){
+	placeRotation = value;
+}
+
+void UPlacementComponent::AddPlaceRotation(float value){
+	placeRotation += value;
+}
+
 bool UPlacementComponent::IsPlacementActive() const{
 	return bIsActive;
+}
+
+bool UPlacementComponent::IsRotationMode() const{
+	return bIsInRotationMode;
 }
 
 void UPlacementComponent::ToggleGridSnapping(){

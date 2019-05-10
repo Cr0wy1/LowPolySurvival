@@ -183,6 +183,10 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
 	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
 
+	//Alt
+	PlayerInputComponent->BindAction("Alt", IE_Pressed, this, &ALowPolySurvivalCharacter::OnAltPressed);
+	PlayerInputComponent->BindAction("Alt", IE_Released, this, &ALowPolySurvivalCharacter::OnAltReleased);
+
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
@@ -266,6 +270,14 @@ void ALowPolySurvivalCharacter::OnPrimaryReleased(){
 	Mesh1P->GetAnimInstance()->StopSlotAnimation();
 }
 
+void ALowPolySurvivalCharacter::OnAltPressed(){
+	bIsHoldingAlt = true;
+}
+
+void ALowPolySurvivalCharacter::OnAltReleased(){
+	bIsHoldingAlt = false;
+}
+
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
 	//UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
@@ -289,21 +301,36 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 
 void ALowPolySurvivalCharacter::OnScrollDown(){
 
-	rightHandStack = playerHUDWidget->OnScrollDown();
-	
+	if (bIsHoldingAlt) {
+		placementComp->AddPlaceRotation(-10);
+	}
+	else {
+		rightHandStack = playerHUDWidget->OnScrollDown();
+
+	}
+
+
 	OnScroll();
 }
 
 void ALowPolySurvivalCharacter::OnScrollUp(){
 
-	rightHandStack = playerHUDWidget->OnScrollUp();
+	if (bIsHoldingAlt) {
+		placementComp->AddPlaceRotation(10);
+	}
+	else {
+		rightHandStack = playerHUDWidget->OnScrollUp();
+	}
 
 	OnScroll();
 }
 
 void ALowPolySurvivalCharacter::OnScroll(){
 
-	OnUpdateHandStack();
+	if (!bIsHoldingAlt) {
+		OnUpdateHandStack();
+	}
+	
 
 }
 
