@@ -58,13 +58,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable* itemDataTable;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
-	UDataTable* metaItemDataTable;
-
 
 	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
 	USceneComponent* sceneComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
+	USceneComponent* subSceneComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* meshComp;

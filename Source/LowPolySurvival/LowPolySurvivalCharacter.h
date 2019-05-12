@@ -8,6 +8,7 @@
 
 class ABuildings;
 class AConstruction;
+class ALogistic;
 class AMechArmActor;
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -17,6 +18,7 @@ class UInventoryManagerWidget;
 class UInventoryComponent;
 class UAttributeComponent;
 class UPlacementComponent;
+class UWidgetInteractionComponent;
 struct FItemStack;
 
 
@@ -47,6 +49,7 @@ protected:
 	//bool for Primary key handling
 	bool bIsHoldingPrimary = false;
 	bool bIsHoldingAlt = false;
+	bool bIsHoldingShift = false;
 	bool bIsInventoryOpen = false;
 
 
@@ -75,14 +78,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Scene")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
 	USceneComponent* sceneRightHand;
 
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* meshRightHand;
 
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	USkeletalMeshComponent* skeletalMeshRightHand;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Interaction")
+	UWidgetInteractionComponent* widgetInteractionComp;
 
 	virtual void BeginPlay();
 
@@ -99,6 +105,12 @@ protected:
 
 	void OnAltPressed();
 	void OnAltReleased();
+
+	void OnShiftPressed();
+	void OnShiftReleased();
+
+	void OnRPressed();
+	void OnIPressed();
 
 	void ToggleInventory();
 
@@ -160,7 +172,7 @@ public:
 
 	void AddItemStackToInventory(FItemStack &itemstack);
 
-	void OpenInventory(AConstruction* construction);
+	void OpenInventory(ALogistic* logistic);
 
 	void ApplyDamage(int32 amount, AActor * causer = nullptr);
 

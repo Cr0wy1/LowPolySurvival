@@ -8,8 +8,10 @@
 
 
 class ABuildings;
+class AConstruction;
 class ALowPolySurvivalCharacter;
 class UMaterialInstance;
+class APlaceWidget;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -27,16 +29,19 @@ protected:
 	bool bIsInRotationMode = false;
 	bool bObjectSnapping = false;
 	bool bGridSnapping = false;
+	bool bIntersect = false;
 
-	float placeRotation = 0.0f;
+	FVector placeLoc;
+	FRotator placeRotation;
 
 	FHitResult cHitResult;
 	FVector cHitDirection;
 
 	ALowPolySurvivalCharacter* character = nullptr;
+	APlaceWidget* placeWidget = nullptr;
 
-	ABuildings* currentBuilding = nullptr;
-	TSubclassOf<ABuildings> currentBuilding_BP;
+	AConstruction* currentConstruction = nullptr;
+	TSubclassOf<AConstruction> currentConstruction_BP;
 
 	//UPROPERTIES
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
@@ -49,6 +54,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+
 
 	float worldGridSize = 200.0f;
 
@@ -72,11 +79,14 @@ public:
 	void ShowPlaceWidget();
 
 	void SetPlaceRotation(float value);
-	void AddPlaceRotation(float value);
+	void AddPlaceRotation(float valueY, float valueZ);
 
 	bool IsPlacementActive() const;
 	bool IsRotationMode() const;
 
 	void ToggleGridSnapping();
 	void ToggleObjectSnapping();
+	void ToggleIntersect();
+
+	void OnRPressed();
 };

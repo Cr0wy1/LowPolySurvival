@@ -7,7 +7,7 @@
 #include "Construction.generated.h"
 
 
-class UInventoryComponent;
+
 /**
  * 
  */
@@ -25,14 +25,11 @@ class LOWPOLYSURVIVAL_API AConstruction : public ABuildings
 protected:
 	//virtual void BeginPlay() override;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement")
+	FVector intersectLoc;
 
 
 public:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
-	UInventoryComponent * inventoryComp;
-
 
 	AConstruction();
 
@@ -42,5 +39,15 @@ public:
 	virtual void Interact(ALowPolySurvivalCharacter* interactor) override;
 
 
-	
+	void RotateMeshX(float value = 90.0f);
+	void RotateMeshY(float value = 90.0f);
+	void RotateMeshZ(float value = 90.0f);
+
+	void RotateActorX(float value = 90.0f);
+	void RotateActorY(float value = 90.0f);
+	void RotateActorZ(float value = 90.0f);
+
+
+	FVector GetIntersectLoc() const;
+
 };

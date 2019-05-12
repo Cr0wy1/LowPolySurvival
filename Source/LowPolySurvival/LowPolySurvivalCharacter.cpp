@@ -7,18 +7,18 @@
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "Buildings.h"
 #include "PlayerHUDWidget.h"
 #include "InventoryWidget.h"
 #include "InventoryComponent.h"
 #include "InventoryManagerWidget.h"
 #include "Components/StaticMeshComponent.h"
 #include "AttributeComponent.h"
-#include "Construction.h"
+#include "Logistic.h"
 #include "MechArmActor.h"
 #include "PlacementComponent.h"
 #include "Animation/AnimInstance.h"
-#include "Components/WidgetComponent.h"
+#include "Components/WidgetInteractionComponent.h"
+
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -28,7 +28,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 {
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(30.f, 96.0f);
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -81,6 +81,8 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	placeWidgetComp = CreateDefaultSubobject<UChildActorComponent>("Place Widget");
 	placeWidgetComp->SetupAttachment(RootComponent);
 
+	widgetInteractionComp = CreateDefaultSubobject<UWidgetInteractionComponent>("Widget Interaction");
+	widgetInteractionComp->SetupAttachment(FirstPersonCameraComponent);
 }
 
 
@@ -130,10 +132,10 @@ void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
 
 }
 
-void ALowPolySurvivalCharacter::OpenInventory(AConstruction* construction){
+void ALowPolySurvivalCharacter::OpenInventory(ALogistic* logistic){
 	//UE_LOG(LogTemp, Warning, TEXT("Open Inventory"));
 	if (inventoryManager) {
-		inventoryManager->ShowInventory(construction->inventoryComp);
+		inventoryManager->ShowInventory(logistic->inventoryComp);
 	}
 	
 }
@@ -189,9 +191,18 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
 	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
 
+	PlayerInputComponent->BindAction("Intersect", IE_Pressed, this, &ALowPolySurvivalCharacter::OnIPressed);
+
 	//Alt
 	PlayerInputComponent->BindAction("Alt", IE_Pressed, this, &ALowPolySurvivalCharacter::OnAltPressed);
 	PlayerInputComponent->BindAction("Alt", IE_Released, this, &ALowPolySurvivalCharacter::OnAltReleased);
+
+	//AltIntersect
+	PlayerInputComponent->BindAction("Shift", IE_Pressed, this, &ALowPolySurvivalCharacter::OnShiftPressed);
+	PlayerInputComponent->BindAction("Shift", IE_Released, this, &ALowPolySurvivalCharacter::OnShiftReleased);
+
+	//R
+	PlayerInputComponent->BindAction("R", IE_Pressed, this, &ALowPolySurvivalCharacter::OnRPressed);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -248,8 +259,9 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
-		
 	}
+
+	
 
 	DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red);
 
@@ -286,6 +298,22 @@ void ALowPolySurvivalCharacter::OnAltReleased(){
 	bIsHoldingAlt = false;
 }
 
+void ALowPolySurvivalCharacter::OnShiftPressed(){
+	bIsHoldingShift = true;
+}
+
+void ALowPolySurvivalCharacter::OnShiftReleased(){
+	bIsHoldingShift = false;
+}
+
+void ALowPolySurvivalCharacter::OnRPressed(){
+	placementComp->OnRPressed();
+}
+
+void ALowPolySurvivalCharacter::OnIPressed(){
+	placementComp->ToggleIntersect();
+}
+
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
 	//UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
@@ -310,7 +338,10 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 void ALowPolySurvivalCharacter::OnScrollDown(){
 
 	if (bIsHoldingAlt) {
-		placementComp->AddPlaceRotation(-10);
+		placementComp->AddPlaceRotation(-10, 0);
+	}
+	else if (bIsHoldingShift) {
+		placementComp->AddPlaceRotation(0, -10);
 	}
 	else {
 		rightHandStack = playerHUDWidget->OnScrollDown();
@@ -324,7 +355,10 @@ void ALowPolySurvivalCharacter::OnScrollDown(){
 void ALowPolySurvivalCharacter::OnScrollUp(){
 
 	if (bIsHoldingAlt) {
-		placementComp->AddPlaceRotation(10);
+		placementComp->AddPlaceRotation(10, 0);
+	}
+	else if (bIsHoldingShift) {
+		placementComp->AddPlaceRotation(0, 10);
 	}
 	else {
 		rightHandStack = playerHUDWidget->OnScrollUp();

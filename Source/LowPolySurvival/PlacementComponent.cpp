@@ -2,7 +2,7 @@
 
 
 #include "PlacementComponent.h"
-#include "Buildings.h"
+#include "Construction.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstance.h"
 #include "Engine/StaticMesh.h"
@@ -27,7 +27,7 @@ void UPlacementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	placeWidget = Cast<APlaceWidget>(character->placeWidgetComp->GetChildActor());
 	
 }
 
@@ -37,13 +37,13 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (currentBuilding) {
+	if (currentConstruction) {
 
 		character->CrosshairLineTrace(cHitResult, cHitDirection);
 
 		ShowPlaceWidget();
 
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.ImpactPoint.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.ImpactPoint.ToString());
 
 
 		if (bObjectSnapping) {
@@ -53,33 +53,53 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		}
 		else {
 			SnapToHitSurface();
+
+			if (placeWidget->GetHoveredWidgetIndex() >= 0) {
+				if (placeWidget) {
+					FTransform placeTrans = placeWidget->GetPlacementTransform();
+					//UE_LOG(LogTemp, Warning, TEXT("%s"), *placeTrans.ToString());
+
+					placeLoc = placeTrans.GetLocation();
+					currentConstruction->SetActorRotation(placeTrans.Rotator());
+				}
+			}
+
 			if (bGridSnapping) {
 				SnapToWorldGrid();
 
 			}
 		}
 
-		currentBuilding->AddActorLocalRotation(FRotator(0, placeRotation, 0));
+
+
+		currentConstruction->SetActorLocation(placeLoc);
+		currentConstruction->AddActorLocalRotation(placeRotation);
+
+		if (bIntersect) {
+			currentConstruction->AddActorLocalOffset(currentConstruction->GetIntersectLoc());
+			//placeLoc += currentConstruction->GetIntersectLoc();
+		}
 	}
 }
 
 void UPlacementComponent::Init(ALowPolySurvivalCharacter * _character){
 	character = _character;
+	
 }
 
 void UPlacementComponent::ActivatePlacement(TSubclassOf<ABuildings> building_BP){
 	UE_LOG(LogTemp, Warning, TEXT("Activate Placement"));
-	currentBuilding_BP = building_BP;
+	currentConstruction_BP = building_BP;
 
 	FHitResult hitResult;
 	FVector hitDirection;
 	
 	character->CrosshairLineTrace(hitResult, hitDirection);
 
-	currentBuilding = GetWorld()->SpawnActor<ABuildings>(building_BP, hitResult.Location, FRotator(0.0f) );
-	//currentBuilding->SetActorEnableCollision(false);
-	//currentBuilding->SetCollisionEnabled(ECollisionEnabled::QueryOnly, true);
-	currentBuilding->SetHolo(true);
+	currentConstruction = GetWorld()->SpawnActor<AConstruction>(building_BP, hitResult.Location, FRotator(0.0f) );
+	//currentConstruction->SetActorEnableCollision(false);
+	//currentConstruction->SetCollisionEnabled(ECollisionEnabled::QueryOnly, true);
+	currentConstruction->SetHolo(true);
 
 	bIsActive = true;
 
@@ -89,23 +109,23 @@ void UPlacementComponent::ActivatePlacement(TSubclassOf<ABuildings> building_BP)
 void UPlacementComponent::DeactivatePlacement(){
 	bIsActive = false;
 
-	if (currentBuilding) {
-		currentBuilding->SetActorHiddenInGame(true);
-		currentBuilding->Destroy();
-		currentBuilding = nullptr;
+	if (currentConstruction) {
+		currentConstruction->SetActorHiddenInGame(true);
+		currentConstruction->Destroy();
+		currentConstruction = nullptr;
 	}
 
 }
 
 bool UPlacementComponent::PlaceBuilding(){
 
-	if (currentBuilding && currentBuilding_BP) {
+	if (currentConstruction && currentConstruction_BP) {
 
 		FActorSpawnParameters params;
-		params.Template = currentBuilding;
+		params.Template = currentConstruction;
 		
 
-		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuilding_BP, params);
+		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentConstruction_BP, params);
 		//placedBuilding->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics, false);
 		//placedBuilding->SetActorEnableCollision(true);
 		placedBuilding->SetHolo(false);
@@ -148,7 +168,7 @@ bool UPlacementComponent::SnapToObjectSocket(){
 	FTransform socketTransform;
 	closestSocket->GetSocketTransform(socketTransform, targetBuilding->GetStaticMeshComp());
 
-	currentBuilding->SetActorTransform(socketTransform);
+	currentConstruction->SetActorTransform(socketTransform);
 
 	return true;
 }
@@ -159,8 +179,8 @@ bool UPlacementComponent::SnapToHitSurface(){
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
 
-	currentBuilding->SetActorLocation(cHitResult.ImpactPoint, false);
-	currentBuilding->SetActorRotation(rotMatrix.Rotator());
+	placeLoc = cHitResult.ImpactPoint;
+	currentConstruction->SetActorRotation(rotMatrix.Rotator());
 
 
 
@@ -169,19 +189,18 @@ bool UPlacementComponent::SnapToHitSurface(){
 
 bool UPlacementComponent::SnapToWorldGrid(){
 
-	FVector cLocation = currentBuilding->GetActorLocation() / worldGridSize;
+	FVector cLocation = currentConstruction->GetActorLocation() / worldGridSize;
 
 	cLocation.X = FMath::RoundToInt(cLocation.X);
 	cLocation.Y = FMath::RoundToInt(cLocation.Y);
 	cLocation.Z = FMath::RoundToInt(cLocation.Z);
 
-	currentBuilding->SetActorLocation(cLocation*worldGridSize);
+	placeLoc = cLocation*worldGridSize;
 
 	return true;
 }
 
 void UPlacementComponent::ShowPlaceWidget(){
-	if (cHitResult.GetActor()) {
 
 		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
 
@@ -192,26 +211,22 @@ void UPlacementComponent::ShowPlaceWidget(){
 			character->placeWidgetComp->SetWorldLocation(targetBuilding->GetActorLocation());
 			character->placeWidgetComp->SetWorldRotation(targetBuilding->GetActorRotation());
 
-			APlaceWidget* placeWidget = Cast<APlaceWidget>(character->placeWidgetComp->GetChildActor());
-
-			if (placeWidget) {
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *placeWidget->GetHoveredWidgetComp()->GetName() );
-			}
-			
-
+			character->placeWidgetComp->SetVisibility(true);
 		}
-
-
-		//character->placeWidgetComp->AddRelativeRotation(cHitResult.GetActor()->GetActorRotation());
-	}
+		else {
+			character->placeWidgetComp->SetVisibility(false);
+		}
 }
 
 void UPlacementComponent::SetPlaceRotation(float value){
-	placeRotation = value;
+	placeRotation.Yaw = value;
 }
 
-void UPlacementComponent::AddPlaceRotation(float value){
-	placeRotation += value;
+void UPlacementComponent::AddPlaceRotation(float valueY, float valueZ){
+
+	placeRotation.Pitch += valueY;
+	placeRotation.Yaw += valueZ;
+	
 }
 
 bool UPlacementComponent::IsPlacementActive() const{
@@ -228,5 +243,16 @@ void UPlacementComponent::ToggleGridSnapping(){
 
 void UPlacementComponent::ToggleObjectSnapping(){
 	bObjectSnapping = !bObjectSnapping;
+}
+
+void UPlacementComponent::ToggleIntersect(){
+	bIntersect = !bIntersect;
+}
+
+void UPlacementComponent::OnRPressed(){
+	if (currentConstruction) {
+		currentConstruction->RotateMeshX();
+	}
+	
 }
 

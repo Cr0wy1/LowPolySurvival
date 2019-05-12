@@ -19,11 +19,14 @@ ABuildings::ABuildings()
 	sceneComp = CreateAbstractDefaultSubobject<USceneComponent>("Scene");
 	SetRootComponent(sceneComp);
 
+	subSceneComp = CreateAbstractDefaultSubobject<USceneComponent>("SubScene");
+	subSceneComp->SetupAttachment(sceneComp);
+
 	meshComp = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	meshComp->SetupAttachment(sceneComp);
+	meshComp->SetupAttachment(subSceneComp);
 
 	skeletalMeshComp = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh");
-	skeletalMeshComp->SetupAttachment(sceneComp);
+	skeletalMeshComp->SetupAttachment(subSceneComp);
 
 	meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
 	
@@ -57,8 +60,6 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 					FItemStack itemStack;
 					itemStack.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
 					itemStack.amount = rand;
-
-					//UE_LOG(LogTemp, Warning, TEXT("size info: %i, meta: %i, name: %i"), sizeof(itemStack.itemInfo), sizeof(itemStack.itemInfo->meta), sizeof(itemStack.itemInfo->name));
 
 
 					player->AddItemStackToInventory(itemStack);
@@ -121,15 +122,10 @@ void ABuildings::SetCollisionEnabled(ECollisionEnabled::Type collisionType, bool
 void ABuildings::SetHolo(bool isHolo){
 	if (isHolo) {
 		meshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
 		meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-		//meshComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 	else {
 		meshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
-		//meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-		//meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 }
 

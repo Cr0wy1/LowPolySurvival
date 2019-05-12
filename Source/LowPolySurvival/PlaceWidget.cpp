@@ -2,12 +2,14 @@
 
 #include "PlaceWidget.h"
 #include "Components/WidgetComponent.h"
+#include "PlacementWidget.h"
+#include "Components/ArrowComponent.h"
 
 
 // Sets default values
 APlaceWidget::APlaceWidget()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -28,15 +30,52 @@ void APlaceWidget::Tick(float DeltaTime)
 
 }
 
-UWidgetComponent * APlaceWidget::GetHoveredWidgetComp() const{
+UWidgetComponent * APlaceWidget::GetHoveredWidgetComp() const {
 
-	for (UWidgetComponent* widgetComp : widgetComps) {
-		if (widgetComp->GetUserWidgetObject()->IsHovered()) {
-			return widgetComp;
-		}
+	for (FWidgetArrows widgetArrows : widgetArrowsStructs) {
+		//if (widgetArrows.widgetComp->GetUserWidgetObject()->IsHovered()) {
+			//return widgetArrows.widgetComp;
+		//}
 	}
 
 	return nullptr;
+}
+
+int32 APlaceWidget::GetHoveredWidgetIndex() const {
+
+	for (size_t i = 0; i < widgetArrowsStructs.Num(); i++) {
+		if (widgetArrowsStructs[i].widgetComp->GetUserWidgetObject()->IsHovered()) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+FTransform APlaceWidget::GetPlacementTransform() const{
+
+	FTransform returnTransform;
+
+	int32 iHoveredWidget = GetHoveredWidgetIndex();
+
+	if (iHoveredWidget > -1) {
+
+		UPlacementWidget* placementWidget = Cast<UPlacementWidget>(widgetArrowsStructs[iHoveredWidget].widgetComp->GetUserWidgetObject());
+
+		if (placementWidget) {
+			//UE_LOG(LogTemp, Warning, TEXT("%i"), placementWidget->hoveredIndex);
+
+			if (placementWidget->hoveredIndex < widgetArrowsStructs[iHoveredWidget].arrowComps.Num()) {
+
+				returnTransform = widgetArrowsStructs[iHoveredWidget].arrowComps[placementWidget->hoveredIndex]->GetComponentTransform();
+
+			}
+
+		}
+	}
+
+
+	return returnTransform;
 }
 
 
@@ -45,12 +84,26 @@ void APlaceWidget::UpdateAllWidgetComps() {
 	TArray<UActorComponent*> actorComps = GetComponentsByClass(UWidgetComponent::StaticClass());
 
 	for (UActorComponent* actorComp : actorComps) {
-		UWidgetComponent* widgetComp = Cast<UWidgetComponent>(actorComp);
-		widgetComps.Push(widgetComp);
+
+		FWidgetArrows newWidgetArrow;
+
+		newWidgetArrow.widgetComp = Cast<UWidgetComponent>(actorComp);
+
+		TArray<USceneComponent*> widgetChildComps = newWidgetArrow.widgetComp->GetAttachChildren();
+
+		for (USceneComponent* widgetChild : widgetChildComps) {
+
+			UArrowComponent* arrowComp = Cast<UArrowComponent>(widgetChild);
+
+			if (arrowComp) {
+				newWidgetArrow.arrowComps.Push(arrowComp);
+			}
+
+		}
+
+		widgetArrowsStructs.Push(newWidgetArrow);
+
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("%i"), widgetComps.Num());
-
 
 }
 

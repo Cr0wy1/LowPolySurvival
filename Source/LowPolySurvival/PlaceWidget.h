@@ -9,6 +9,19 @@
 
 
 class UWidgetComponent;
+class UArrowComponent;
+
+
+
+USTRUCT()
+struct LOWPOLYSURVIVAL_API FWidgetArrows {
+
+	GENERATED_BODY()
+
+	UWidgetComponent* widgetComp;
+	TArray<UArrowComponent* > arrowComps;
+
+};
 
 
 
@@ -23,7 +36,7 @@ public:
 
 protected:
 
-	TArray<UWidgetComponent*> widgetComps;
+	TArray<FWidgetArrows> widgetArrowsStructs;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -35,5 +48,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UWidgetComponent* GetHoveredWidgetComp() const;
+	int32 GetHoveredWidgetIndex() const;
+
+	FTransform GetPlacementTransform() const;
 	
 };
