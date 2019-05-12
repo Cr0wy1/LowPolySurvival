@@ -69,6 +69,8 @@ public:
 	bool SnapToHitSurface();
 	bool SnapToWorldGrid();
 
+	void ShowPlaceWidget();
+
 	void SetPlaceRotation(float value);
 	void AddPlaceRotation(float value);
 

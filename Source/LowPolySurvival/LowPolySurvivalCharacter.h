@@ -84,7 +84,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent* skeletalMeshRightHand;
 
-
 	virtual void BeginPlay();
 
 	// APawn interface
@@ -142,6 +141,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Placement")
 	UPlacementComponent* placementComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Widget")
+	UChildActorComponent* placeWidgetComp;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)

@@ -8,6 +8,8 @@
 #include "Engine/StaticMesh.h"
 #include "LowPolySurvivalCharacter.h"
 #include "Engine/StaticMeshSocket.h"
+#include "Components/WidgetComponent.h"
+#include "PlaceWidget.h"
 
 // Sets default values for this component's properties
 UPlacementComponent::UPlacementComponent()
@@ -39,7 +41,10 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 		character->CrosshairLineTrace(cHitResult, cHitDirection);
 
-		
+		ShowPlaceWidget();
+
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.ImpactPoint.ToString());
+
 
 		if (bObjectSnapping) {
 			
@@ -154,8 +159,10 @@ bool UPlacementComponent::SnapToHitSurface(){
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
 
-	currentBuilding->SetActorLocation(cHitResult.Location, false);
+	currentBuilding->SetActorLocation(cHitResult.ImpactPoint, false);
 	currentBuilding->SetActorRotation(rotMatrix.Rotator());
+
+
 
 	return false;
 }
@@ -171,6 +178,32 @@ bool UPlacementComponent::SnapToWorldGrid(){
 	currentBuilding->SetActorLocation(cLocation*worldGridSize);
 
 	return true;
+}
+
+void UPlacementComponent::ShowPlaceWidget(){
+	if (cHitResult.GetActor()) {
+
+		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
+
+		if (targetBuilding) {
+
+			FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
+
+			character->placeWidgetComp->SetWorldLocation(targetBuilding->GetActorLocation());
+			character->placeWidgetComp->SetWorldRotation(targetBuilding->GetActorRotation());
+
+			APlaceWidget* placeWidget = Cast<APlaceWidget>(character->placeWidgetComp->GetChildActor());
+
+			if (placeWidget) {
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *placeWidget->GetHoveredWidgetComp()->GetName() );
+			}
+			
+
+		}
+
+
+		//character->placeWidgetComp->AddRelativeRotation(cHitResult.GetActor()->GetActorRotation());
+	}
 }
 
 void UPlacementComponent::SetPlaceRotation(float value){

@@ -18,6 +18,7 @@
 #include "MechArmActor.h"
 #include "PlacementComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Components/WidgetComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -75,6 +76,11 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	//Placement
 	placementComp = CreateDefaultSubobject<UPlacementComponent>("Placement");
 	placementComp->Init(this);
+
+	//Place Widget
+	placeWidgetComp = CreateDefaultSubobject<UChildActorComponent>("Place Widget");
+	placeWidgetComp->SetupAttachment(RootComponent);
+
 }
 
 
@@ -242,8 +248,10 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
-
+		
 	}
+
+	DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red);
 
 
 	return true;
