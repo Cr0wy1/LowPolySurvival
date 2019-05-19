@@ -18,6 +18,8 @@
 #include "PlacementComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Components/WidgetInteractionComponent.h"
+#include "PlacementMenuWidget.h"
+#include "PlayercharController.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -96,7 +98,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	Mesh1P->SetHiddenInGame(false, true);
 
-	controller = Cast<APlayerController>(GetController());
+	controller = Cast<APlayercharController>(GetController());
 	armActor = Cast<AMechArmActor>(armActorComp->GetChildActor());
 
 	if (armActor) {
@@ -121,6 +123,11 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 
 		playerHUDWidget->AddToViewport();
 		inventoryManager->AddToViewport();
+	}
+
+	if (placementMenu_BP) {
+		placementMenuWidget = CreateWidget<UPlacementMenuWidget>(controller, placementMenu_BP);
+		placementMenuWidget->AddToViewport();
 	}
 
 	
@@ -155,7 +162,9 @@ APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
-	
+	if (placementMenuWidget) {
+		//placementMenuWidget->ToggleObjectSnap();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,6 +172,9 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 
 void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Setup Input Bindings"));
+
 
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
@@ -187,11 +199,12 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	//Placement 
 	PlayerInputComponent->BindAction("GridSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleGridSnapping);
 	PlayerInputComponent->BindAction("ObjectSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleObjectSnapping);
+	PlayerInputComponent->BindAction("Intersect", IE_Pressed, placementComp, &UPlacementComponent::ToggleIntersect);
 
 	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
 	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
 
-	PlayerInputComponent->BindAction("Intersect", IE_Pressed, this, &ALowPolySurvivalCharacter::OnIPressed);
+
 
 	//Alt
 	PlayerInputComponent->BindAction("Alt", IE_Pressed, this, &ALowPolySurvivalCharacter::OnAltPressed);
@@ -201,8 +214,12 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("Shift", IE_Pressed, this, &ALowPolySurvivalCharacter::OnShiftPressed);
 	PlayerInputComponent->BindAction("Shift", IE_Released, this, &ALowPolySurvivalCharacter::OnShiftReleased);
 
+	//OpenPlacementMenu
+	PlayerInputComponent->BindAction("OpenPlacementMenu", IE_Pressed, this, &ALowPolySurvivalCharacter::OnOpenPlacementMenuPressed);
+	PlayerInputComponent->BindAction("OpenPlacementMenu", IE_Released, this, &ALowPolySurvivalCharacter::OnOpenPlacementMenuReleased);
+
 	//R
-	PlayerInputComponent->BindAction("R", IE_Pressed, this, &ALowPolySurvivalCharacter::OnRPressed);
+	PlayerInputComponent->BindAction("R", IE_Pressed, placementComp, &UPlacementComponent::OnRPressed);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -306,14 +323,6 @@ void ALowPolySurvivalCharacter::OnShiftReleased(){
 	bIsHoldingShift = false;
 }
 
-void ALowPolySurvivalCharacter::OnRPressed(){
-	placementComp->OnRPressed();
-}
-
-void ALowPolySurvivalCharacter::OnIPressed(){
-	placementComp->ToggleIntersect();
-}
-
 void ALowPolySurvivalCharacter::ToggleInventory(){
 	//inventory->AddToPlayerViewport(controller);
 	//UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
@@ -376,8 +385,20 @@ void ALowPolySurvivalCharacter::OnScroll(){
 
 }
 
-void ALowPolySurvivalCharacter::OnInventoryOpen()
-{
+void ALowPolySurvivalCharacter::OnOpenPlacementMenuPressed(){
+	if (placementMenuWidget) {
+		placementMenuWidget->OpenUI();
+	}
+}
+
+void ALowPolySurvivalCharacter::OnOpenPlacementMenuReleased(){
+	if (placementMenuWidget) {
+		//placementMenuWidget->CloseUI();
+	}
+}
+
+void ALowPolySurvivalCharacter::OnInventoryOpen(){
+
 }
 
 void ALowPolySurvivalCharacter::OnInventoryClose(){
@@ -391,9 +412,9 @@ void ALowPolySurvivalCharacter::OnUpdateHandStack(){
 
 	placementComp->DeactivatePlacement();
 
-	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->building_BP) {
+	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
 		if (rightHandStack->itemInfo->type != EItemType::TOOL) {
-			placementComp->ActivatePlacement(rightHandStack->itemInfo->building_BP);
+			placementComp->ActivatePlacement(rightHandStack->itemInfo);
 		}
 	}
 
@@ -420,9 +441,9 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 	meshRightHand->SetVisibility(false);
 	skeletalMeshRightHand->SetVisibility(false);
 	
-	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->building_BP) {
+	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
 
-		ABuildings* itemBuilding = rightHandStack->itemInfo->building_BP->GetDefaultObject<ABuildings>();
+		ABuildings* itemBuilding = rightHandStack->itemInfo->buildingTemplate_BP->GetDefaultObject<ABuildings>();
 
 
 		if (itemBuilding->IsSkeletalMesh()) {

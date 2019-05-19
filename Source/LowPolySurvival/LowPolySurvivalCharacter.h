@@ -10,6 +10,7 @@ class ABuildings;
 class AConstruction;
 class ALogistic;
 class AMechArmActor;
+class APlayercharController;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputComponent;
@@ -19,6 +20,7 @@ class UInventoryComponent;
 class UAttributeComponent;
 class UPlacementComponent;
 class UWidgetInteractionComponent;
+class UPlacementMenuWidget;
 struct FItemStack;
 
 
@@ -39,7 +41,7 @@ protected:
 
 	bool bIsInHit = false;
 
-	APlayerController * controller = nullptr;
+	APlayercharController * controller = nullptr;
 
 	ABuildings* currentInteractionBuilding = nullptr;
 
@@ -65,6 +67,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UInventoryManagerWidget> inventoryManager_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UPlacementMenuWidget> placementMenu_BP;
 
 	//COMPONENTS
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
@@ -109,9 +114,6 @@ protected:
 	void OnShiftPressed();
 	void OnShiftReleased();
 
-	void OnRPressed();
-	void OnIPressed();
-
 	void ToggleInventory();
 
 	void OnInteraction();
@@ -119,6 +121,9 @@ protected:
 	void OnScrollDown();
 	void OnScrollUp();
 	void OnScroll();
+
+	void OnOpenPlacementMenuPressed();
+	void OnOpenPlacementMenuReleased();
 
 	void UpdateMeshRightHand();
 
@@ -167,6 +172,7 @@ public:
 
 	UPlayerHUDWidget* playerHUDWidget = nullptr;
 	UInventoryManagerWidget* inventoryManager = nullptr;
+	UPlacementMenuWidget* placementMenuWidget = nullptr;
 
 	bool CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction);
 
@@ -180,6 +186,7 @@ public:
 
 	void OnInventoryOpen();
 	void OnInventoryClose();
+
 
 	void OnUpdateHandStack();
 

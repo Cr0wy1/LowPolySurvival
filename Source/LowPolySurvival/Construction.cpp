@@ -5,6 +5,7 @@
 
 AConstruction::AConstruction(){
 	
+	bHasPlaceInterface = true;
 }
 
 void AConstruction::Interact(ALowPolySurvivalCharacter * interactor){

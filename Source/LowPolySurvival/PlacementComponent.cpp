@@ -10,15 +10,13 @@
 #include "Engine/StaticMeshSocket.h"
 #include "Components/WidgetComponent.h"
 #include "PlaceWidget.h"
+#include "Item.h"
+#include "PlacementMenuWidget.h"
 
 // Sets default values for this component's properties
-UPlacementComponent::UPlacementComponent()
-{
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+UPlacementComponent::UPlacementComponent(){
 
-	
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 
@@ -37,47 +35,49 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (currentConstruction) {
+	if (currentBuilding) {
 
 		character->CrosshairLineTrace(cHitResult, cHitDirection);
+		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
 
-		ShowPlaceWidget();
+		if (cHitResult.GetActor()) {
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.GetActor()->GetName());
+		}
+		
 
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.ImpactPoint.ToString());
 
-
-		if (bObjectSnapping) {
+		if (character->placementMenuWidget->IsObjectSnapChecked() && targetBuilding) {
 			
-			SnapToObjectSocket();
+			if (targetBuilding->HasPlaceInterface()) {
+				ShowPlaceWidget();
+				SnapToObjectInterface();
+
+			}
+			else {
+				SnapToObjectSocket();
+			}
+			
 
 		}
 		else {
 			SnapToHitSurface();
 
-			if (placeWidget->GetHoveredWidgetIndex() >= 0) {
-				if (placeWidget) {
-					FTransform placeTrans = placeWidget->GetPlacementTransform();
-					//UE_LOG(LogTemp, Warning, TEXT("%s"), *placeTrans.ToString());
-
-					placeLoc = placeTrans.GetLocation();
-					currentConstruction->SetActorRotation(placeTrans.Rotator());
-				}
-			}
-
-			if (bGridSnapping) {
+			if (character->placementMenuWidget->IsGridSnapChecked()) {
 				SnapToWorldGrid();
 
 			}
 		}
 
+		currentBuilding->SetActorTransform(placeTrans);
+		currentBuilding->AddActorLocalRotation(placeRotation);
 
+		if (character->placementMenuWidget->IsIntersectChecked()) {
 
-		currentConstruction->SetActorLocation(placeLoc);
-		currentConstruction->AddActorLocalRotation(placeRotation);
-
-		if (bIntersect) {
-			currentConstruction->AddActorLocalOffset(currentConstruction->GetIntersectLoc());
-			//placeLoc += currentConstruction->GetIntersectLoc();
+			AConstruction* construction = Cast<AConstruction>(currentBuilding);
+			if (construction) {
+				currentBuilding->AddActorLocalOffset(construction->GetIntersectLoc());
+			}
+			
 		}
 	}
 }
@@ -87,51 +87,51 @@ void UPlacementComponent::Init(ALowPolySurvivalCharacter * _character){
 	
 }
 
-void UPlacementComponent::ActivatePlacement(TSubclassOf<ABuildings> building_BP){
-	UE_LOG(LogTemp, Warning, TEXT("Activate Placement"));
-	currentConstruction_BP = building_BP;
+void UPlacementComponent::ActivatePlacement(FItemInfo* itemInfo){
+	currentBuildingTemplate_BP = itemInfo->buildingTemplate_BP;
 
 	FHitResult hitResult;
 	FVector hitDirection;
 	
 	character->CrosshairLineTrace(hitResult, hitDirection);
 
-	currentConstruction = GetWorld()->SpawnActor<AConstruction>(building_BP, hitResult.Location, FRotator(0.0f) );
-	//currentConstruction->SetActorEnableCollision(false);
-	//currentConstruction->SetCollisionEnabled(ECollisionEnabled::QueryOnly, true);
-	currentConstruction->SetHolo(true);
-
+	currentBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, hitResult.Location, FRotator(0.0f) );
+	currentBuilding->SetHolo(true);
+	currentBuilding->ConstructFromItem(itemInfo);
+	
 	bIsActive = true;
 
-	
 }
 
 void UPlacementComponent::DeactivatePlacement(){
 	bIsActive = false;
 
-	if (currentConstruction) {
-		currentConstruction->SetActorHiddenInGame(true);
-		currentConstruction->Destroy();
-		currentConstruction = nullptr;
+	if (currentBuilding) {
+		currentBuilding->SetActorHiddenInGame(true);
+		currentBuilding->Destroy();
+		currentBuilding = nullptr;
 	}
 
 }
 
 bool UPlacementComponent::PlaceBuilding(){
 
-	if (currentConstruction && currentConstruction_BP) {
+	if (currentBuilding && currentBuildingTemplate_BP) {
 
 		FActorSpawnParameters params;
-		params.Template = currentConstruction;
-		
+		params.Template = currentBuilding;
 
-		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentConstruction_BP, params);
-		//placedBuilding->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics, false);
-		//placedBuilding->SetActorEnableCollision(true);
+		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, params);
+		placedBuilding->ConstructFromItem(currentBuilding->info.itemInfo);
 		placedBuilding->SetHolo(false);
+		placedBuilding->OnPlace();
 	}
 	
 	bIsActive = false;
+
+	if (character->placementMenuWidget->IsResetRotChecked()) {
+		placeRotation = FRotator(0, 0, 0);
+	}
 
 	return true;
 }
@@ -165,31 +165,34 @@ bool UPlacementComponent::SnapToObjectSocket(){
 		
 	}
 
-	FTransform socketTransform;
-	closestSocket->GetSocketTransform(socketTransform, targetBuilding->GetStaticMeshComp());
-
-	currentConstruction->SetActorTransform(socketTransform);
+	closestSocket->GetSocketTransform(placeTrans, targetBuilding->GetStaticMeshComp());
 
 	return true;
+}
+
+bool UPlacementComponent::SnapToObjectInterface(){
+
+	if (placeWidget->GetHoveredWidgetIndex() >= 0) {
+		if (placeWidget) {
+			placeTrans = placeWidget->GetPlacementTransform();
+		}
+	}
+
+	return false;
 }
 
 bool UPlacementComponent::SnapToHitSurface(){
 
 	FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
 
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *rotMatrix.Rotator().ToString());
-
-	placeLoc = cHitResult.ImpactPoint;
-	currentConstruction->SetActorRotation(rotMatrix.Rotator());
-
-
+	placeTrans = FTransform(rotMatrix.Rotator(), cHitResult.ImpactPoint);
 
 	return false;
 }
 
 bool UPlacementComponent::SnapToWorldGrid(){
 
-	FVector cLocation = currentConstruction->GetActorLocation() / worldGridSize;
+	FVector cLocation = currentBuilding->GetActorLocation() / worldGridSize;
 
 	cLocation.X = FMath::RoundToInt(cLocation.X);
 	cLocation.Y = FMath::RoundToInt(cLocation.Y);
@@ -204,7 +207,7 @@ void UPlacementComponent::ShowPlaceWidget(){
 
 		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
 
-		if (targetBuilding) {
+		if (targetBuilding && targetBuilding->HasPlaceInterface()) {
 
 			FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
 
@@ -238,20 +241,21 @@ bool UPlacementComponent::IsRotationMode() const{
 }
 
 void UPlacementComponent::ToggleGridSnapping(){
-	bGridSnapping = !bGridSnapping;
+	character->placementMenuWidget->ToggleGridSnap();
 }
 
 void UPlacementComponent::ToggleObjectSnapping(){
-	bObjectSnapping = !bObjectSnapping;
+	character->placementMenuWidget->ToggleObjectSnap();
 }
 
 void UPlacementComponent::ToggleIntersect(){
-	bIntersect = !bIntersect;
+	character->placementMenuWidget->ToggleIntersect();
 }
 
 void UPlacementComponent::OnRPressed(){
-	if (currentConstruction) {
-		currentConstruction->RotateMeshX();
+	AConstruction* construction = Cast<AConstruction>(currentBuilding);
+	if (construction) {
+		construction->RotateMeshX();
 	}
 	
 }

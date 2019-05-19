@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Construction.h"
+#include "Buildings.h"
 #include "Logistic.generated.h"
 
 
@@ -13,7 +13,7 @@ class UInventoryComponent;
  * 
  */
 UCLASS()
-class LOWPOLYSURVIVAL_API ALogistic : public AConstruction
+class LOWPOLYSURVIVAL_API ALogistic : public ABuildings
 {
 	GENERATED_BODY()
 	

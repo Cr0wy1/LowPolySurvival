@@ -9,9 +9,10 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "MyGameInstance.h"
 
 // Sets default values
-ABuildings::ABuildings()
+ABuildings::ABuildings() : bHasPlaceInterface(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,9 +42,12 @@ void ABuildings::BeginPlay(){
 	Super::BeginPlay();
 
 
-
-	dropInfo = info.itemDrops.GetRow<FItemDrops>(FString("")); // info.itemDrops.DataTable->FindRow<FItemDrops>(info.itemDrops.RowName, FString(""));
+	UMyGameInstance *gameInstance = Cast<UMyGameInstance>(GetGameInstance());
+	itemDataTable = gameInstance->GetItemTable();
 	
+	info.itemInfo = itemDataTable->FindRow<FItemInfo>(info.itemId, FString(""));
+	ConstructFromItem(info.itemInfo);
+
 }
 
 void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
@@ -51,18 +55,27 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 	//Drop into Player Inventorys
 	if (player) {
 
-		if (itemDataTable) {
-			for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
+		if (itemDataTable && info.itemInfo) {
 
-				int32 rand = FMath::Rand() % (dropInfo->itemId[i].amount + 1);
+			if (info.itemInfo->dropType == EDropType::SELF) {
+				FItemStack itemStack;
+				itemStack.Set(info.itemInfo);
 
-				if (rand != 0) {
-					FItemStack itemStack;
-					itemStack.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
-					itemStack.amount = rand;
+				player->AddItemStackToInventory(itemStack);
+			}
+			else if (info.itemInfo->dropType == EDropType::FROMTABLE && dropInfo) {
+				for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
+
+					int32 rand = FMath::Rand() % (dropInfo->itemId[i].amount + 1);
+
+					if (rand != 0) {
+						FItemStack itemStack;
+						itemStack.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
+						itemStack.amount = rand;
 
 
-					player->AddItemStackToInventory(itemStack);
+						player->AddItemStackToInventory(itemStack);
+					}
 				}
 			}
 		}
@@ -86,13 +99,30 @@ void ABuildings::Tick(float DeltaTime)
 
 }
 
+
+
+void ABuildings::ConstructFromItem(FItemInfo * itemInfo){
+	info.itemInfo = itemInfo;
+	info.currentDurability = info.itemInfo->durability;
+
+	if (info.itemInfo->mesh) {
+		SetStaticMesh(info.itemInfo->mesh);
+	}
+
+
+	if (info.itemInfo->dropType == EDropType::FROMTABLE) {
+		UMyGameInstance *gameInstance = Cast<UMyGameInstance>(GetGameInstance());
+		dropInfo = gameInstance->GetDropsTable()->FindRow<FItemDrops>(FName(*FString::FromInt(info.itemInfo->itemid)), FString(""));
+	}
+}
+
 void ABuildings::ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer){
 
-	info.durability -= amount;
+	info.currentDurability -= amount;
 
 	DropItems(causer);
 
-	if (info.durability <= 0) {
+	if (info.currentDurability <= 0) {
 
 		Destroy();
 	}
@@ -129,6 +159,10 @@ void ABuildings::SetHolo(bool isHolo){
 	}
 }
 
+void ABuildings::OnPlace(){
+	ConstructFromItem(info.itemInfo);
+}
+
 void ABuildings::OnBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult){
 	//UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
 
@@ -149,6 +183,10 @@ bool ABuildings::IsSkeletalMesh() const{
 	return false;
 }
 
+void ABuildings::SetStaticMesh(UStaticMesh * newMesh){
+	meshComp->SetStaticMesh(newMesh);
+}
+
 UStaticMeshComponent * ABuildings::GetStaticMeshComp() const{
 	return meshComp;
 }
@@ -160,5 +198,10 @@ UStaticMesh * ABuildings::GetStaticMesh() const{
 USkeletalMesh * ABuildings::GetSkeletalMesh() const{
 
 	return skeletalMeshComp->SkeletalMesh;
+}
+
+bool ABuildings::HasPlaceInterface() const{
+
+	return bHasPlaceInterface;
 }
 

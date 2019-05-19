@@ -1,28 +1,33 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UIWidget.h"
+#include "PlayercharController.h"
 
 bool UUIWidget::Initialize() {
 	Super::Initialize();
+
+	bIsFocusable = true;
 
 	return true;
 }
 
 
 void UUIWidget::OpenUI(){
-	APlayerController* playerController = GetOwningPlayer();
+	APlayercharController* playerController = Cast<APlayercharController>(GetOwningPlayer());
 	if (playerController) {
-		playerController->SetInputMode(FInputModeGameAndUI());
+		playerController->SetInputMode(FInputModeUIOnly());
 		playerController->bShowMouseCursor = true;
 		SetUserFocus(playerController);
 		SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		playerController->CenterMouse();
 	}
+	
 	bIsUIOpen = true;
 }
 
 
 void UUIWidget::CloseUI(){
-	APlayerController* playerController = GetOwningPlayer();
+	APlayercharController* playerController = Cast<APlayercharController>(GetOwningPlayer());
 	if (playerController) {
 		playerController->SetInputMode(FInputModeGameOnly());
 		playerController->bShowMouseCursor = false;

@@ -12,6 +12,7 @@ class AConstruction;
 class ALowPolySurvivalCharacter;
 class UMaterialInstance;
 class APlaceWidget;
+struct FItemInfo;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -27,10 +28,8 @@ protected:
 
 	bool bIsActive = false;
 	bool bIsInRotationMode = false;
-	bool bObjectSnapping = false;
-	bool bGridSnapping = false;
-	bool bIntersect = false;
 
+	FTransform placeTrans;
 	FVector placeLoc;
 	FRotator placeRotation;
 
@@ -40,8 +39,8 @@ protected:
 	ALowPolySurvivalCharacter* character = nullptr;
 	APlaceWidget* placeWidget = nullptr;
 
-	AConstruction* currentConstruction = nullptr;
-	TSubclassOf<AConstruction> currentConstruction_BP;
+	ABuildings* currentBuilding = nullptr;
+	TSubclassOf<ABuildings> currentBuildingTemplate_BP;
 
 	//UPROPERTIES
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
@@ -65,7 +64,7 @@ public:
 	void Init(ALowPolySurvivalCharacter* _character);
 
 		
-	void ActivatePlacement(TSubclassOf<ABuildings> building_BP);
+	void ActivatePlacement(FItemInfo* itemInfo);
 	void DeactivatePlacement();
 
 	//return true if Building is Placed
@@ -73,6 +72,7 @@ public:
 
 	//return true if snapped
 	bool SnapToObjectSocket();
+	bool SnapToObjectInterface();
 	bool SnapToHitSurface();
 	bool SnapToWorldGrid();
 

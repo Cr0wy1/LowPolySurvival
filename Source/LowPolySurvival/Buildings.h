@@ -14,6 +14,7 @@ class ABuildings;
 class UItem;
 class ALowPolySurvivalCharacter;
 struct FItemDrops;
+struct FItemInfo;
 class UDataTable;
 class USkeletalMesh;
 
@@ -24,13 +25,13 @@ struct LOWPOLYSURVIVAL_API FBuildingInfo {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	FName name;
+	FName itemId = "0";
 
 	UPROPERTY(EditAnywhere)
-	int32 durability;
+	int32 currentDurability;
 
-	UPROPERTY(EditAnywhere)
-	FDataTableRowHandle itemDrops;
+
+	FItemInfo* itemInfo = nullptr;
 
 };
 
@@ -42,6 +43,9 @@ class LOWPOLYSURVIVAL_API ABuildings : public AActor
 	GENERATED_BODY()
 	
 public:	
+
+	
+
 	// Sets default values for this actor's properties
 	ABuildings();
 
@@ -53,9 +57,9 @@ public:
 
 protected:
 
+	bool bHasPlaceInterface = false;
 	bool bIsSkeletalMesh = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable* itemDataTable;
 
 
@@ -85,13 +89,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+	void ConstructFromItem(FItemInfo* itemInfo);
 	virtual void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
 	virtual void Interact(ALowPolySurvivalCharacter* interactor);
 
 	void SetCollisionEnabled(ECollisionEnabled::Type collisionType, bool ignoreCrosshairTrace);
 	
 	void SetHolo(bool isHolo = true);
+
+	void OnPlace();
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -106,8 +112,10 @@ public:
 	void OnInteractEnd();
 
 	bool IsSkeletalMesh() const;
+	void SetStaticMesh(UStaticMesh *newMesh);
 
 	UStaticMeshComponent* GetStaticMeshComp() const;
 	UStaticMesh* GetStaticMesh() const;
 	USkeletalMesh* GetSkeletalMesh() const;
+	bool HasPlaceInterface() const;
 };

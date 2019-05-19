@@ -43,6 +43,14 @@ enum class EToolType : uint8 {
 	SHOVEL,
 };
 
+UENUM(BlueprintType) 
+enum class EDropType : uint8 {
+	NONE,
+	SELF,
+	FROMTABLE,
+};
+
+
 
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FMetaItemInfo : public FTableRowBase {
@@ -91,7 +99,13 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UTexture2D* texture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ABuildings> building_BP;
+	UStaticMesh* mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<ABuildings> buildingTemplate_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EDropType dropType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 durability;
