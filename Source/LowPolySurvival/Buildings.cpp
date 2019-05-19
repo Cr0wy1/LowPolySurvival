@@ -35,12 +35,15 @@ ABuildings::ABuildings() : bHasPlaceInterface(false)
 	meshComp->OnComponentEndOverlap.AddDynamic(this, &ABuildings::OnEndOverlap);
 	
 	
+	
+	
 }
 
 // Called when the game starts or when spawned
 void ABuildings::BeginPlay(){
 	Super::BeginPlay();
 
+	
 
 	UMyGameInstance *gameInstance = Cast<UMyGameInstance>(GetGameInstance());
 	itemDataTable = gameInstance->GetItemTable();
@@ -156,20 +159,45 @@ void ABuildings::SetHolo(bool isHolo){
 	}
 	else {
 		meshComp->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		if (meshMaterial) {
+			meshComp->SetMaterial(0, meshMaterial);
+		}
+		
 	}
 }
 
+void ABuildings::SetMaterial(UMaterialInterface * newMaterial){
+	if (!meshMaterial) {
+		meshMaterial = meshComp->GetMaterial(0);
+	}
+
+	meshComp->SetMaterial(0, newMaterial);
+}
+
+
+
 void ABuildings::OnPlace(){
+
+	bIsPlaced = true;
 	ConstructFromItem(info.itemInfo);
 }
 
 void ABuildings::OnBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult){
-	//UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
+	
+	if (!bIsPlaced) {
+		UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
+		if (Cast<ABuildings>(OtherActor)) {
+			bIsOverlappingBuilding = true;
+		}
+	}
 
 }
 
-void ABuildings::OnEndOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex)
-{
+void ABuildings::OnEndOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex){
+	if (!bIsPlaced) {
+		bIsOverlappingBuilding = false;
+	}
+	
 }
 
 bool ABuildings::IsSkeletalMesh() const{
@@ -181,6 +209,11 @@ bool ABuildings::IsSkeletalMesh() const{
 	}
 
 	return false;
+}
+
+bool ABuildings::IsOverlappingBuilding() const
+{
+	return bIsOverlappingBuilding;
 }
 
 void ABuildings::SetStaticMesh(UStaticMesh * newMesh){

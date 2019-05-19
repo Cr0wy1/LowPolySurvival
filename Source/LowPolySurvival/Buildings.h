@@ -57,11 +57,14 @@ public:
 
 protected:
 
+	bool bIsPlaced = false;
 	bool bHasPlaceInterface = false;
 	bool bIsSkeletalMesh = false;
+	bool bIsOverlappingBuilding = false;
 
 	UDataTable* itemDataTable;
 
+	UMaterialInterface* meshMaterial = nullptr;
 
 	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
@@ -96,6 +99,7 @@ public:
 	void SetCollisionEnabled(ECollisionEnabled::Type collisionType, bool ignoreCrosshairTrace);
 	
 	void SetHolo(bool isHolo = true);
+	void SetMaterial(UMaterialInterface* newMaterial);
 
 	void OnPlace();
 
@@ -111,8 +115,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractEnd();
 
-	bool IsSkeletalMesh() const;
+	
+	
 	void SetStaticMesh(UStaticMesh *newMesh);
+	
+	bool IsSkeletalMesh() const;
+	bool IsOverlappingBuilding() const;
 
 	UStaticMeshComponent* GetStaticMeshComp() const;
 	UStaticMesh* GetStaticMesh() const;

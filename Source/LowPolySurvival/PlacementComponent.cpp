@@ -41,7 +41,7 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
 
 		if (cHitResult.GetActor()) {
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.GetActor()->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.GetActor()->GetName());
 		}
 		
 
@@ -71,6 +71,13 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		currentBuilding->SetActorTransform(placeTrans);
 		currentBuilding->AddActorLocalRotation(placeRotation);
 
+		if (currentBuilding->IsOverlappingBuilding()) {
+			currentBuilding->SetMaterial(cannotPlaceMI);
+		}
+		else {
+			currentBuilding->SetMaterial(canPlaceMI);
+		}
+
 		if (character->placementMenuWidget->IsIntersectChecked()) {
 
 			AConstruction* construction = Cast<AConstruction>(currentBuilding);
@@ -98,7 +105,8 @@ void UPlacementComponent::ActivatePlacement(FItemInfo* itemInfo){
 	currentBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, hitResult.Location, FRotator(0.0f) );
 	currentBuilding->SetHolo(true);
 	currentBuilding->ConstructFromItem(itemInfo);
-	
+	currentBuilding->SetMaterial(canPlaceMI);
+
 	bIsActive = true;
 
 }
@@ -118,12 +126,13 @@ bool UPlacementComponent::PlaceBuilding(){
 
 	if (currentBuilding && currentBuildingTemplate_BP) {
 
-		FActorSpawnParameters params;
-		params.Template = currentBuilding;
+		//FActorSpawnParameters params;
+		//params.Template = currentBuilding;
+		
 
-		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, params);
+		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, currentBuilding->GetTransform());
 		placedBuilding->ConstructFromItem(currentBuilding->info.itemInfo);
-		placedBuilding->SetHolo(false);
+		//placedBuilding->SetHolo(false);
 		placedBuilding->OnPlace();
 	}
 	

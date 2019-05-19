@@ -44,10 +44,10 @@ protected:
 
 	//UPROPERTIES
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
-	UMaterialInstance* canPlaceMI;
+	UMaterialInterface* canPlaceMI;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
-	UMaterialInstance* cannotPlaceMI;
+	UMaterialInterface* cannotPlaceMI;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
