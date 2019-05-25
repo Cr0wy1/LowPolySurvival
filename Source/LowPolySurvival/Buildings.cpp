@@ -6,9 +6,7 @@
 #include "Engine/DataTable.h"
 #include "Item.h"
 #include "LowPolySurvivalCharacter.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Components/SceneComponent.h"
-#include "Engine/SkeletalMesh.h"
 #include "MyGameInstance.h"
 
 // Sets default values
@@ -20,14 +18,11 @@ ABuildings::ABuildings() : bHasPlaceInterface(false)
 	sceneComp = CreateAbstractDefaultSubobject<USceneComponent>("Scene");
 	SetRootComponent(sceneComp);
 
-	subSceneComp = CreateAbstractDefaultSubobject<USceneComponent>("SubScene");
-	subSceneComp->SetupAttachment(sceneComp);
+	meshSceneComp = CreateAbstractDefaultSubobject<USceneComponent>("SubScene");
+	meshSceneComp->SetupAttachment(sceneComp);
 
 	meshComp = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	meshComp->SetupAttachment(subSceneComp);
-
-	skeletalMeshComp = CreateAbstractDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh");
-	skeletalMeshComp->SetupAttachment(subSceneComp);
+	meshComp->SetupAttachment(meshSceneComp);
 
 	meshComp->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
 	
@@ -200,20 +195,19 @@ void ABuildings::OnEndOverlap(UPrimitiveComponent * OverlappedComp, AActor * Oth
 	
 }
 
-bool ABuildings::IsSkeletalMesh() const{
-	
-	if (skeletalMeshComp->SkeletalMesh) {
-		//UE_LOG(LogTemp, Warning, TEXT("Is Skeletal Mesh"));
-
-		return true;
-	}
-
-	return false;
-}
 
 bool ABuildings::IsOverlappingBuilding() const
 {
 	return bIsOverlappingBuilding;
+}
+
+void ABuildings::SetSceneTransform(const FTransform & transform){
+	sceneComp->SetRelativeTransform(transform);
+}
+
+void ABuildings::SetMeshTransform(const FTransform & transform){
+	meshComp->SetRelativeTransform(transform);
+
 }
 
 void ABuildings::SetStaticMesh(UStaticMesh * newMesh){
@@ -226,12 +220,18 @@ UStaticMeshComponent * ABuildings::GetStaticMeshComp() const{
 
 UStaticMesh * ABuildings::GetStaticMesh() const{
 	return meshComp->GetStaticMesh();
-} 
-
-USkeletalMesh * ABuildings::GetSkeletalMesh() const{
-
-	return skeletalMeshComp->SkeletalMesh;
 }
+FTransform ABuildings::GetSceneTransform() const
+{
+	return sceneComp->GetRelativeTransform();
+}
+
+FTransform ABuildings::GetMeshTransform() const
+{
+	return meshComp->GetRelativeTransform();
+}
+
+
 
 bool ABuildings::HasPlaceInterface() const{
 

@@ -60,12 +60,19 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 		}
 		else {
+
+			HidePlaceWidget();
+
 			SnapToHitSurface();
 
 			if (character->placementMenuWidget->IsGridSnapChecked()) {
 				SnapToWorldGrid();
 
 			}
+		}
+
+		if (character->placementMenuWidget->IsLockRotChecked()) {
+			placeTrans.SetRotation(FQuat(FRotator(0,0,0)));
 		}
 
 		currentBuilding->SetActorTransform(placeTrans);
@@ -120,6 +127,8 @@ void UPlacementComponent::DeactivatePlacement(){
 		currentBuilding = nullptr;
 	}
 
+	HidePlaceWidget();
+
 }
 
 bool UPlacementComponent::PlaceBuilding(){
@@ -131,6 +140,10 @@ bool UPlacementComponent::PlaceBuilding(){
 		
 
 		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, currentBuilding->GetTransform());
+		placedBuilding->SetSceneTransform(currentBuilding->GetSceneTransform());
+		placedBuilding->SetMeshTransform(currentBuilding->GetMeshTransform());
+
+
 		placedBuilding->ConstructFromItem(currentBuilding->info.itemInfo);
 		//placedBuilding->SetHolo(false);
 		placedBuilding->OnPlace();
@@ -201,13 +214,16 @@ bool UPlacementComponent::SnapToHitSurface(){
 
 bool UPlacementComponent::SnapToWorldGrid(){
 
-	FVector cLocation = currentBuilding->GetActorLocation() / worldGridSize;
+	//UE_LOG(LogTemp, Warning, TEXT("World grid snap"));
+
+	
+	FVector cLocation = cHitResult.Location / worldGridSize;
 
 	cLocation.X = FMath::RoundToInt(cLocation.X);
 	cLocation.Y = FMath::RoundToInt(cLocation.Y);
 	cLocation.Z = FMath::RoundToInt(cLocation.Z);
 
-	placeLoc = cLocation*worldGridSize;
+	placeTrans.SetLocation( cLocation*worldGridSize );
 
 	return true;
 }
@@ -218,16 +234,15 @@ void UPlacementComponent::ShowPlaceWidget(){
 
 		if (targetBuilding && targetBuilding->HasPlaceInterface()) {
 
-			FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
-
-			character->placeWidgetComp->SetWorldLocation(targetBuilding->GetActorLocation());
-			character->placeWidgetComp->SetWorldRotation(targetBuilding->GetActorRotation());
+			character->placeWidgetComp->SetWorldTransform(targetBuilding->GetStaticMeshComp()->GetComponentToWorld());
 
 			character->placeWidgetComp->SetVisibility(true);
 		}
-		else {
-			character->placeWidgetComp->SetVisibility(false);
-		}
+
+}
+
+void UPlacementComponent::HidePlaceWidget(){
+	character->placeWidgetComp->SetVisibility(false);
 }
 
 void UPlacementComponent::SetPlaceRotation(float value){
@@ -261,10 +276,17 @@ void UPlacementComponent::ToggleIntersect(){
 	character->placementMenuWidget->ToggleIntersect();
 }
 
+void UPlacementComponent::SwitchOrigin(){
+	AConstruction* construction = Cast<AConstruction>(currentBuilding);
+	if (construction) {
+		construction->SetNextOrigin();
+	}
+}
+
 void UPlacementComponent::OnRPressed(){
 	AConstruction* construction = Cast<AConstruction>(currentBuilding);
 	if (construction) {
-		construction->RotateMeshX();
+		construction->GetStaticMeshComp()->AddRelativeRotation(FRotator(0,0,90));
 	}
 	
 }

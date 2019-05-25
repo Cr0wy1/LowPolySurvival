@@ -89,9 +89,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* meshRightHand;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
-	USkeletalMeshComponent* skeletalMeshRightHand;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Interaction")
 	UWidgetInteractionComponent* widgetInteractionComp;
 

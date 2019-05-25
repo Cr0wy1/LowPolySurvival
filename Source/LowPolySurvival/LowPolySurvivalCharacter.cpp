@@ -62,10 +62,6 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	meshRightHand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Right Hand"));
 	meshRightHand->SetupAttachment(sceneRightHand);
 
-	skeletalMeshRightHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh Right Hand"));
-	skeletalMeshRightHand->SetupAttachment(sceneRightHand);
-	
-
 	//Inventoriesy
 	inventoryComp = CreateDefaultSubobject<UInventoryComponent>("Inventory");
 	quickInventoryComp = CreateDefaultSubobject<UInventoryComponent>("Quick Inventory");
@@ -200,6 +196,7 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("GridSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleGridSnapping);
 	PlayerInputComponent->BindAction("ObjectSnapping", IE_Pressed, placementComp, &UPlacementComponent::ToggleObjectSnapping);
 	PlayerInputComponent->BindAction("Intersect", IE_Pressed, placementComp, &UPlacementComponent::ToggleIntersect);
+	PlayerInputComponent->BindAction("SwitchOrigin", IE_Pressed, placementComp, &UPlacementComponent::SwitchOrigin);
 
 	PlayerInputComponent->BindAction("ScrollDown", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollDown);
 	PlayerInputComponent->BindAction("ScrollUp", IE_Pressed, this, &ALowPolySurvivalCharacter::OnScrollUp);
@@ -378,7 +375,7 @@ void ALowPolySurvivalCharacter::OnScrollUp(){
 
 void ALowPolySurvivalCharacter::OnScroll(){
 
-	if (!bIsHoldingAlt) {
+	if (!bIsHoldingAlt && !bIsHoldingShift) {
 		OnUpdateHandStack();
 	}
 	
@@ -439,37 +436,17 @@ AMechArmActor * ALowPolySurvivalCharacter::GetArmActor() const{
 void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 	meshRightHand->SetVisibility(false);
-	skeletalMeshRightHand->SetVisibility(false);
 	
 	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
 
 		ABuildings* itemBuilding = rightHandStack->itemInfo->buildingTemplate_BP->GetDefaultObject<ABuildings>();
 
-
-		if (itemBuilding->IsSkeletalMesh()) {
-
-			if (skeletalMeshRightHand->SkeletalMesh != itemBuilding->GetSkeletalMesh()) {
-				skeletalMeshRightHand->SetSkeletalMesh(itemBuilding->GetSkeletalMesh());
-
-			}
-
-			skeletalMeshRightHand->SetVisibility(true);
-
+		if (rightHandStack->itemInfo->type == EItemType::TOOL) {
+			armActor->SetInHandMesh(itemBuilding->GetStaticMesh());
 		}
 		else {
-
-			if (rightHandStack->itemInfo->type == EItemType::TOOL) {
-				armActor->SetInHandMesh(itemBuilding->GetStaticMesh());
-			}
-			else {
-				armActor->RemoveInHandMesh();
-			}
-				
-			
+			armActor->RemoveInHandMesh();
 		}
-		
-
-		
 
 	}
 	else {

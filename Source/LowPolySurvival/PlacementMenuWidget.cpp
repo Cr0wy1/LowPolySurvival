@@ -46,3 +46,9 @@ bool UPlacementMenuWidget::IsIntersectChecked() const
 {
 	return intersectCheck->IsChecked();
 }
+
+bool UPlacementMenuWidget::IsLockRotChecked() const{
+
+	return lockRotCheck->IsChecked();
+
+}

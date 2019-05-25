@@ -14,3 +14,4 @@
 12,12,Wood Part,20,BLOCK,0,part_wood,part_wood,PartTemplate_BP_C,SELF,100,0,0
 13,13,Stone Part,20,BLOCK,0,part_stonebricks,part_stonebricks,PartTemplate_BP_C,SELF,300,0,0
 14,14,Spruce Tree,1,BLOCK,0,part_wood,SpruceTree001,SpruceTree_BP_C,FROMTABLE,500,0,0
+15,15,Campfire,1,BLOCK,0,campfire,campfire,Campfire_BP_C,SELF,100,0,0

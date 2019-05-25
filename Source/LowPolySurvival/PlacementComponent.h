@@ -56,7 +56,7 @@ public:
 
 
 
-	float worldGridSize = 200.0f;
+	float worldGridSize = 100.0f;
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -77,6 +77,7 @@ public:
 	bool SnapToWorldGrid();
 
 	void ShowPlaceWidget();
+	void HidePlaceWidget();
 
 	void SetPlaceRotation(float value);
 	void AddPlaceRotation(float valueY, float valueZ);
@@ -87,6 +88,7 @@ public:
 	void ToggleGridSnapping();
 	void ToggleObjectSnapping();
 	void ToggleIntersect();
+	void SwitchOrigin();
 
 	void OnRPressed();
 };

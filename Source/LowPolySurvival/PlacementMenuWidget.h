@@ -34,12 +34,17 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UCheckBox* intersectCheck;
 
+	UPROPERTY(meta = (BindWidget))
+	UCheckBox* lockRotCheck;
+
 	void ToggleGridSnap();
 	void ToggleObjectSnap();
 	void ToggleIntersect();
+
 
 	bool IsGridSnapChecked() const;
 	bool IsObjectSnapChecked() const;
 	bool IsResetRotChecked() const;
 	bool IsIntersectChecked() const;
+	bool IsLockRotChecked() const;
 };

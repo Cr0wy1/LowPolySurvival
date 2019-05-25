@@ -116,6 +116,9 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 armor;
 
+	bool operator==(FItemInfo &other) {
+		return itemid == other.itemid;
+	}
 };
 
 
@@ -137,7 +140,7 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	}
 
 	bool CompareIds(FItemStack &otherStack) {
-		return GetItemId() == otherStack.GetItemId();
+		return itemInfo == otherStack.itemInfo;
 	}
 
 	void Clear() {
@@ -231,6 +234,8 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	bool IsValid() const {
 		return itemInfo && amount > 0;
 	}
+
+	
 
 };
 

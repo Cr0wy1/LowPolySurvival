@@ -16,7 +16,6 @@ class ALowPolySurvivalCharacter;
 struct FItemDrops;
 struct FItemInfo;
 class UDataTable;
-class USkeletalMesh;
 
 
 
@@ -52,32 +51,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
 	FBuildingInfo info;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Origins")
+	TArray<FTransform> origins;
 	
 
 protected:
 
 	bool bIsPlaced = false;
 	bool bHasPlaceInterface = false;
-	bool bIsSkeletalMesh = false;
 	bool bIsOverlappingBuilding = false;
 
 	UDataTable* itemDataTable;
 
 	UMaterialInterface* meshMaterial = nullptr;
 
+
 	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
 	USceneComponent* sceneComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Scene")
-	USceneComponent* subSceneComp;
+	USceneComponent* meshSceneComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
 	UStaticMeshComponent* meshComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mesh")
-	USkeletalMeshComponent* skeletalMeshComp;
 
 	FItemDrops* dropInfo;
 
@@ -115,15 +112,19 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractEnd();
 
-	
+	void SetSceneTransform(const FTransform &transform);
+	void SetMeshTransform(const FTransform &transform);
 	
 	void SetStaticMesh(UStaticMesh *newMesh);
 	
-	bool IsSkeletalMesh() const;
 	bool IsOverlappingBuilding() const;
 
 	UStaticMeshComponent* GetStaticMeshComp() const;
 	UStaticMesh* GetStaticMesh() const;
-	USkeletalMesh* GetSkeletalMesh() const;
+
+	FTransform GetSceneTransform() const;
+	FTransform GetMeshTransform() const;
+	
+
 	bool HasPlaceInterface() const;
 };

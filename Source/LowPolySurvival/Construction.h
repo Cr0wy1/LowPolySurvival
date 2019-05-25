@@ -26,8 +26,9 @@ protected:
 	//virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement")
-	FVector intersectLoc;
+	FVector intersectLoc = FVector(0.0f,0.0f,-20.0f);
 
+	int cOriginIndex = -1;
 
 public:
 
@@ -47,6 +48,7 @@ public:
 	void RotateActorY(float value = 90.0f);
 	void RotateActorZ(float value = 90.0f);
 
+	void SetNextOrigin();
 
 	FVector GetIntersectLoc() const;
 
