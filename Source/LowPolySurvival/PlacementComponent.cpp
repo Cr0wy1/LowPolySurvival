@@ -12,6 +12,7 @@
 #include "PlaceWidget.h"
 #include "Item.h"
 #include "PlacementMenuWidget.h"
+#include "PlayerHUDWidget.h"
 
 // Sets default values for this component's properties
 UPlacementComponent::UPlacementComponent(){
@@ -35,15 +36,16 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+
 	if (currentBuilding) {
 
 		character->CrosshairLineTrace(cHitResult, cHitDirection);
+		
 		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
 
 		if (cHitResult.GetActor()) {
 			//UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.GetActor()->GetName());
 		}
-		
 
 
 		if (character->placementMenuWidget->IsObjectSnapChecked() && targetBuilding) {

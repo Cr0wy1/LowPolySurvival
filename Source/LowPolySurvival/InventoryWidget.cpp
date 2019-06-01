@@ -57,7 +57,7 @@ void UInventoryWidget::RemoveInventoryBinding(){
 	bindedInventory = nullptr;
 }
 
-void UInventoryWidget::Refresh(const TArray<int32> updatedSlots){
+void UInventoryWidget::Refresh(const TArray<int32> &updatedSlots){
 
 	for (size_t i = 0; i < updatedSlots.Num(); i++) {
 		slots[updatedSlots[i]]->RefreshSlot();

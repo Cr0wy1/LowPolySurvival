@@ -13,7 +13,7 @@
 ABuildings::ABuildings() : bHasPlaceInterface(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	sceneComp = CreateAbstractDefaultSubobject<USceneComponent>("Scene");
 	SetRootComponent(sceneComp);
@@ -175,12 +175,14 @@ void ABuildings::OnPlace(){
 
 	bIsPlaced = true;
 	ConstructFromItem(info.itemInfo);
+
+	OnPlaceEvent();
 }
 
 void ABuildings::OnBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult){
 	
 	if (!bIsPlaced) {
-		UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("%s : Overlapping"), *GetName());
 		if (Cast<ABuildings>(OtherActor)) {
 			bIsOverlappingBuilding = true;
 		}

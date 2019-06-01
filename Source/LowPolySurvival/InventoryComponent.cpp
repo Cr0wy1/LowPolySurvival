@@ -5,19 +5,20 @@
 
 
 // Sets default values for this component's properties
-UInventoryComponent::UInventoryComponent()
-{
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+UInventoryComponent::UInventoryComponent(const FObjectInitializer & ObjectInitializer){
+	
+	PrimaryComponentTick.bCanEverTick = false;
+	
+	//UE_LOG(LogTemp, Warning, TEXT("UinventoryConstructor"), PrimaryComponentTick.IsTickFunctionEnabled());
 
-	// ...
 }
 
 
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PrimaryComponentTick.SetTickFunctionEnable(false);
 
 	stackSlots.Init(FItemStack(), slotNum);
 }
@@ -26,6 +27,7 @@ void UInventoryComponent::BeginPlay()
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	//UE_LOG(LogTemp, Warning, TEXT("iventory comp ticking test"));
 
 }
 

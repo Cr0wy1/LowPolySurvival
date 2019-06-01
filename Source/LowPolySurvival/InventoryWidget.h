@@ -60,7 +60,7 @@ public:
 	void RemoveInventoryBinding();
 	
 	UFUNCTION()
-	void Refresh(const TArray<int32> updatedSlots);
+	void Refresh(const TArray<int32> &updatedSlots);
 
 	void Show();
 	void Hide();

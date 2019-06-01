@@ -78,11 +78,10 @@ public:
 
 	virtual bool  Initialize() override;
 
-	UFUNCTION()
-	FEventReply OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent);
-
-	UFUNCTION()
-	FEventReply OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
+	
+	FReply NativeOnPreviewKeyDown(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent) override;
+	
+	FReply NativeOnMouseMove(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent) override;
 
 	void OnShiftLeftClick(int32 clickedBtnIndex, UInventoryWidget* clickedInventoryWidget);
 

@@ -3,16 +3,13 @@
 #include "PlacementMenuWidget.h"
 #include "CheckBox.h"
 
-FEventReply UPlacementMenuWidget::OnKeyUp(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
 
+FReply UPlacementMenuWidget::NativeOnKeyUp(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent){
 	if (InKeyEvent.GetKey() == EKeys::V) {
 		CloseUI();
 	}
-	
 
-	UE_LOG(LogTemp, Warning, TEXT("PLacemntManuKeyUp"));
-
-	return FEventReply(true);
+	return FReply(Super::NativeOnKeyUp(InGeometry, InKeyEvent));
 }
 
 void UPlacementMenuWidget::ToggleGridSnap(){

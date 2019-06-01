@@ -158,8 +158,17 @@ APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
-	if (placementMenuWidget) {
-		//placementMenuWidget->ToggleObjectSnap();
+	CrosshairLineTrace(cCrosshairTraceResult, cCrosshairTraceDirection);
+
+	if (cCrosshairTraceResult.GetActor()) {
+		ABuildings* targetBuilding = Cast<ABuildings>(cCrosshairTraceResult.GetActor());
+		if (targetBuilding) {
+			playerHUDWidget->UpdateTargetIndicator(targetBuilding->info);
+			playerHUDWidget->ShowTargetIndicator();
+		}
+		else {
+			playerHUDWidget->HideTargetIndicator();
+		}
 	}
 }
 
@@ -410,7 +419,7 @@ void ALowPolySurvivalCharacter::OnUpdateHandStack(){
 	placementComp->DeactivatePlacement();
 
 	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
-		if (rightHandStack->itemInfo->type != EItemType::TOOL) {
+		if (rightHandStack->itemInfo->bCanPlace) {
 			placementComp->ActivatePlacement(rightHandStack->itemInfo);
 		}
 	}
@@ -441,7 +450,7 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 		ABuildings* itemBuilding = rightHandStack->itemInfo->buildingTemplate_BP->GetDefaultObject<ABuildings>();
 
-		if (rightHandStack->itemInfo->type == EItemType::TOOL) {
+		if (rightHandStack->itemInfo->bCanHold) {
 			armActor->SetInHandMesh(itemBuilding->GetStaticMesh());
 		}
 		else {

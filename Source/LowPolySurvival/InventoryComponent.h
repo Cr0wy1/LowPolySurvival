@@ -8,7 +8,7 @@
 #include "InventoryComponent.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryUpdate, const TArray<int32>, updatedSlots);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryUpdate, const TArray<int32>&, updatedSlots);
 
 
 class UInventoryWidget;
@@ -31,7 +31,7 @@ class LOWPOLYSURVIVAL_API UInventoryComponent : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
-	UInventoryComponent();
+	UInventoryComponent(const FObjectInitializer & ObjectInitializer);
 
 protected:
 

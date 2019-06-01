@@ -116,6 +116,12 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 armor;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanHold;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanPlace;
+
 	bool operator==(FItemInfo &other) {
 		return itemid == other.itemid;
 	}

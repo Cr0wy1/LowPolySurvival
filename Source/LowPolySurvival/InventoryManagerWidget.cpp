@@ -31,21 +31,23 @@ bool UInventoryManagerWidget::Initialize(){
 	return true;
 }
 
-FEventReply UInventoryManagerWidget::OnPreviewKeyDown(FGeometry MyGeometry, FKeyEvent InKeyEvent) {
+
+FReply UInventoryManagerWidget::NativeOnPreviewKeyDown(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent){
 
 	if (InKeyEvent.GetKey() == EKeys::Tab || InKeyEvent.GetKey() == EKeys::E || InKeyEvent.GetKey() == EKeys::Escape) {
 		CloseInventory();
 	}
 
-	return FEventReply(true);
+	return FReply(Super::NativeOnPreviewKeyDown(InGeometry, InKeyEvent));
 }
 
-FEventReply UInventoryManagerWidget::OnMouseMove(FGeometry MyGeometry, const FPointerEvent & MouseEvent){
-		FVector2D pos = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 
-		mouseStackCanvasSlot->SetPosition(pos);
+FReply UInventoryManagerWidget::NativeOnMouseMove(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent){
+	FVector2D pos = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
 
-	return FEventReply(true);
+	mouseStackCanvasSlot->SetPosition(pos);
+
+	return FReply(Super::NativeOnMouseMove(InGeometry, InMouseEvent));
 }
 
 void UInventoryManagerWidget::OnShiftLeftClick(int32 clickedBtnIndex, UInventoryWidget * clickedInventoryWidget){

@@ -47,7 +47,7 @@ class LOWPOLYSURVIVAL_API UAttributeComponent : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
-	UAttributeComponent();
+	UAttributeComponent(const FObjectInitializer & ObjectInitializer);
 
 protected:
 

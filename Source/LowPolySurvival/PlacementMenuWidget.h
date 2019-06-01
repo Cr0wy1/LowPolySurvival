@@ -19,8 +19,8 @@ class LOWPOLYSURVIVAL_API UPlacementMenuWidget : public UUIWidget
 	
 	
 public:
-	UFUNCTION()
-	FEventReply OnKeyUp(FGeometry MyGeometry, FKeyEvent InKeyEvent);
+	
+	FReply NativeOnKeyUp(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent) override;
 
 	UPROPERTY(meta = (BindWidget))
 	UCheckBox* gridCheck;

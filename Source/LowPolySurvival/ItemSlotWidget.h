@@ -65,8 +65,8 @@ public:
 
 	virtual bool  Initialize() override;
 
-	UFUNCTION()
-	FEventReply OnPreviewMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent);
+
+	FReply NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent) override;
 
 	UFUNCTION()
 	void OnHovered();

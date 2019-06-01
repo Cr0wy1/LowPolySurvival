@@ -8,6 +8,9 @@
 #include "AttributeComponent.h"
 #include "HeartWidget.h"
 #include "InventoryComponent.h"
+#include "Buildings.h"
+#include "TextBlock.h"
+#include "PanelWidget.h"
 
 void UPlayerHUDWidget::Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp){
 	playerAttributes = attributes;
@@ -50,7 +53,21 @@ void UPlayerHUDWidget::UpdateArmor(){
 	heartWidget->SetArmorPercent((float)armorCount/16.0f);
 }
 
-void UPlayerHUDWidget::OnEquipCompUpdate(const TArray<int32> updatedSlots){
+void UPlayerHUDWidget::UpdateTargetIndicator(const FBuildingInfo &targetInfo){
+	damageIndicatorProgress->SetPercent((float)targetInfo.currentDurability / (float)targetInfo.itemInfo->durability);
+	nameIndicatorText->SetText(FText::FromName(targetInfo.itemInfo->name));
+}
+
+void UPlayerHUDWidget::ShowTargetIndicator(){
+	indicatorBox->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
+void UPlayerHUDWidget::HideTargetIndicator(){
+	indicatorBox->SetVisibility(ESlateVisibility::Collapsed);
+	
+}
+
+void UPlayerHUDWidget::OnEquipCompUpdate(const TArray<int32> &updatedSlots){
 	UpdateArmor();
 }
 

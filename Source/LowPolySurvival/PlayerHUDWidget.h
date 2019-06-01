@@ -13,7 +13,10 @@ class UInventoryManagerWidget;
 class UQuickSlotsWidget;
 class UProgressBar;
 class UHeartWidget;
+class UTextBlock;
+class UPanelWidget;
 struct FAttributes;
+struct FBuildingInfo;
 /**
  * 
  */
@@ -34,6 +37,16 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UHeartWidget* heartWidget;
 
+	UPROPERTY(meta = (BindWidget))
+	UPanelWidget* indicatorBox;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* nameIndicatorText;
+
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* damageIndicatorProgress;
+
+
 public:
 
 	void Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp);
@@ -46,8 +59,12 @@ public:
 	void UpdateHealth();
 	void UpdateArmor();
 
+	void UpdateTargetIndicator(const FBuildingInfo &targetInfo);
+	void ShowTargetIndicator();
+	void HideTargetIndicator();
+
 	UFUNCTION()
-	void OnEquipCompUpdate(const TArray<int32> updatedSlots);
+	void OnEquipCompUpdate(const TArray<int32> &updatedSlots);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetPlayerHealth() const;

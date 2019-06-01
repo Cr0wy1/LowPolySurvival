@@ -6,10 +6,9 @@
 #include "Animation/AnimationAsset.h"
 
 // Sets default values
-AMechArmActor::AMechArmActor()
-{
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+AMechArmActor::AMechArmActor(){
+
+	PrimaryActorTick.bCanEverTick = false;
 
 	armMeshComp = CreateDefaultSubobject<UStaticMeshComponent>("Arm Mesh");
 	SetRootComponent(armMeshComp);

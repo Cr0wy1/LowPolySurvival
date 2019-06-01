@@ -49,20 +49,26 @@ bool  UItemSlotWidget::Initialize() {
 
 }
 
-FEventReply UItemSlotWidget::OnPreviewMouseButtonDown(FGeometry MyGeometry, const FPointerEvent & MouseEvent){
 
-	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+FReply UItemSlotWidget::NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
+{
 
-		OnLeftClick(MouseEvent);
+	UE_LOG(LogTemp, Warning, TEXT("%s"), "Mouse down");
 
-	}else if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton) {
 
-		OnRightClick(MouseEvent);
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {
+
+		OnLeftClick(InMouseEvent);
+
+	}
+	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton) {
+
+		OnRightClick(InMouseEvent);
 
 	}
 
 
-	return FEventReply(true);
+	return FReply(Super::NativeOnPreviewMouseButtonDown(InGeometry, InMouseEvent));
 }
 
 void UItemSlotWidget::OnHovered(){

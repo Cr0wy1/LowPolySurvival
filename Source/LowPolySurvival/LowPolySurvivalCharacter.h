@@ -41,6 +41,9 @@ protected:
 
 	bool bIsInHit = false;
 
+	FHitResult cCrosshairTraceResult;
+	FVector cCrosshairTraceDirection;
+
 	APlayercharController * controller = nullptr;
 
 	ABuildings* currentInteractionBuilding = nullptr;
