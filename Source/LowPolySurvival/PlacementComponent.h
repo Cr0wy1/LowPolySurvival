@@ -33,6 +33,11 @@ protected:
 	FVector placeLoc;
 	FRotator placeRotation;
 
+	float placeFlipRot = 0;
+	int32 placeOriginIndex = 0;
+
+	int32 placeMargin = 0;
+
 	FHitResult cHitResult;
 	FVector cHitDirection;
 

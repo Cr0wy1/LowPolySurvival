@@ -39,14 +39,11 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 	if (currentBuilding) {
 
+		placeMargin = 0;
+
 		character->CrosshairLineTrace(cHitResult, cHitDirection);
 		
 		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
-
-		if (cHitResult.GetActor()) {
-			//UE_LOG(LogTemp, Warning, TEXT("%s"), *cHitResult.GetActor()->GetName());
-		}
-
 
 		if (character->placementMenuWidget->IsObjectSnapChecked() && targetBuilding) {
 			
@@ -58,7 +55,6 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			else {
 				SnapToObjectSocket();
 			}
-			
 
 		}
 		else {
@@ -80,6 +76,8 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		currentBuilding->SetActorTransform(placeTrans);
 		currentBuilding->AddActorLocalRotation(placeRotation);
 
+		currentBuilding->SetMargin(placeMargin);
+
 		if (currentBuilding->IsOverlappingBuilding()) {
 			currentBuilding->SetMaterial(cannotPlaceMI);
 		}
@@ -87,12 +85,14 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			currentBuilding->SetMaterial(canPlaceMI);
 		}
 
-		if (character->placementMenuWidget->IsIntersectChecked()) {
+		AConstruction* construction = Cast<AConstruction>(currentBuilding);
 
-			AConstruction* construction = Cast<AConstruction>(currentBuilding);
-			if (construction) {
+		if (construction) {
+			if (character->placementMenuWidget->IsIntersectChecked()) {
 				currentBuilding->AddActorLocalOffset(construction->GetIntersectLoc());
 			}
+
+			
 			
 		}
 	}
@@ -115,6 +115,13 @@ void UPlacementComponent::ActivatePlacement(FItemInfo* itemInfo){
 	currentBuilding->SetHolo(true);
 	currentBuilding->ConstructFromItem(itemInfo);
 	currentBuilding->SetMaterial(canPlaceMI);
+
+	AConstruction* construction = Cast<AConstruction>(currentBuilding);
+	if (construction) {
+		
+		construction->SetOrigin(placeOriginIndex);
+		construction->GetStaticMeshComp()->AddRelativeRotation(FRotator(0, 0, placeFlipRot));
+	}
 
 	bIsActive = true;
 
@@ -143,6 +150,7 @@ bool UPlacementComponent::PlaceBuilding(){
 
 		ABuildings* placedBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, currentBuilding->GetTransform());
 		placedBuilding->SetSceneTransform(currentBuilding->GetSceneTransform());
+		placedBuilding->SetMeshSceneTransform(currentBuilding->GetMeshSceneTransform());
 		placedBuilding->SetMeshTransform(currentBuilding->GetMeshTransform());
 
 
@@ -198,7 +206,8 @@ bool UPlacementComponent::SnapToObjectInterface(){
 
 	if (placeWidget->GetHoveredWidgetIndex() >= 0) {
 		if (placeWidget) {
-			placeTrans = placeWidget->GetPlacementTransform();
+			placeTrans = placeWidget->GetPlacementTransform(placeMargin);
+			
 		}
 	}
 
@@ -281,15 +290,18 @@ void UPlacementComponent::ToggleIntersect(){
 void UPlacementComponent::SwitchOrigin(){
 	AConstruction* construction = Cast<AConstruction>(currentBuilding);
 	if (construction) {
-		construction->SetNextOrigin();
+		placeOriginIndex = construction->SetNextOrigin();
+		construction->GetStaticMeshComp()->AddRelativeRotation(FRotator(0, 0, placeFlipRot));
 	}
 }
 
 void UPlacementComponent::OnRPressed(){
+
+	placeFlipRot += 90;
+	
 	AConstruction* construction = Cast<AConstruction>(currentBuilding);
 	if (construction) {
-		construction->GetStaticMeshComp()->AddRelativeRotation(FRotator(0,0,90));
+		construction->GetStaticMeshComp()->AddRelativeRotation(FRotator(0, 0, 90));
 	}
-	
 }
 

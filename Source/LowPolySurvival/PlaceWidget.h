@@ -7,22 +7,23 @@
 #include "PlaceWidget.generated.h"
 
 
-
-class UWidgetComponent;
+class UStaticMeshComponent;
+class UStaticMeshSocket;
+class UWidgetPlaceComponent;
 class UArrowComponent;
 
 
-
 USTRUCT()
-struct LOWPOLYSURVIVAL_API FWidgetArrows {
+struct LOWPOLYSURVIVAL_API FSnappingSurface {
 
 	GENERATED_BODY()
+		 
 
-	UWidgetComponent* widgetComp;
-	TArray<UArrowComponent* > arrowComps;
+	UWidgetPlaceComponent* widgetPlaceComp;
 
+	TArray<FName> socketNames;
+	TArray<int32> margins;
 };
-
 
 
 UCLASS()
@@ -36,7 +37,10 @@ public:
 
 protected:
 
-	TArray<FWidgetArrows> widgetArrowsStructs;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Template Mesh")
+	UStaticMeshComponent* meshTemplate;
+
+	TArray<FSnappingSurface> snappingSurfaces;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -47,9 +51,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UWidgetComponent* GetHoveredWidgetComp() const;
 	int32 GetHoveredWidgetIndex() const;
-
-	FTransform GetPlacementTransform() const;
+	FTransform GetPlacementTransform(int32 &margin) const;
 	
 };

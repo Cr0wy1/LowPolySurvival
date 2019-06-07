@@ -170,6 +170,7 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 			playerHUDWidget->HideTargetIndicator();
 		}
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -257,7 +258,13 @@ void ALowPolySurvivalCharacter::OnHit(){
 		if (building) {
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName());
 
-			building->ApplyDamage(10, this);
+			int32 damage = 10;
+			
+			if (rightHandStack && rightHandStack->IsValid()) {
+				damage += rightHandStack->itemInfo->damage;
+			}
+
+			building->ApplyDamage(damage, this);
 		}
 
 
@@ -275,18 +282,18 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 	FVector worldLocation;
 	controller->DeprojectScreenPositionToWorld(viewX * 0.5f, viewY * 0.5f, worldLocation, OUT_Direction);
 
-	FVector startLocation = OUT_Direction * 100 + worldLocation;
+	FVector startLocation = worldLocation;
 	FVector endLocation = OUT_Direction * 1000 + startLocation;
 
-	GetWorld()->LineTraceSingleByChannel(OUT_hitresult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2);
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(OUT_hitresult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2, params);
 
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 	}
 
-	
-
-	DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red);
+	//DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red);
 
 
 	return true;

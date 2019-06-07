@@ -61,6 +61,8 @@ protected:
 	bool bHasPlaceInterface = false;
 	bool bIsOverlappingBuilding = false;
 
+	int32 addedMargin = 0;
+
 	UDataTable* itemDataTable;
 
 	UMaterialInterface* meshMaterial = nullptr;
@@ -115,7 +117,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnInteractEnd();
 
+	void SetMargin(int32 margin);
+
 	void SetSceneTransform(const FTransform &transform);
+	void SetMeshSceneTransform(const FTransform &transform);
 	void SetMeshTransform(const FTransform &transform);
 	
 	void SetStaticMesh(UStaticMesh *newMesh);
@@ -126,6 +131,7 @@ public:
 	UStaticMesh* GetStaticMesh() const;
 
 	FTransform GetSceneTransform() const;
+	FTransform GetMeshSceneTransform() const;
 	FTransform GetMeshTransform() const;
 	
 

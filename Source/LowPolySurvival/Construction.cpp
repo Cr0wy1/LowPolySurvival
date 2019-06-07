@@ -8,6 +8,7 @@ AConstruction::AConstruction(){
 	
 	bHasPlaceInterface = true;
 
+	origins.Add(FTransform());
 	origins.Add(FTransform(FRotator(90.0f, 0, 0), FVector(0,0,-50.0f)));
 
 }
@@ -41,17 +42,28 @@ void AConstruction::RotateActorZ(float value){
 	AddActorLocalRotation(FRotator(0.0f, value, 0.0f));
 }
 
-void AConstruction::SetNextOrigin(){
-	++cOriginIndex;
-	if (cOriginIndex < 0 || cOriginIndex >= origins.Num()) {
-		meshComp->SetRelativeTransform(FTransform());
-		cOriginIndex = -1;
+bool AConstruction::SetOrigin(int32 originindex){
+	UE_LOG(LogTemp, Warning, TEXT("%i"), origins.Num());
+	if (origins.IsValidIndex(originindex)) {
+		
+		meshComp->SetRelativeTransform(origins[originindex]);
+		cOriginIndex = originindex;
+		return true;
 	}
-	else {
-		meshComp->SetRelativeTransform(origins[cOriginIndex]);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("Construction: Update Origin"));
 
+	return false;
+}
+
+int32 AConstruction::SetNextOrigin(){
+	++cOriginIndex;
+
+	if (!SetOrigin(cOriginIndex)) {
+		meshComp->SetRelativeTransform(FTransform());
+		cOriginIndex = 0;
+	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("Construction: Update Origin"));
+	return cOriginIndex;
 }
 
 

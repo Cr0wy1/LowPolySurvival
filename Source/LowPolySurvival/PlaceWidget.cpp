@@ -1,13 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlaceWidget.h"
-#include "Components/WidgetComponent.h"
+#include "WidgetPlaceComponent.h"
 #include "PlacementWidget.h"
 #include "Components/ArrowComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMeshSocket.h"
 
 
 // Sets default values
 APlaceWidget::APlaceWidget(){
+
+	meshTemplate = CreateDefaultSubobject<UStaticMeshComponent>("Mesh Template");
+	meshTemplate->SetupAttachment(RootComponent);
+	meshTemplate->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	meshTemplate->SetVisibility(false);
 
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -29,21 +36,11 @@ void APlaceWidget::Tick(float DeltaTime)
 
 }
 
-UWidgetComponent * APlaceWidget::GetHoveredWidgetComp() const {
-
-	for (FWidgetArrows widgetArrows : widgetArrowsStructs) {
-		//if (widgetArrows.widgetComp->GetUserWidgetObject()->IsHovered()) {
-			//return widgetArrows.widgetComp;
-		//}
-	}
-
-	return nullptr;
-}
 
 int32 APlaceWidget::GetHoveredWidgetIndex() const {
 
-	for (size_t i = 0; i < widgetArrowsStructs.Num(); i++) {
-		if (widgetArrowsStructs[i].widgetComp->GetUserWidgetObject()->IsHovered()) {
+	for (size_t i = 0; i < snappingSurfaces.Num(); i++) {
+		if (snappingSurfaces[i].widgetPlaceComp->GetUserWidgetObject()->IsHovered()) {
 			return i;
 		}
 	}
@@ -51,23 +48,24 @@ int32 APlaceWidget::GetHoveredWidgetIndex() const {
 	return -1;
 }
 
-FTransform APlaceWidget::GetPlacementTransform() const{
+
+
+FTransform APlaceWidget::GetPlacementTransform(int32 &margin) const{
 
 	FTransform returnTransform;
 
 	int32 iHoveredWidget = GetHoveredWidgetIndex();
 
-	if (iHoveredWidget > -1) {
+	if (snappingSurfaces.IsValidIndex(iHoveredWidget)) {
 
-		UPlacementWidget* placementWidget = Cast<UPlacementWidget>(widgetArrowsStructs[iHoveredWidget].widgetComp->GetUserWidgetObject());
+		UPlacementWidget* placementWidget = Cast<UPlacementWidget>(snappingSurfaces[iHoveredWidget].widgetPlaceComp->GetUserWidgetObject());
 
 		if (placementWidget) {
-			//UE_LOG(LogTemp, Warning, TEXT("%i"), placementWidget->hoveredIndex);
 
-			if (placementWidget->hoveredIndex < widgetArrowsStructs[iHoveredWidget].arrowComps.Num()) {
-
-				returnTransform = widgetArrowsStructs[iHoveredWidget].arrowComps[placementWidget->hoveredIndex]->GetComponentTransform();
-
+			if (snappingSurfaces[iHoveredWidget].socketNames.IsValidIndex(placementWidget->hoveredIndex)) {
+				FTransform arrowTrans = meshTemplate->GetSocketTransform(snappingSurfaces[iHoveredWidget].socketNames[placementWidget->hoveredIndex]);
+				returnTransform = arrowTrans;
+				margin = snappingSurfaces[iHoveredWidget].margins[placementWidget->hoveredIndex];
 			}
 
 		}
@@ -80,29 +78,59 @@ FTransform APlaceWidget::GetPlacementTransform() const{
 
 void APlaceWidget::UpdateAllWidgetComps() {
 
-	TArray<UActorComponent*> actorComps = GetComponentsByClass(UWidgetComponent::StaticClass());
+	TArray<UActorComponent*> actorComps = GetComponentsByClass(UWidgetPlaceComponent::StaticClass());
 
 	for (UActorComponent* actorComp : actorComps) {
 
-		FWidgetArrows newWidgetArrow;
+		UWidgetPlaceComponent* widgetPlaceComp = Cast<UWidgetPlaceComponent>(actorComp);
 
-		newWidgetArrow.widgetComp = Cast<UWidgetComponent>(actorComp);
 
-		TArray<USceneComponent*> widgetChildComps = newWidgetArrow.widgetComp->GetAttachChildren();
-
-		for (USceneComponent* widgetChild : widgetChildComps) {
-
-			UArrowComponent* arrowComp = Cast<UArrowComponent>(widgetChild);
-
-			if (arrowComp) {
-				newWidgetArrow.arrowComps.Push(arrowComp);
-			}
-
+		if (widgetPlaceComp) {
+			FSnappingSurface newSurface;
+			newSurface.widgetPlaceComp = widgetPlaceComp;
+			snappingSurfaces.Push(newSurface);
 		}
-
-		widgetArrowsStructs.Push(newWidgetArrow);
 
 	}
 
+	TArray<FName> socketNames = meshTemplate->GetAllSocketNames();
+
+	int32 iSurface = 0;
+
+
+	for (size_t i = 0; i < socketNames.Num(); i++){
+		
+		const UStaticMeshSocket* socket = meshTemplate->GetSocketByName(socketNames[i]);
+
+		FString index, margin;
+
+		int32 iChar;
+		if (socket->Tag.FindChar(',', iChar)) {
+			
+			socket->Tag.Split(",", &index, &margin);
+		}
+		else {
+			index = socket->Tag;
+			margin = "0";
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Socket Tag: %s %s"), *index, *margin);
+		
+
+		if (FString::FromInt(iSurface) != index) {
+			++iSurface;
+		}
+
+		if (!snappingSurfaces.IsValidIndex(iSurface)) {
+			break;
+
+		}
+
+
+
+		snappingSurfaces[iSurface].socketNames.Push(socketNames[i]);
+		snappingSurfaces[iSurface].margins.Add(FCString::Atoi(*margin));
+		
+	}
 }
 

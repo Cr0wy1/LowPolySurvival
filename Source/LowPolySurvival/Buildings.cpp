@@ -203,8 +203,19 @@ bool ABuildings::IsOverlappingBuilding() const
 	return bIsOverlappingBuilding;
 }
 
+void ABuildings::SetMargin(int32 margin){
+	meshSceneComp->AddRelativeLocation(FVector(0, 0, -addedMargin));
+	meshSceneComp->AddRelativeLocation(FVector(0, 0, margin));
+	addedMargin = margin; 
+}
+
+
 void ABuildings::SetSceneTransform(const FTransform & transform){
 	sceneComp->SetRelativeTransform(transform);
+}
+
+void ABuildings::SetMeshSceneTransform(const FTransform & transform){
+	meshSceneComp->SetRelativeTransform(transform);
 }
 
 void ABuildings::SetMeshTransform(const FTransform & transform){
@@ -226,6 +237,11 @@ UStaticMesh * ABuildings::GetStaticMesh() const{
 FTransform ABuildings::GetSceneTransform() const
 {
 	return sceneComp->GetRelativeTransform();
+}
+
+FTransform ABuildings::GetMeshSceneTransform() const
+{
+	return meshSceneComp->GetRelativeTransform();
 }
 
 FTransform ABuildings::GetMeshTransform() const
