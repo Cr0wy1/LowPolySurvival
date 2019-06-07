@@ -127,6 +127,40 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	}
 };
 
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FCraftPart {
+
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 amount;
+};
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FCraftingInfo : public FTableRowBase {
+
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCraftPart> needed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCraftPart> result;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float time;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 typeIndex;
+};
+
 
 
 

@@ -7,7 +7,7 @@
 #include "ItemSlotGridWidget.generated.h"
 
 
-class UItemSlotWidget;
+class USlotWidget;
 class UUniformGridPanel;
 /**
  * 
@@ -21,7 +21,7 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Widget")
-	TSubclassOf<UItemSlotWidget> itemSlotWidget_W;
+	TSubclassOf<USlotWidget> itemSlotWidget_W;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generated Inventory")
 	bool bGenerateInventory = false;
@@ -43,12 +43,12 @@ protected:
 
 public:
 
-	TArray<UItemSlotWidget*> slots;
+	TArray<USlotWidget*> slots;
 
 	virtual bool  Initialize() override;
 	
 	void AddSlot();
 
 	UFUNCTION(BlueprintCallable)
-	TArray<UItemSlotWidget*> &GetSlotsRef();
+	TArray<USlotWidget*> &GetSlotsRef();
 };

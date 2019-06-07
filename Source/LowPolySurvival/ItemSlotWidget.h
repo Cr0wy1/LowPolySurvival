@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HUDWidget.h"
+#include "SlotWidget.h"
 #include "Item.h"
 #include "ItemSlotWidget.generated.h"
 
@@ -17,7 +17,7 @@ class UInventoryManagerWidget;
  * 
  */
 UCLASS()
-class LOWPOLYSURVIVAL_API UItemSlotWidget : public UHUDWidget
+class LOWPOLYSURVIVAL_API UItemSlotWidget : public USlotWidget
 {
 	GENERATED_BODY()
 	
