@@ -27,6 +27,9 @@ protected:
 	bool bGenerateInventory = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generated Inventory")
+	int32 numOfSlots = 16;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generated Inventory")
 	int32 rows = 4;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generated Inventory")
@@ -44,6 +47,7 @@ public:
 
 	virtual bool  Initialize() override;
 	
+	void AddSlot();
 
 	UFUNCTION(BlueprintCallable)
 	TArray<UItemSlotWidget*> &GetSlotsRef();

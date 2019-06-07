@@ -16,19 +16,22 @@ bool UItemSlotGridWidget::Initialize() {
 		if (bGenerateInventory) {
 			if (itemSlotWidget_W && grid) {
 
-				for (size_t r = 0; r < rows; r++) {
-					for (size_t c = 0; c < cols; c++) {
-						slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
-						
-						UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
+				for (size_t i = 0,r = 0, c = 0; i < numOfSlots; ++i,++c){
+					slots.Add(WidgetTree->ConstructWidget<UItemSlotWidget>(itemSlotWidget_W));
+							
+					UUniformGridSlot* slot = Cast<UUniformGridSlot>(grid->AddChild(slots.Last()));
 
-						slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-						slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-						slot->Row = r;
-						slot->Column = c;
+					slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+					slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
+					slot->Row = r;
+					slot->Column = c;
+
+					if (c >= (cols - 1)) {
+						++r;
+						c = -1;
 					}
-
 				}
+
 			}
 		}
 
