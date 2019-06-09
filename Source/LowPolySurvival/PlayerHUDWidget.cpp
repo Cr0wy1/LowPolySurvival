@@ -48,7 +48,7 @@ void UPlayerHUDWidget::UpdateArmor(){
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("armor %i"), armorCount);
+	//UE_LOG(LogTemp, Warning, TEXT("armor %i"), armorCount);
 
 	heartWidget->SetArmorPercent((float)armorCount/16.0f);
 }

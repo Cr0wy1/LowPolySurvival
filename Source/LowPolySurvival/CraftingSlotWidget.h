@@ -7,6 +7,7 @@
 #include "CraftingSlotWidget.generated.h"
 
 
+class UCraftingComponent;
 struct FCraftingInfo;
 /**
  * 
@@ -16,13 +17,20 @@ class LOWPOLYSURVIVAL_API UCraftingSlotWidget : public USlotWidget
 {
 	GENERATED_BODY()
 
+protected:
+
+	FCraftingInfo * craftingInfo = nullptr;
+	UCraftingComponent* craftingComp = nullptr;
+
+	virtual void OnLeftClick(const FPointerEvent & MouseEvent) override;
+	virtual void OnRightClick(const FPointerEvent & MouseEvent) override;
+
 public:
 
 
 	virtual bool  Initialize() override;
 
 	virtual void Init() override;
-	void Init(FCraftingInfo* craftingInfo);
+	void Init(FCraftingInfo* _craftingInfo, UCraftingComponent* _craftingComp);
 
-	void Test();
 };

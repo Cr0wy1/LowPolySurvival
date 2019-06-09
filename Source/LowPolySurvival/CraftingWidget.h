@@ -8,6 +8,7 @@
 
 
 class UItemSlotGridWidget;
+class UCraftingComponent;
 struct FCraftingInfo;
 /**
  * 
@@ -18,6 +19,9 @@ class LOWPOLYSURVIVAL_API UCraftingWidget : public UHUDWidget
 	GENERATED_BODY()
 
 protected:
+
+	
+
 	TArray<FCraftingInfo*> craftingInfoArr;
 
 	UPROPERTY(meta = (BindWidget))
@@ -25,5 +29,7 @@ protected:
 
 public:
 
-	void Init();
+	UCraftingComponent * craftingComp = nullptr;
+
+	void Init(UCraftingComponent* _craftingComp);
 };

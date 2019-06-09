@@ -114,7 +114,7 @@ void APlaceWidget::UpdateAllWidgetComps() {
 			margin = "0";
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("Socket Tag: %s %s"), *index, *margin);
+		//UE_LOG(LogTemp, Warning, TEXT("Socket Tag: %s %s"), *index, *margin);
 		
 
 		if (FString::FromInt(iSurface) != index) {

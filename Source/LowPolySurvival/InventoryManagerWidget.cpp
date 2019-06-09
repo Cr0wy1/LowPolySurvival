@@ -109,7 +109,7 @@ void UInventoryManagerWidget::Init(ALowPolySurvivalCharacter* _playerCharacter, 
 	playerEquipInv->Init(this, EWidgetInvType::EQUIPMENT, equipmentInventoryComp);
 	chestInv->Init(this);
 	
-	craftingWidget->Init();
+	craftingWidget->Init(playerCharacter->craftingComp);
 }
 
 void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){

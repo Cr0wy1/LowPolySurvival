@@ -43,7 +43,7 @@ void AConstruction::RotateActorZ(float value){
 }
 
 bool AConstruction::SetOrigin(int32 originindex){
-	UE_LOG(LogTemp, Warning, TEXT("%i"), origins.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("%i"), origins.Num());
 	if (origins.IsValidIndex(originindex)) {
 		
 		meshComp->SetRelativeTransform(origins[originindex]);

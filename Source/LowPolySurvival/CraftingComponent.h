@@ -60,6 +60,7 @@ public:
 
 	
 	void Craft(FName craftingId, int32 amount = 1);
+	void Craft(FCraftingInfo* craftingInfo, int32 amount = 1);
 
 	void AddInventoryAccess(UInventoryComponent* inventory, EInvAccess invAccess);
 	void RemoveInventoryAccess(UInventoryComponent* inventory, EInvAccess invAccess);

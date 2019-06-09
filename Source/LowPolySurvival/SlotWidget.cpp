@@ -12,7 +12,7 @@ void USlotWidget::Init(){
 FReply USlotWidget::NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
 {
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), "Mouse down");
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), "Mouse down");
 
 
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton) {

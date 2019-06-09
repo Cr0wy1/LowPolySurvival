@@ -18,6 +18,11 @@ void UItemStackWidget::Init(FItemStack *_itemStack){
 	RefreshStack();
 }
 
+void UItemStackWidget::Init(FItemInfo *itemInfo, int32 amount){
+	itemStack = new FItemStack(itemInfo, amount);
+	RefreshStack();
+}
+
 void UItemStackWidget::RefreshStack(){
 
 	if (!itemImage || !amountText) return;

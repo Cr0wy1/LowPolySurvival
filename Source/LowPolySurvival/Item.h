@@ -137,6 +137,8 @@ struct LOWPOLYSURVIVAL_API FCraftPart {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 amount = 1;
+
+	FItemInfo* itemInfo = nullptr;
 };
 
 
@@ -175,7 +177,11 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	FItemInfo* itemInfo = nullptr;
 	int32 amount = 0;
 
+	FItemStack(){}
 
+	FItemStack(FItemInfo* _itemInfo, int32 _amount = 1) : itemInfo(_itemInfo), amount(_amount){
+
+	}
 
 	bool isEmpty() const{
 		return (amount <= 0);
@@ -298,6 +304,7 @@ struct LOWPOLYSURVIVAL_API FDropInfo{
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 amount;
 
+		FItemInfo* itemInfo;
 };
 
 

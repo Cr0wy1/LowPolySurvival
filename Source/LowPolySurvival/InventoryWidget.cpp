@@ -43,7 +43,7 @@ void UInventoryWidget::BindToInventory(UInventoryComponent * inventoryComp){
 	for (size_t i = 0; i < slots.Num() && i < itemStacks->Num(); i++) {
 		slots[i]->BindToStack(&(*itemStacks)[i]);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("bindtoinventory"));
+	//UE_LOG(LogTemp, Warning, TEXT("bindtoinventory"));
 
 	bindedInventory->OnInventoryUpdate.AddDynamic(this, &UInventoryWidget::Refresh);
 	//UE_LOG(LogTemp, Warning, TEXT("%i"), itemStacks->Num());

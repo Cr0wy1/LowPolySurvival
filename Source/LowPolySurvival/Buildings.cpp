@@ -67,10 +67,7 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 					int32 rand = FMath::Rand() % (dropInfo->itemId[i].amount + 1);
 
 					if (rand != 0) {
-						FItemStack itemStack;
-						itemStack.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo->itemId[i].itemId, FString(""));
-						itemStack.amount = rand;
-
+						FItemStack itemStack(dropInfo->itemId[i].itemInfo, rand);
 
 						player->AddItemStackToInventory(itemStack);
 					}
@@ -83,7 +80,7 @@ void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
 		for (size_t i = 0; i < dropInfo->itemId.Num(); ++i) {
 			int32 rand = FMath::Rand() % dropInfo->itemId[i].amount;
 
-			UE_LOG(LogTemp, Warning, TEXT("Drop %i of %s"), rand, *dropInfo->itemId[i].itemId.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("Drop %i of %s"), rand, *dropInfo->itemId[i].itemId.ToString());
 
 		}
 	}

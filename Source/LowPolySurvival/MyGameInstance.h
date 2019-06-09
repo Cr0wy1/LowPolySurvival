@@ -30,6 +30,9 @@ protected:
 
 public:
 
+	virtual void Init() override;
+	void InitDataTables();
+
 	UDataTable* GetItemTable() const;
 	UDataTable* GetDropsTable() const;
 	UDataTable* GetCraftingTable() const;

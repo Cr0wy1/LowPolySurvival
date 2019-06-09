@@ -6,9 +6,12 @@
 #include "Engine/DataTable.h"
 #include "Item.h"
 #include "ItemSlotGridWidget.h"
-#include "SlotWidget.h"
+#include "CraftingSlotWidget.h"
+#include "CraftingComponent.h"
 
-void UCraftingWidget::Init() {
+void UCraftingWidget::Init(UCraftingComponent* _craftingComp) {
+
+	craftingComp = _craftingComp;
 
 	UMyGameInstance* gameInstance = GetGameInstance<UMyGameInstance>();
 
@@ -17,12 +20,13 @@ void UCraftingWidget::Init() {
 	craftingTable->GetAllRows<FCraftingInfo>(FString(), craftingInfoArr);
 
 	
-	for (size_t i = 0; i < craftingInfoArr.Num(); i++){
+	for (FCraftingInfo* craftingInfo : craftingInfoArr){
 
-		USlotWidget* slotWidget = slotGrid->AddSlot();
-		slotWidget->Init();
+		UCraftingSlotWidget* craftingSlotWidget = Cast<UCraftingSlotWidget>(slotGrid->AddSlot());
+		craftingSlotWidget->Init(craftingInfo, _craftingComp);
+		
 
-		UE_LOG(LogTemp, Warning, TEXT("%i"), craftingInfoArr[i]->id);
+		//UE_LOG(LogTemp, Warning, TEXT("%i"), craftingInfoArr[i]->id);
 
 	}
 }

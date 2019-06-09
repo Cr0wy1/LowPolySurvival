@@ -17,8 +17,7 @@ UCraftingComponent::UCraftingComponent(){
 }
 
 
-void UCraftingComponent::BeginPlay()
-{
+void UCraftingComponent::BeginPlay(){
 	Super::BeginPlay();
 
 	craftingTable = GetWorld()->GetGameInstance<UMyGameInstance>()->GetCraftingTable();
@@ -28,8 +27,7 @@ void UCraftingComponent::BeginPlay()
 
 
 
-void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
+void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction){
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 }
@@ -41,12 +39,11 @@ void UCraftingComponent::Init(int32 _craftTypeIndex){
 void UCraftingComponent::Craft(FName craftingId, int32 amount){
 	if (!craftingTable) return;
 
-	FString contextString;
-	FCraftingInfo* craftingInfo = craftingTable->FindRow<FCraftingInfo>(craftingId, contextString);
+	FCraftingInfo* craftingInfo = craftingTable->FindRow<FCraftingInfo>(craftingId, FString());
+	Craft(craftingInfo, amount);
+}
 
-	//UE_LOG(LogTemp, Warning, TEXT("Context String: %s"), *contextString);
-
-
+void UCraftingComponent::Craft(FCraftingInfo * craftingInfo, int32 amount){
 	if (craftingInfo && craftingInfo->typeIndex == craftTypeIndex) {
 
 		int32 operations = CountCraftingOperations(craftingInfo->needed);
@@ -69,16 +66,12 @@ void UCraftingComponent::Craft(FName craftingId, int32 amount){
 				OnCraftBegin();
 			}
 		}
-		
 	}
 }
 
 void UCraftingComponent::OnCraftBegin(){
 	bIsCrafting = true;
 	
-	//UE_LOG(LogTemp, Warning, TEXT("begin crafting"));
-
-
 	GetWorld()->GetTimerManager().SetTimer(craftTimerHandle, this, &UCraftingComponent::OnCraftEnd, craftingQueue[0]->time, false);
 }
 
@@ -87,7 +80,7 @@ void UCraftingComponent::OnCraftEnd() {
 	//Foreach result in crafting row
 	for (const FCraftPart& craftResult : craftingQueue[0]->result){
 		FItemStack itemStack;
-		itemStack.itemInfo = itemTable->FindRow<FItemInfo>(FName(*FString::FromInt(craftResult.id)), FString());
+		itemStack.itemInfo = craftResult.itemInfo;
 		itemStack.amount = craftResult.amount;
 
 		if (!itemStack.itemInfo) {
@@ -100,10 +93,6 @@ void UCraftingComponent::OnCraftEnd() {
 			}
 		}
 	}
-
-
-	//UE_LOG(LogTemp, Warning, TEXT("Crafted Item: %i"), craftingQueue[0]->id);
-
 
 	--craftingQueue[0]->amount;
 
@@ -134,8 +123,6 @@ void UCraftingComponent::AddInventoryAccess(UInventoryComponent * inventory, EIn
 			break;
 	}
 	
-	//UE_LOG(LogTemp, Warning, TEXT("inventoreis: %i"), inputInventories.Num());
-
 }
 
 void UCraftingComponent::RemoveInventoryAccess(UInventoryComponent * inventory, EInvAccess invAccess){
@@ -152,7 +139,6 @@ void UCraftingComponent::RemoveInventoryAccess(UInventoryComponent * inventory, 
 			break;
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("inventoreis: %i"), inputInventories.Num());
 }
 
 void UCraftingComponent::RemoveNeededParts(const TArray<FCraftPart>& neededItems, int32 amount){
@@ -179,8 +165,6 @@ int32 UCraftingComponent::CountInputItems(int32 itemId)const{
 		count += inventory->CountItems(itemId);
 	}
 	
-	//UE_LOG(LogTemp, Warning, TEXT("Crafting Count: %i"), count);
-
 	return count;
 }
 
@@ -195,8 +179,6 @@ int32 UCraftingComponent::CountCraftingOperations(const TArray<FCraftPart>& need
 			operations = partOps;
 		}
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Crafting operations: %i"), operations);
 
 	return operations;
 }

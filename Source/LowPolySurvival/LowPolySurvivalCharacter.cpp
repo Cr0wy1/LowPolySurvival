@@ -105,11 +105,6 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller = Cast<APlayercharController>(GetController());
 	armActor = Cast<AMechArmActor>(armActorComp->GetChildActor());
 
-	if (armActor) {
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *armActor->GetName());
-
-	}
-
 	controller->GetViewportSize(viewX, viewY);
 	//CreateWidget(controller, )
 
