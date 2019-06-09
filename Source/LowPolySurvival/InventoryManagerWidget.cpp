@@ -9,6 +9,7 @@
 #include "CanvasPanelSlot.h"
 #include "QuickSlotsWidget.h"
 #include "LowPolySurvivalCharacter.h"
+#include "CraftingWidget.h"
 
 
 bool UInventoryManagerWidget::Initialize(){
@@ -89,8 +90,8 @@ void UInventoryManagerWidget::OnShiftLeftClick(int32 clickedBtnIndex, UInventory
 	default:
 		break;
 	}
-
-	targetInventoryComp->AddStack(clickedInventoryWidget->bindedInventory, clickedBtnIndex);
+	FItemStack clickedStack = clickedInventoryWidget->bindedInventory->PullStack(clickedBtnIndex);
+	targetInventoryComp->AddStack(clickedStack);
 	mouseStackWidget->RefreshStack();
 }
 
@@ -108,6 +109,7 @@ void UInventoryManagerWidget::Init(ALowPolySurvivalCharacter* _playerCharacter, 
 	playerEquipInv->Init(this, EWidgetInvType::EQUIPMENT, equipmentInventoryComp);
 	chestInv->Init(this);
 	
+	craftingWidget->Init();
 }
 
 void UInventoryManagerWidget::ShowInventory(UInventoryComponent* inventory){

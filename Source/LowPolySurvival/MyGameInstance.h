@@ -25,9 +25,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable * dropsDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
+	UDataTable * craftingDataTable;
+
 public:
 
-	UDataTable * GetItemTable() const;
-	UDataTable * GetDropsTable() const;
+	UDataTable* GetItemTable() const;
+	UDataTable* GetDropsTable() const;
+	UDataTable* GetCraftingTable() const;
 	
 };

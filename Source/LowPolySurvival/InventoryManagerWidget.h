@@ -18,6 +18,7 @@ class UItemStackWidget;
 class UCanvasPanelSlot;
 class UCanvasPanel;
 class UQuickSlotsWidget;
+class UCraftingWidget;
 struct FItemStack;
 
 /**
@@ -69,9 +70,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UInventoryWidget* chestInv;
 
-	
-
-
+	UPROPERTY(meta = (BindWidget))
+	UCraftingWidget* craftingWidget;
 
 
 public:

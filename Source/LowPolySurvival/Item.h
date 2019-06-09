@@ -133,10 +133,10 @@ struct LOWPOLYSURVIVAL_API FCraftPart {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 id;
+	int32 id = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 amount;
+	int32 amount = 1;
 };
 
 
@@ -159,6 +159,8 @@ struct LOWPOLYSURVIVAL_API FCraftingInfo : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 typeIndex;
+
+	int32 amount;
 };
 
 
@@ -175,11 +177,11 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 
 
-	bool isEmpty() {
+	bool isEmpty() const{
 		return (amount <= 0);
 	}
 
-	bool CompareIds(FItemStack &otherStack) {
+	bool CompareIds(FItemStack &otherStack) const{
 		return itemInfo == otherStack.itemInfo;
 	}
 
@@ -225,12 +227,17 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 		return str;
 	}
 
-	void TakeOff(int32 itemsAmount = 1) {
+	//return how many Items removed
+	int32 Remove(int32 itemsAmount = 1) {
+		
 		amount -= itemsAmount;
 
 		if (amount < 1) {
+			itemsAmount += amount;
 			Clear();
 		}
+
+		return itemsAmount;
 	}
 
 	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1) {

@@ -12,3 +12,8 @@ UDataTable * UMyGameInstance::GetDropsTable() const{
 
 	return dropsDataTable;
 }
+
+UDataTable * UMyGameInstance::GetCraftingTable() const
+{
+	return craftingDataTable;
+}

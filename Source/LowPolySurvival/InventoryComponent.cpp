@@ -23,6 +23,30 @@ void UInventoryComponent::BeginPlay()
 	stackSlots.Init(FItemStack(), slotNum);
 }
 
+void UInventoryComponent::AddToMap(const FItemStack & itemstack){
+	if (!itemstack.itemInfo) return;
+	if (itemAmount.Contains(itemstack.itemInfo)) {
+		itemAmount[itemstack.itemInfo] += itemstack.amount;
+	}
+	else {
+		itemAmount.Add(itemstack.itemInfo, itemstack.amount);
+
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Inventory %s Count: %i"), *GetName(), itemAmount[itemstack.itemInfo]);
+
+}
+
+void UInventoryComponent::RemoveFromMap(const FItemStack & itemstack){
+
+	if (itemAmount.Contains(itemstack.itemInfo)) {
+		itemAmount[itemstack.itemInfo] -= itemstack.amount;
+		if (itemAmount[itemstack.itemInfo] < 0) {
+			itemAmount[itemstack.itemInfo] = 0;
+		}
+	}
+
+}
+
 
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -33,6 +57,7 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 
 bool UInventoryComponent::AddStack(FItemStack &itemstack) {
+	
 
 	bool bReturn = false;
 
@@ -41,37 +66,55 @@ bool UInventoryComponent::AddStack(FItemStack &itemstack) {
 			bReturn = true;
 		}
 	}
+	else {
+		bReturn = true;
+	}
 	
 	BroadcastOnInventoryUpdate();
 	
 	return bReturn;
 }
 
-bool UInventoryComponent::AddStack(UInventoryComponent * otherInventory, int32 otherSlotIndex){
-
-	AddStack(otherInventory->stackSlots[otherSlotIndex]);
+bool UInventoryComponent::AddStack(int32 slotIndex, FItemStack & itemstack, int32 amount){
 	
-	otherInventory->lastUpdatedSlots.AddUnique(otherSlotIndex);
+	bool bReturn = false;
 
-	otherInventory->BroadcastOnInventoryUpdate();
-	
+	FItemStack tempStack = itemstack;
+	if (amount < 0) {
+		
+		bReturn = stackSlots[slotIndex].Fill(itemstack);
+	}
+	else {
+		itemstack.PullTo(stackSlots[slotIndex], amount);
+		bReturn = true;
+	}
+	tempStack.amount -= itemstack.amount;
+	AddToMap(tempStack);
 
-	return true;
+	lastUpdatedSlots.AddUnique(slotIndex);
+	BroadcastOnInventoryUpdate();
+
+	return bReturn;
 }
 
+
 bool UInventoryComponent::AddToExistingStacks(FItemStack &itemstack) {
+
+	FItemStack tempStack = itemstack;
+
 	for (size_t i = 0; i < slotNum; i++) {
 
 		//Maybe optimize
 		lastUpdatedSlots.AddUnique(i);
 
 		if (stackSlots[i].Fill(itemstack)) {
-			
+			AddToMap(tempStack);
 			return true;
 		}
-
-		
 	}
+
+	tempStack.amount -= itemstack.amount;
+	AddToMap(tempStack);
 
 	return false;
 }
@@ -80,6 +123,7 @@ bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 	for (size_t i = 0; i < slotNum; ++i) {
 		if (stackSlots[i].isEmpty()) {
 			stackSlots[i] = itemstack;
+			AddToMap(itemstack);
 			itemstack.Clear();
 
 			lastUpdatedSlots.AddUnique(i);
@@ -91,39 +135,57 @@ bool UInventoryComponent::AddToEmptySlots(FItemStack &itemstack) {
 	return false;
 }
 
-bool UInventoryComponent::AddToSlot(int32 slotIndex, FItemStack & itemstack, int32 amount){
 
-	itemstack.PullTo(stackSlots[slotIndex], amount);
-	lastUpdatedSlots.AddUnique(slotIndex);
-	BroadcastOnInventoryUpdate();
-
-	return true;
-}
-
-bool UInventoryComponent::Swap(int32 slotIndex, FItemStack & itemstack){
+void UInventoryComponent::Swap(int32 slotIndex, FItemStack & itemstack){
+	
 	stackSlots[slotIndex].Swap(itemstack);
+	RemoveFromMap(itemstack);
+	AddToMap(stackSlots[slotIndex]);
+
 	lastUpdatedSlots.AddUnique(slotIndex);
 	BroadcastOnInventoryUpdate();
+}
 
-	return true;
+FItemStack UInventoryComponent::PullStack(int32 slotIndex, int32 amount){
+
+	amount = amount < 0 ? stackSlots[slotIndex].amount : amount;
+
+	FItemStack tempStack = stackSlots[slotIndex];
+	tempStack.amount = RemoveStack(slotIndex, amount);
+
+	return tempStack;
 }
 
 
-bool UInventoryComponent::FillSlot(int32 slotIndex, FItemStack & itemstack){
-	bool bReturn = stackSlots[slotIndex].Fill(itemstack);
+int32 UInventoryComponent::RemoveStack(int32 slotIndex, int32 amount){
+	
+	FItemStack tempStack = stackSlots[slotIndex];
+	tempStack.amount = stackSlots[slotIndex].Remove(amount);
+	RemoveFromMap(tempStack);
+
 	lastUpdatedSlots.AddUnique(slotIndex);
 	BroadcastOnInventoryUpdate();
-
-	return bReturn;
+	
+	return tempStack.amount;
 }
 
-bool UInventoryComponent::TakeOffFromSlot(int32 slotIndex, int32 amount){
-	stackSlots[slotIndex].TakeOff(amount);
+int32 UInventoryComponent::RemoveStacks(int32 itemId, int32 amount){
 
-	lastUpdatedSlots.AddUnique(slotIndex);
-	BroadcastOnInventoryUpdate();
+	int32 removed = 0;
+	for (size_t i = 0; i < stackSlots.Num(); i++){
+		if (stackSlots[i].IsValid() && stackSlots[i].itemInfo->itemid == itemId) {
+			removed += RemoveStack(i, amount - removed);
+			
+		}
 
-	return true;
+		if (removed >= amount) {
+			break;
+		}
+	}
+
+	//BroadcastOnInventoryUpdate();
+
+	return removed;
 }
 
 
@@ -133,7 +195,29 @@ void UInventoryComponent::BroadcastOnInventoryUpdate(){
 	//UE_LOG(LogTemp, Warning, TEXT("adding stack"));
 }
 
-bool UInventoryComponent::HasEmptySlot(){
+
+int32 UInventoryComponent::CountItems(FItemInfo * itemInfo) const {
+	if (itemAmount.Contains(itemInfo)) {
+		return itemAmount[itemInfo];
+	}
+	return 0;
+}
+
+
+int32 UInventoryComponent::CountItems(int32 itemId) const{
+
+	int32 count = 0;
+
+	for (auto &elem : itemAmount) {
+		if (elem.Key->itemid == itemId) {
+			count += elem.Value;
+		}
+	}
+
+	return count;
+}
+
+bool UInventoryComponent::HasEmptySlot()const{
 
 	for (size_t i = 0; i < stackSlots.Num(); i++){
 		if (stackSlots[i].isEmpty()) {
@@ -151,4 +235,6 @@ EInvType UInventoryComponent::GetInvType() const{
 TArray<FItemStack>& UInventoryComponent::GetItemStacksRef(){
 	return stackSlots;
 }
+
+
 

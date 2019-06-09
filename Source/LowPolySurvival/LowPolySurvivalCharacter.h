@@ -17,6 +17,7 @@ class UInputComponent;
 class UPlayerHUDWidget;
 class UInventoryManagerWidget;
 class UInventoryComponent;
+class UCraftingComponent;
 class UAttributeComponent;
 class UPlacementComponent;
 class UWidgetInteractionComponent;
@@ -152,6 +153,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UInventoryComponent* equipmentInventoryComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UCraftingComponent* craftingComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UAttributeComponent* attributeComp;

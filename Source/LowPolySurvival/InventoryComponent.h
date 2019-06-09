@@ -44,8 +44,16 @@ protected:
 	TArray<FItemStack> stackSlots;
 	TArray<int32> lastUpdatedSlots;
 
+	TMap<FItemInfo*, int32> itemAmount;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	void AddToMap(const FItemStack &itemstack);
+	void RemoveFromMap(const FItemStack &itemstack);
+
+	bool AddToExistingStacks(FItemStack &itemstack);
+	bool AddToEmptySlots(FItemStack &itemstack);
 
 public:	
 
@@ -56,19 +64,26 @@ public:
 
 	
 	bool AddStack(FItemStack &itemstack);
-	bool AddStack(UInventoryComponent* otherInventory, int32 otherSlotIndex);
-	bool AddToExistingStacks(FItemStack &itemstack);
-	bool AddToEmptySlots(FItemStack &itemstack);
+	bool AddStack(int32 slotIndex, FItemStack &itemstack, int32 amount = -1);
 
-	bool AddToSlot(int32 slotIndex, FItemStack &itemstack, int32 amount);
-	bool Swap(int32 slotIndex, FItemStack &itemstack);
-	bool FillSlot(int32 slotIndex, FItemStack &itemstack);
-	bool TakeOffFromSlot(int32 slotIndex, int32 amount = 1);
+	void Swap(int32 slotIndex, FItemStack &itemstack);
+
+	FItemStack PullStack(int32 slotIndex, int32 amount = -1);
+
+	//Return how many removed
+	int32 RemoveStack(int32 slotIndex, int32 amount = 1);
+
+	//Return how many removed
+	int32 RemoveStacks(int32 itemId, int32 amount = 1);
 
 	void BroadcastOnInventoryUpdate();
 
-	bool HasEmptySlot();
+	int32 CountItems(FItemInfo * itemInfo) const;
+	int32 CountItems(int32 itemId) const;
+
+	bool HasEmptySlot() const;
 	EInvType GetInvType() const;
 	TArray<FItemStack>& GetItemStacksRef();
+	
 
 };

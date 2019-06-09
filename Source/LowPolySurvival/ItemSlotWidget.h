@@ -31,15 +31,9 @@ protected:
 	UInventoryManagerWidget* inventoryManager;
 
 	FItemStack* mouseStack;
-	FItemStack* slotStack;
+	FItemStack const* slotStack;
 
 	FSlateBrush normalSlateBrush;
-
-	UPROPERTY(meta = (BindWidget))
-	UButton* rootButton;
-
-	UPROPERTY(meta = (BindWidget))
-	UItemStackWidget* itemStackWidget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
 	UTexture2D* slotSelectedIcon;
@@ -56,8 +50,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slot")
 	float slotPaddingOverride = 5.0f;
 
-	void OnLeftClick(const FPointerEvent & MouseEvent);
-	void OnRightClick(const FPointerEvent & MouseEvent);
+	virtual void OnLeftClick(const FPointerEvent & MouseEvent) override;
+	virtual void OnRightClick(const FPointerEvent & MouseEvent) override;
 	
 public:
 
@@ -66,7 +60,7 @@ public:
 	virtual bool  Initialize() override;
 
 
-	FReply NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent) override;
+	
 
 	UFUNCTION()
 	void OnHovered();

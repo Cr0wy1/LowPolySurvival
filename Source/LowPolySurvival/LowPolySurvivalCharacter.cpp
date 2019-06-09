@@ -20,6 +20,7 @@
 #include "Components/WidgetInteractionComponent.h"
 #include "PlacementMenuWidget.h"
 #include "PlayercharController.h"
+#include "CraftingComponent.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -67,6 +68,13 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	quickInventoryComp = CreateDefaultSubobject<UInventoryComponent>("Quick Inventory");
 	equipmentInventoryComp = CreateDefaultSubobject<UInventoryComponent>("Equipment Inventory");
 	
+
+	//Crafting
+	craftingComp = CreateDefaultSubobject<UCraftingComponent>("Crafting");
+	craftingComp->AddInventoryAccess(inventoryComp, EInvAccess::BOTH);
+	craftingComp->AddInventoryAccess(quickInventoryComp, EInvAccess::BOTH);
+	craftingComp->AddInventoryAccess(equipmentInventoryComp, EInvAccess::INPUT);
+	craftingComp->Init();
 
 	//Attributes
 	attributeComp = CreateDefaultSubobject<UAttributeComponent>("Attributes");
@@ -307,12 +315,12 @@ void ALowPolySurvivalCharacter::OnPrimaryPressed(){
 		
 		if (placementComp->PlaceBuilding()) {
 			int32 selecQSlot = playerHUDWidget->GetCurrentSelectedQuickSlot();
-			quickInventoryComp->TakeOffFromSlot(selecQSlot);
+			quickInventoryComp->RemoveStack(selecQSlot);
 
 			OnUpdateHandStack();
 		}
 	}
-
+	craftingComp->Craft("1", 2);
 }
 
 void ALowPolySurvivalCharacter::OnPrimaryReleased(){

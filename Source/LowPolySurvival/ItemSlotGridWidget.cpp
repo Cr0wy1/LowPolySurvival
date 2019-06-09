@@ -24,7 +24,7 @@ bool UItemSlotGridWidget::Initialize() {
 	return true;
 }
 
-void UItemSlotGridWidget::AddSlot(){
+USlotWidget* UItemSlotGridWidget::AddSlot(){
 	if (itemSlotWidget_W && grid) {
 		slots.Add(WidgetTree->ConstructWidget<USlotWidget>(itemSlotWidget_W));
 		
@@ -36,6 +36,8 @@ void UItemSlotGridWidget::AddSlot(){
 		slot->Row = (slots.Num() - 1) / cols;
 		slot->Column = (slots.Num() - 1) % cols;
 	}
+
+	return slots.Last();
 }
 
 TArray<USlotWidget*>& UItemSlotGridWidget::GetSlotsRef()

@@ -47,7 +47,7 @@ public:
 
 	virtual bool  Initialize() override;
 	
-	void AddSlot();
+	USlotWidget* AddSlot();
 
 	UFUNCTION(BlueprintCallable)
 	TArray<USlotWidget*> &GetSlotsRef();
