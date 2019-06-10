@@ -60,3 +60,8 @@ UDataTable * UMyGameInstance::GetCraftingTable() const
 {
 	return craftingDataTable;
 }
+
+UDataTable * UMyGameInstance::GetIslandTable() const
+{
+	return islandDataTable;
+}

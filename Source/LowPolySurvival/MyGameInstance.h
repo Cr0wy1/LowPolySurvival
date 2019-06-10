@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable * craftingDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
+	UDataTable * islandDataTable;
+
 public:
 
 	virtual void Init() override;
@@ -36,5 +39,6 @@ public:
 	UDataTable* GetItemTable() const;
 	UDataTable* GetDropsTable() const;
 	UDataTable* GetCraftingTable() const;
+	UDataTable* GetIslandTable() const;
 	
 };
