@@ -19,7 +19,7 @@ class UInventoryManagerWidget;
 UCLASS()
 class LOWPOLYSURVIVAL_API UItemSlotWidget : public USlotWidget
 {
-	GENERATED_BODY()
+	GENERATED_BODY() 
 	
 
 protected:

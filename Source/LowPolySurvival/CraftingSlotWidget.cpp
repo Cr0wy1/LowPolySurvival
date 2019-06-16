@@ -16,9 +16,6 @@ bool UCraftingSlotWidget::Initialize() {
 	return Super::Initialize();
 }
 
-void UCraftingSlotWidget::Init(){
-	
-}
 
 void UCraftingSlotWidget::Init(FCraftingInfo* _craftingInfo, UCraftingComponent* _craftingComp) {
 

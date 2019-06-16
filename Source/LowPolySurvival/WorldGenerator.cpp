@@ -6,6 +6,7 @@
 #include "Chunk.h"
 #include "PlayercharController.h"
 #include "DrawDebugHelpers.h"
+#include "MyGameInstance.h"
 
 
 // Sets default values
@@ -13,6 +14,7 @@ AWorldGenerator::AWorldGenerator()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 	
 }
 
@@ -20,6 +22,9 @@ AWorldGenerator::AWorldGenerator()
 void AWorldGenerator::BeginPlay()
 {
 	Super::BeginPlay();
+
+	chunkSize = GetGameInstance<UMyGameInstance>()->GetWorldInfo()->chunkSize;
+	
 
 	playerController = GetWorld()->GetFirstPlayerController<APlayercharController>();
 	
@@ -46,7 +51,7 @@ void AWorldGenerator::Tick(float DeltaTime)
 		if (chunkLoc != cPlayerChunkLoc) {
 			cPlayerChunkLoc = chunkLoc;
 			OnEnterChunk();
-			UE_LOG(LogTemp, Warning, TEXT("World Generator( controllers: %s, playerLoc: %s, chunkLoc: %s )"), *playerController->GetName(), *playerPos.ToString(), *chunkLoc.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("World Generator( controllers: %s, playerLoc: %s, chunkLoc: %s )"), *playerController->GetName(), *playerPos.ToString(), *chunkLoc.ToString());
 		}
 
 	}
@@ -77,7 +82,7 @@ void AWorldGenerator::OnEnterChunk(){
 
 	checkedChunkLocs.Empty();
 
-	UE_LOG(LogTemp, Warning, TEXT("WorldGen: TMap size: %i"), loadedChunks.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("WorldGen: TMap size: %i"), loadedChunks.Num());
 
 }
 
@@ -97,7 +102,10 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 
 void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
-	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), FVector(chunkLoc * chunkSize, 0), FRotator());
+	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), FVector(chunkLoc * chunkSize, 0), FRotator::ZeroRotator);
+	//newChunk->SetActorLocation(FVector(chunkLoc * chunkSize, 0));
+	//UE_LOG(LogTemp, Warning, TEXT("LoadChunk: chunk spawned at %s"), *FVector(chunkLoc * chunkSize, 0).ToString());
+
 	
 	loadedChunks.Add(chunkLoc, newChunk);
 
@@ -109,7 +117,7 @@ void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 		newChunk->Create(chunkLoc);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("WorldGenerator: load Chunk at: %s"), *chunkLoc.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("WorldGenerator: load Chunk at: %s"), *chunkLoc.ToString());
 }
 
 void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){

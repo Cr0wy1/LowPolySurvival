@@ -30,7 +30,7 @@ public:
 
 	virtual bool  Initialize() override;
 
-	virtual void Init() override;
+	
 	void Init(FCraftingInfo* _craftingInfo, UCraftingComponent* _craftingComp);
 
 };

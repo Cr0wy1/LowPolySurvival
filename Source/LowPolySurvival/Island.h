@@ -58,8 +58,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Island")
 	UStaticMeshComponent* mesh;
 
+	void TopDownTrace();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void GenerateTerrain();
 
 };

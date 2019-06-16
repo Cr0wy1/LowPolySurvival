@@ -4,11 +4,38 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "WorldGenerator.generated.h"
 
 
 class APlayercharController;
 class AChunk;
+
+
+UENUM(BlueprintType)
+enum class EBiome : uint8 {
+	GRASS,
+	FOREST,
+	SAND,
+	HILLS,
+
+};
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FWorldGenInfo : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 id = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AActor> Plant_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EBiome biome = EBiome::GRASS;
+};
+
 
 
 UCLASS()
@@ -22,8 +49,8 @@ public:
 
 protected:
 
-	int32 chunkSize = 10000;
-	int32 checkedRadius = 15;
+	float chunkSize;
+	int32 checkedRadius = 6;
 
 	APlayercharController * playerController = nullptr;
 

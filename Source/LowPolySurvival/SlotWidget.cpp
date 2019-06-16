@@ -5,10 +5,6 @@
 #include "Button.h"
 
 
-void USlotWidget::Init(){
-
-}
-
 FReply USlotWidget::NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
 {
 

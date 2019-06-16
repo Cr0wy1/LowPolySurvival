@@ -3,6 +3,7 @@
 
 #include "Island.h"
 #include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
 
 // Sets default values
 AIsland::AIsland()
@@ -21,10 +22,24 @@ void AIsland::BeginPlay()
 	
 }
 
+
+
 // Called every frame
 void AIsland::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+}
+
+void AIsland::GenerateTerrain(){
+	TopDownTrace();
+}
+
+void AIsland::TopDownTrace(){
+	FVector min, max;
+	mesh->GetLocalBounds(min, max);
+
+	UE_LOG(LogTemp, Warning, TEXT("TopDownTrace: %s, %s"), *min.ToString(), *min.ToString());
 
 }
 

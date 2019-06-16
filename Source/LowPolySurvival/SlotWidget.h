@@ -31,7 +31,6 @@ protected:
 
 public:
 
-	virtual void Init();
 
 	FReply NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent);
 

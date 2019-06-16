@@ -65,3 +65,12 @@ UDataTable * UMyGameInstance::GetIslandTable() const
 {
 	return islandDataTable;
 }
+
+UDataTable * UMyGameInstance::GetWorldGenTable() const
+{
+	return worldGenDataTable;
+}
+
+FWorldInfo const*const UMyGameInstance::GetWorldInfo() const{
+	return worldInfo;
+}

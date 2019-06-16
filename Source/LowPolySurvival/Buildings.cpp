@@ -45,7 +45,7 @@ void ABuildings::BeginPlay(){
 	
 	info.itemInfo = itemDataTable->FindRow<FItemInfo>(info.itemId, FString(""));
 	ConstructFromItem(info.itemInfo);
-
+	
 }
 
 void ABuildings::DropItems(ALowPolySurvivalCharacter * player){
