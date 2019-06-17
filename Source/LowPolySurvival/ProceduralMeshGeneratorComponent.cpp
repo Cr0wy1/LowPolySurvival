@@ -3,6 +3,7 @@
 
 #include "ProceduralMeshGeneratorComponent.h"
 #include "DrawDebugHelpers.h"
+#include "SimplexNoise.h"
 
 
 
@@ -33,31 +34,49 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(){
 }
 
 void UProceduralMeshGeneratorComponent::CreateCornerGrid(){
+	
+	 
 	for (size_t x = 0; x < gridSize.X; x++) {
-		grid.Add(TArray<TArray<uint8>>());
+		grid.Add(TArray<TArray<float>>());
 		for (size_t y = 0; y < gridSize.Y; y++) {
-			grid[x].Add(TArray<uint8 >());
+			grid[x].Add(TArray<float >());
+
+			float noiseValue = (USimplexNoise::SimplexNoise2D((float)x*offset, (float)y*offset) + 1) / 2;
+
+			
+
+			int32 clamped = FMath::FloorToInt(noiseValue*gridSize.Z);
+
+			UE_LOG(LogTemp, Warning, TEXT("CreateCornerGrid: clamped: %i"), clamped);
+
 			for (size_t z = 0; z < gridSize.Z; z++) {
-				
-				
-				uint8 rand = FMath::Rand() % 255;
-				if (x > 0 && y > 0 && z > 0 && x < 3 && y < 3 && z < 3) {
-					rand = 255;
-				}
-				else {
-					rand = 0;
-				}
-				
-				grid[x][y].Add(rand);
-				if (rand > surfaceLevel) {
-					DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FColor::Green, false, 30, 0, 1);
-				}
-				else {
-					DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FColor(rand, rand, rand, 255), false, 30, 0, 1);
-				}
+
+				grid[x][y].Add(0);
 				
 			}
+			grid[x][y][clamped] = 1;
+			DrawDebugBox(GetWorld(), FVector(x, y, clamped)*blockSize, FVector(3, 3, 3), FColor::Green, false, 30, 0, 1);
+
+			
+
+
+			//for (size_t z = 0; z < clamped; z++) {
+				//grid[x][y][z] = 1;
+
+				//if (bDrawDebug) {
+
+					//DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FColor::Green, false, 30, 0, 1);
+					//if (noiseValue > surfaceLevel) {
+						
+					//}
+					//else {
+						//DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FLinearColor(noiseValue, noiseValue, noiseValue).ToFColor(true), false, 30, 0, 1);
+					//}
+				//}
+			//}
+
 		}
+		
 	}
 }
 
@@ -87,39 +106,53 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(){
 
 void UProceduralMeshGeneratorComponent::MarchingCubes(){
 
+	FOccluderVertexArray vertexArray;
+	
+	TArray<int32> triangles;
+
 	for (size_t x = 0; x < gridSize.X - 1; x++) {
 		for (size_t y = 0; y < gridSize.Y - 1; y++) {
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
 				uint8 cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
-
-				FOccluderVertexArray vertexArray;
-				TArray<uint8> uniqueVerticies;
-				TArray<int32> triangles;
 				
+				//UE_LOG(LogTemp, Warning, TEXT("MarchingCubes: cubeIndex: %i"), cubeIndex);
+
+				TArray<uint8> uniqueVerticies;
+
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
 					uint8 edgeIndex = triTable[cubeIndex][i];
-					int32 triIndex;
-					if (uniqueVerticies.Find(edgeIndex, triIndex)) {
-						triangles.Add(triIndex);
-					}
-					else {
+					int32 triIndex = 0;
+					//if (uniqueVerticies.Find(edgeIndex, triIndex)) {
+						//triangles.Add(triIndex);
+					//}
+					//else {
 						FVector vertex = (FVector(x, y, z) + relativEdgeCenters[edgeIndex]) * blockSize + FVector(50, 50, 50);
-						DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 30, 0, 1);
 
-						vertexArray.Add(vertex);
-						triangles.Add(uniqueVerticies.AddUnique(edgeIndex));
+						if (bDrawDebug) {
+							DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 30, 0, 1);
+						} 
 						
-					}
+
+						
+						triangles.Add(vertexArray.Add(vertex));
+						
+						//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: TrianglePoint: %i"), triangles.Last());
+
+					//}
 					
 				}
 
 				FVector cubeGridSize = gridSize - 1;
-				CreateMeshSection((x*gridSize.Y + y)*gridSize.Z + z, vertexArray, triangles, FOccluderVertexArray(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
 
-				UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: %i"), triangles.Num());
+				//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: %i"), triangles.Num());
 
 			}
 		}
 	}
+
+
+
+	CreateMeshSection(0, vertexArray, triangles, FOccluderVertexArray(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
+
 
 }

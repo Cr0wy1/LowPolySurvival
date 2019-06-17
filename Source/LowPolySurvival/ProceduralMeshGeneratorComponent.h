@@ -9,14 +9,15 @@
 
 
 
+
 USTRUCT()
 struct LOWPOLYSURVIVAL_API FMarchCube {
 
 	GENERATED_BODY()
 
-	TArray<uint8> corners;
+	TArray<float> corners;
 
-	uint8 GetCubeIndex(uint8 surfaceLevel) const{
+	uint8 GetCubeIndex(float surfaceLevel) const{
 		uint8 cubeIndex = 0;
 		for (size_t i = 0; i < 8; i++){
 			if (corners[i] < surfaceLevel) {
@@ -37,18 +38,28 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 
 protected:
 
-	FVector gridSize = { 4,4,4 };
 	float blockSize = 100;
-	uint8 surfaceLevel = 128;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+	FVector gridSize = { 7,7,7 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+	float surfaceLevel = 0.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+		float offset = 0.1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+		bool bDrawDebug = false;
 
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 
-	TArray<TArray<TArray<uint8>>> grid;
+	TArray<TArray<TArray<float>>> grid;
 
 	void CreateCornerGrid();
 	void CreateMarchCubes();
 	void MarchingCubes();
-	void MarchCube();
+
 
 public:
 
