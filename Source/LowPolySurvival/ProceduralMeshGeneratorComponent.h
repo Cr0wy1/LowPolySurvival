@@ -7,7 +7,7 @@
 #include "ProceduralMeshGeneratorComponent.generated.h"
 
 
-
+struct FBlockInfo;
 
 
 USTRUCT()
@@ -52,12 +52,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		bool bDrawDebug = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+		bool bUseLerp = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
+		float lerpMultiply = 1.0f;
+
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 
 	TArray<TArray<TArray<float>>> grid;
 
 	void CreateCornerGrid();
+
 	void CreateMarchCubes();
+	void CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 	void MarchingCubes();
 
 
@@ -67,6 +75,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Procedural")
 	void GenerateMesh();
+
+	
+	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 
 protected:
 
@@ -343,5 +354,20 @@ protected:
 		FVector( 0.5, 0.5, 0.0),
 		FVector(-0.5, 0.5, 0.0),
 		FVector(-0.5,-0.5, 0.0),
+	};
+
+	TArray<TArray<uint8>> edgeCorners = {
+		{ 0,1 },
+		{ 2,1 },
+		{ 3,2 },
+		{ 3,0 },
+		{ 4,5 },
+		{ 6,5 },
+		{ 7,6 },
+		{ 7,4 },
+		{ 0,4 },
+		{ 1,5 },
+		{ 2,6 },
+		{ 3,7 },
 	};
 };

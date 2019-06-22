@@ -4,33 +4,32 @@
 #include "ProceduralMeshGeneratorComponent.h"
 #include "DrawDebugHelpers.h"
 #include "SimplexNoise.h"
-
-
+#include "Chunk.h"
 
 
 UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer) : UProceduralMeshComponent(ObjectInitializer){
-
-	UE_LOG(LogTemp, Warning, TEXT("Procedural Mesh Generator Contrsuct"));
 
 
 }
 
 void UProceduralMeshGeneratorComponent::GenerateMesh(){
-	FOccluderVertexArray vertexArray;
-	vertexArray.Add(FVector(0, 0, 0));
-	vertexArray.Add(FVector(100, 0, 0));
-	vertexArray.Add(FVector(0, 100, 0));
 
-	TArray<int32> triangles = { 2, 1, 0 };
+
 	FlushPersistentDebugLines(GetWorld());
 	CreateCornerGrid();
 	CreateMarchCubes();
 	MarchingCubes();
 
-	
+}
 
-	//CreateMeshSection(x*sizeY + y, vertexArray, triangles, FOccluderVertexArray(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
+void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
 
+	gridSize = FVector(blockGrid.Num(), blockGrid.IsValidIndex(0) ? blockGrid[0].Num() : 0, blockGrid[0].IsValidIndex(0) ? blockGrid[0][0].Num() : 0);
+
+	UE_LOG(LogTemp, Warning, TEXT("Generate Mesh"));
+
+	CreateMarchCubes(blockGrid);
+	MarchingCubes();
 }
 
 void UProceduralMeshGeneratorComponent::CreateCornerGrid(){
@@ -41,39 +40,42 @@ void UProceduralMeshGeneratorComponent::CreateCornerGrid(){
 		for (size_t y = 0; y < gridSize.Y; y++) {
 			grid[x].Add(TArray<float >());
 
-			float noiseValue = (USimplexNoise::SimplexNoise2D((float)x*offset, (float)y*offset) + 1) / 2;
+			float noiseValue = (USimplexNoise::SimplexNoise2D((float)x*0.1, (float)y*0.1) + 1) / 2;
 
-			
+			int32 clamped = FMath::FloorToInt(noiseValue*offset*gridSize.Z);
 
-			int32 clamped = FMath::FloorToInt(noiseValue*gridSize.Z);
-
-			UE_LOG(LogTemp, Warning, TEXT("CreateCornerGrid: clamped: %i"), clamped);
+			//UE_LOG(LogTemp, Warning, TEXT("CreateCornerGrid: clamped: %i"), clamped);
 
 			for (size_t z = 0; z < gridSize.Z; z++) {
 
 				grid[x][y].Add(0);
 				
 			}
-			grid[x][y][clamped] = 1;
-			DrawDebugBox(GetWorld(), FVector(x, y, clamped)*blockSize, FVector(3, 3, 3), FColor::Green, false, 30, 0, 1);
 
+			for (size_t z = 0; z < clamped; z++) {
+
+				grid[x][y][z] = 1;
+
+
+				
+			}
+
+			grid[x][y][clamped] = noiseValue * 0.5 * lerpMultiply;
+			if (clamped > 0) {
+				grid[x][y][clamped - 1] = noiseValue * lerpMultiply;
+			}
+
+			if (clamped < grid[x][y].Num() - 1) {
+				grid[x][y][clamped + 1] = noiseValue * 0.25 * lerpMultiply;
+			}
 			
 
+			UE_LOG(LogTemp, Warning, TEXT("noiseValue: %f"), noiseValue);
 
-			//for (size_t z = 0; z < clamped; z++) {
-				//grid[x][y][z] = 1;
 
-				//if (bDrawDebug) {
-
-					//DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FColor::Green, false, 30, 0, 1);
-					//if (noiseValue > surfaceLevel) {
-						
-					//}
-					//else {
-						//DrawDebugBox(GetWorld(), FVector(x, y, z)*blockSize, FVector(3, 3, 3), FLinearColor(noiseValue, noiseValue, noiseValue).ToFColor(true), false, 30, 0, 1);
-					//}
-				//}
-			//}
+			if (bDrawDebug) {
+				DrawDebugBox(GetWorld(), FVector(x, y, clamped)*blockSize, FVector(3, 3, 3), FLinearColor(noiseValue, noiseValue, noiseValue, 1).ToFColor(true), false, 30, 0, 1);
+			}
 
 		}
 		
@@ -104,10 +106,34 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(){
 
 }
 
+void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
+
+	for (size_t x = 0; x < gridSize.X - 1; x++) {
+		marchCubes.Add(TArray<TArray<FMarchCube>>());
+		for (size_t y = 0; y < gridSize.Y - 1; y++) {
+			marchCubes[x].Add(TArray<FMarchCube>());
+			for (size_t z = 0; z < gridSize.Z - 1; z++) {
+				marchCubes[x][y].Add(FMarchCube());
+
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z + 1].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z + 1].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z + 1].value);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z + 1].value);
+
+			}
+		}
+	}
+
+}
+
 void UProceduralMeshGeneratorComponent::MarchingCubes(){
 
 	FOccluderVertexArray vertexArray;
-	
+	TArray<FVector> uniqueVertex;
 	TArray<int32> triangles;
 
 	for (size_t x = 0; x < gridSize.X - 1; x++) {
@@ -115,18 +141,42 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(){
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
 				uint8 cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
 				
-				//UE_LOG(LogTemp, Warning, TEXT("MarchingCubes: cubeIndex: %i"), cubeIndex);
-
-				TArray<uint8> uniqueVerticies;
 
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
 					uint8 edgeIndex = triTable[cubeIndex][i];
-					int32 triIndex = 0;
-					//if (uniqueVerticies.Find(edgeIndex, triIndex)) {
-						//triangles.Add(triIndex);
-					//}
-					//else {
-						FVector vertex = (FVector(x, y, z) + relativEdgeCenters[edgeIndex]) * blockSize + FVector(50, 50, 50);
+
+					FVector relEdgeCenter = relativEdgeCenters[edgeIndex];
+
+					if (bUseLerp) {
+
+						uint8 edgeCor1 = edgeCorners[edgeIndex][0];
+						uint8 edgeCor2 = edgeCorners[edgeIndex][1];
+
+						float edgeCorValue1 = marchCubes[x][y][z].corners[edgeCor1];
+						float edgeCorValue2 = marchCubes[x][y][z].corners[edgeCor2];
+
+						if (relEdgeCenter.X == 0) {
+							relEdgeCenter.X = (edgeCorValue2 - edgeCorValue1) / 2;
+						}
+						else if (relEdgeCenter.Y == 0) {
+							relEdgeCenter.Y = (edgeCorValue2 - edgeCorValue1) / 2;
+						}
+						else {
+							relEdgeCenter.Z = (edgeCorValue2 - edgeCorValue1) / 2;
+						}
+					}
+
+
+					//UE_LOG(LogTemp, Warning, TEXT("relEdgeCenter: %s"), *relEdgeCenter.ToString());
+
+
+					FVector vertex = (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
+					int32 vertIndex = 0;
+					if (uniqueVertex.Find(vertex, vertIndex)) {
+						triangles.Add(vertIndex);
+					}
+					else {
+						
 
 						if (bDrawDebug) {
 							DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 30, 0, 1);
@@ -135,22 +185,25 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(){
 
 						
 						triangles.Add(vertexArray.Add(vertex));
-						
+						uniqueVertex.Add(vertex);
 						//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: TrianglePoint: %i"), triangles.Last());
 
-					//}
+					}
 					
 				}
 
-				FVector cubeGridSize = gridSize - 1;
+				if (bDrawDebug) {
+					DrawDebugBox(GetWorld(), FVector(x, y, z)* blockSize, FVector(100, 100, 100), FColor::White, false, 30, 0, 1);
+				}
+				
 
-				//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: %i"), triangles.Num());
+				
 
 			}
 		}
 	}
 
-
+	UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: triangles:%i, Vertecies:%i"), triangles.Num(), vertexArray.Num());
 
 	CreateMeshSection(0, vertexArray, triangles, FOccluderVertexArray(), TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
 

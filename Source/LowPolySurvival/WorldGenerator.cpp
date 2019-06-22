@@ -94,9 +94,12 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 		LoadChunk(chunkLoc);
 	}
 
-	FVector startLoc(chunkLoc * chunkSize, -10000);
-	FVector endLoc = startLoc + FVector(0, 0, 20000);
-	DrawDebugLine(GetWorld(), startLoc, endLoc, FColor::Red, true, 1000, 0, 100);
+	if (bDrawDebug) {
+		FVector startLoc(chunkLoc * chunkSize, -10000);
+		FVector endLoc = startLoc + FVector(0, 0, 20000);
+		DrawDebugLine(GetWorld(), startLoc, endLoc, FColor::Red, true, 1000, 0, 100);
+	}
+
 }
 
 

@@ -10,6 +10,8 @@
 #include "Engine/DataTable.h"
 #include "WorldGenerator.h"
 #include "Buildings.h"
+#include "ProceduralMeshGeneratorComponent.h"
+#include "SimplexNoise.h"
 
 
 
@@ -21,6 +23,9 @@ AChunk::AChunk()
 
 	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = SceneComponent;
+
+	proceduralMesh = CreateDefaultSubobject<UProceduralMeshGeneratorComponent>("Procedural Mesh");
+	proceduralMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -28,11 +33,40 @@ void AChunk::BeginPlay(){
 	Super::BeginPlay();
 	
 	gameInstance = GetGameInstance<UMyGameInstance>();
+	worldInfo = gameInstance->GetWorldInfo();
+}
+
+void AChunk::InitBlockGrid(){
+
+	blockGrid.Init(TArray<TArray<FBlockInfo>>(), worldInfo->chunkSize / worldInfo->blockSize +1);
+	for (size_t x = 0; x < blockGrid.Num(); x++) {
+		blockGrid[x].Init(TArray<FBlockInfo>(), worldInfo->chunkSize / worldInfo->blockSize +1);
+
+		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+			blockGrid[x][y].Init(FBlockInfo(), 200);
+		}
+	}
+
+	ApplyNoiseOnGrid();
+	//RandomizeGrid(100, 5);
+
+
+	if (bDrawDebug) {  
+		for (size_t x = 0; x < blockGrid.Num(); x++){
+			for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+				for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
+					FVector blockLoc = GetActorLocation() + (FVector(x, y, z) * worldInfo->blockSize) + FVector(worldInfo->blockSize / 2);
+					DrawDebugPoint(GetWorld(), blockLoc, 5, FColor::Red, false, 30);
+				}
+			}
+		}
+	}
+	
+	proceduralMesh->GenerateMesh(blockGrid);
 }
 
 void AChunk::TopDownTrace(){
 
-	FWorldInfo const* worldInfo = gameInstance->GetWorldInfo();
 	
 	FCollisionQueryParams params;
 	params.bReturnPhysicalMaterial = true;
@@ -42,7 +76,10 @@ void AChunk::TopDownTrace(){
 	FVector end = GetActorLocation() + FVector(0, 0, worldInfo->deathZone);
 	GetWorld()->LineTraceMultiByChannel(hitResults, start, end, ECollisionChannel::ECC_WorldStatic, params);
 
-	DrawDebugLine(GetWorld(), start, end, FColor::Green, true, 100, 0, 100);
+	if (bDrawDebug) {
+		DrawDebugLine(GetWorld(), start, end, FColor::Green, true, 100, 0, 5);
+	}
+	
 
 	UDataTable* worldGenTable = gameInstance->GetWorldGenTable();
 	
@@ -77,6 +114,37 @@ void AChunk::TopDownTrace(){
 
 }
 
+void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
+	for (size_t x = 0; x < blockGrid.Num(); x++) {
+		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+			int32 randZ = FMath::Rand() % blockAmount;
+			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
+				if (z < (zLine + randZ)) {
+					blockGrid[x][y][z].value = 1;
+				}
+			}
+		}
+	}
+}
+
+void AChunk::ApplyNoiseOnGrid(){
+
+	
+
+	for (size_t x = 0; x < blockGrid.Num(); x++) {
+		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+			float noise = USimplexNoise::SimplexNoise2D(chunkLoc.X + x*0.1, chunkLoc.Y + y*0.1);
+			int32 blockAmount = 10 * noise;
+			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
+				if (z < (100 + blockAmount)) {
+					blockGrid[x][y][z].value = 1;
+				}
+			}
+		}
+	}
+
+}
+
 // Called every frame
 void AChunk::Tick(float DeltaTime)
 {
@@ -86,9 +154,12 @@ void AChunk::Tick(float DeltaTime)
 
 void AChunk::Create(FVector2D _chunkLoc){
 	chunkLoc = _chunkLoc;
-	float chunkSize = gameInstance->GetWorldInfo()->chunkSize;
+	
+	float chunkSize = worldInfo->chunkSize;
 
 	float baseSpawnChance = 0.2f;
+
+	InitBlockGrid();
 
 	UDataTable* islandTable = GetGameInstance<UMyGameInstance>()->GetIslandTable();
 

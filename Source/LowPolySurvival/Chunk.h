@@ -9,7 +9,17 @@
 
 
 class UMyGameInstance;
+class UProceduralMeshGeneratorComponent;
+struct FWorldInfo;
 
+USTRUCT()
+struct LOWPOLYSURVIVAL_API FBlockInfo {
+	GENERATED_BODY()
+		 
+	//FBlockInfo(float _value) : value(_value) {}
+
+	float value = 0;
+};
 
 
 UCLASS()
@@ -23,12 +33,29 @@ public:
 
 protected:
 
+	
+
 	UMyGameInstance * gameInstance = nullptr;
+	const FWorldInfo* worldInfo = nullptr;
+
+	TArray<TArray<TArray<FBlockInfo>>> blockGrid;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Procedural Mesh")
+	UProceduralMeshGeneratorComponent* proceduralMesh;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void InitBlockGrid();
+
 	void TopDownTrace();
+
+	//Development
+	bool bDrawDebug = false;
+
+	void RandomizeGrid(int32 zLine, int32 blockAmount);
+	void ApplyNoiseOnGrid();
+
 public:	
 
 	FVector2D chunkLoc;
