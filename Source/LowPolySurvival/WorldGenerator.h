@@ -65,15 +65,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void OnEnterChunk();
+	void OnEnterChunk(); 
 	void OnCheckChunk(FVector2D chunkLoc);
 
 	void LoadChunk(FVector2D chunkLoc);
 	
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// Called every frame  
+	virtual void Tick(float DeltaTime) override; 
 
 	void CheckChunks(int32 centerX, int32 centerY) ;
 

@@ -26,9 +26,10 @@ AChunk::AChunk()
 
 	proceduralMesh = CreateDefaultSubobject<UProceduralMeshGeneratorComponent>("Procedural Mesh");
 	proceduralMesh->SetupAttachment(RootComponent);
+	proceduralMesh->AddRelativeLocation(FVector(-100, -100, -100));
 }
 
-// Called when the game starts or when spawned
+// Called when the game starts or when spawned 
 void AChunk::BeginPlay(){
 	Super::BeginPlay();
 	
@@ -38,9 +39,9 @@ void AChunk::BeginPlay(){
 
 void AChunk::InitBlockGrid(){
 
-	blockGrid.Init(TArray<TArray<FBlockInfo>>(), worldInfo->chunkSize / worldInfo->blockSize +1);
+	blockGrid.Init(TArray<TArray<FBlockInfo>>(), worldInfo->chunkSize / worldInfo->blockSize +3);
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
-		blockGrid[x].Init(TArray<FBlockInfo>(), worldInfo->chunkSize / worldInfo->blockSize +1);
+		blockGrid[x].Init(TArray<FBlockInfo>(), worldInfo->chunkSize / worldInfo->blockSize +3);
 
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
 			blockGrid[x][y].Init(FBlockInfo(), 200);
@@ -55,8 +56,8 @@ void AChunk::InitBlockGrid(){
 		for (size_t x = 0; x < blockGrid.Num(); x++){
 			for (size_t y = 0; y < blockGrid[0].Num(); y++) {
 				for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
-					FVector blockLoc = GetActorLocation() + (FVector(x, y, z) * worldInfo->blockSize) + FVector(worldInfo->blockSize / 2);
-					DrawDebugPoint(GetWorld(), blockLoc, 5, FColor::Red, false, 30);
+					//FVector blockLoc = GetActorLocation() + (FVector(x, y, z) * worldInfo->blockSize) + FVector(worldInfo->blockSize / 2);
+					//DrawDebugPoint(GetWorld(), blockLoc, 5, FColor::Red, false, 30);
 				}
 			}
 		}
@@ -137,7 +138,7 @@ void AChunk::ApplyNoiseOnGrid(){
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
 			FVector2D blockLoc = FVector2D(chunkLoc * (worldInfo->chunkSize / worldInfo->blockSize));
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString());
 
 			float noise = USimplexNoise::SimplexNoise2D((blockLoc.X +x) * noiseScale, (blockLoc.Y + y) * noiseScale);
 
@@ -156,6 +157,18 @@ void AChunk::ApplyNoiseOnGrid(){
 				for (size_t z = islandOffset + upAmount; z >= islandOffset; z--) {
 					blockGrid[x][y][z].value = 1;
 				}
+
+				
+
+				int32 iOuter = islandOffset - downAmount;
+
+				float outerNoise = USimplexNoise::SimplexNoise3D((blockLoc.X + x) * 0.1f, (blockLoc.Y + y)*0.1f, iOuter*0.1f);
+
+				if (outerNoise > 0.1) {
+					blockGrid[x][y][iOuter].value = 0;
+				}
+				
+
 			}
 
 		}

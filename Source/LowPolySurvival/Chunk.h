@@ -51,7 +51,7 @@ protected:
 	void TopDownTrace();
 
 	//Development
-	bool bDrawDebug = false;
+	bool bDrawDebug = true;
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();

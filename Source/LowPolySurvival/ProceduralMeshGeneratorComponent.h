@@ -38,6 +38,18 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 
 protected:
 
+	FOccluderVertexArray vertexArray;
+	TArray<int32> triangles;
+	TArray<FVector2D> UVs;
+	FOccluderVertexArray normals;
+	TArray<FProcMeshTangent> tangents;
+	TArray<int32> borderVertexIndecies;
+
+	//For calculate normals and tangents
+	FOccluderVertexArray meshVertexArray;
+	TArray<int32> meshTriangles;
+	TArray<FVector2D> meshUV;
+
 	float blockSize = 100;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
@@ -66,8 +78,9 @@ protected:
 
 	void CreateMarchCubes();
 	void CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
-	void MarchingCubes();
+	void MarchingCubes(bool bBorderNormalsOnly = true);
 
+	void CalculateNormalsAndTangents();
 
 public:
 
