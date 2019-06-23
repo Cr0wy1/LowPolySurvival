@@ -129,17 +129,35 @@ void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
 
 void AChunk::ApplyNoiseOnGrid(){
 
-	
+	float noiseScale = 0.01f;
+	int32 islandOffset = 50;
+	int32 upOffset = 10;
+	int32 downOffset = 30;
 
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
-			float noise = USimplexNoise::SimplexNoise2D(chunkLoc.X + x*0.1, chunkLoc.Y + y*0.1);
-			int32 blockAmount = 10 * noise;
-			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
-				if (z < (100 + blockAmount)) {
+			FVector2D blockLoc = FVector2D(chunkLoc * (worldInfo->chunkSize / worldInfo->blockSize));
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString());
+
+			float noise = USimplexNoise::SimplexNoise2D((blockLoc.X +x) * noiseScale, (blockLoc.Y + y) * noiseScale);
+
+			int32 downAmount = noise * downOffset + (noise * downOffset * 0.6);
+			int32 upAmount = noise * upOffset;
+
+			if (noise > 0.1) {
+
+				blockGrid[x][y][islandOffset - downAmount].value = 1;
+				blockGrid[x][y][islandOffset + upAmount].value = 1;
+
+				for (size_t z = islandOffset - downAmount; z < islandOffset; z++) {
+					blockGrid[x][y][z].value = 1;
+				}
+
+				for (size_t z = islandOffset + upAmount; z >= islandOffset; z--) {
 					blockGrid[x][y][z].value = 1;
 				}
 			}
+
 		}
 	}
 
@@ -172,7 +190,7 @@ void AChunk::Create(FVector2D _chunkLoc){
 		float zLoc = ((FMath::Rand() % 1000) - 500) * 100;
 		float zRot = FMath::Rand() % 360;
 
-		GetWorld()->SpawnActor<AIsland>(islandInfos[0]->island_BP, FVector(chunkLoc * chunkSize, zLoc), FRotator(0, zRot, 0));
+		//GetWorld()->SpawnActor<AIsland>(islandInfos[0]->island_BP, FVector(chunkLoc * chunkSize, zLoc), FRotator(0, zRot, 0));
 	}
 
 	TopDownTrace();

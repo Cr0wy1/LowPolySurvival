@@ -52,7 +52,7 @@ protected:
 	bool bDrawDebug = false;
 
 	float chunkSize;
-	int32 checkedRadius = 2;
+	int32 checkedRadius = 6;
 
 	APlayercharController * playerController = nullptr;
 
