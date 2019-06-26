@@ -19,6 +19,8 @@ struct LOWPOLYSURVIVAL_API FBlockInfo {
 	//FBlockInfo(float _value) : value(_value) {}
 
 	float value = 0;
+
+	FColor color = FColor::Green;
 };
 
 
@@ -38,6 +40,7 @@ protected:
 	UMyGameInstance * gameInstance = nullptr;
 	const FWorldInfo* worldInfo = nullptr;
 
+	FVector gridDim;
 	TArray<TArray<TArray<FBlockInfo>>> blockGrid;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Procedural Mesh")
@@ -66,4 +69,6 @@ public:
 	void Create(FVector2D _chunkLoc);
 	void Load(FVector2D _chunkLoc);
 	void Unload();
+
+	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
 };

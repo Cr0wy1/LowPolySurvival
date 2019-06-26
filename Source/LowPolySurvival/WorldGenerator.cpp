@@ -30,22 +30,24 @@ void AWorldGenerator::BeginPlay()
 	
 	//Random Seed
 	FMath::RandInit(0);
+
+
 }
+  
 
-
-
+ 
 // Called every frame
 void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	  
 	//FConstPlayerControllerIterator playerIterator = GetWorld()->GetPlayerControllerIterator();
 
 	//for (size_t i = 0; i < GetWorld()->GetNumPlayerControllers(); i++){
 
 	
 	if (playerController) {
-		FVector2D playerPos(playerController->GetPawn()->GetActorLocation());
+		FVector2D playerPos(playerController->GetPawn()->GetActorLocation()); 
 		FVector2D chunkLoc = (playerPos / chunkSize).IntPoint();
 
 		if (chunkLoc != cPlayerChunkLoc) {
@@ -106,7 +108,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
 	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), FVector(chunkLoc * chunkSize, 0), FRotator::ZeroRotator);
-	//newChunk->SetActorLocation(FVector(chunkLoc * chunkSize, 0));
+	//newChunk->SetActorLocation(FVector(chunkLoc * chunkSize, 0)); 
 	//UE_LOG(LogTemp, Warning, TEXT("LoadChunk: chunk spawned at %s"), *FVector(chunkLoc * chunkSize, 0).ToString());
 
 	

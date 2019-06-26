@@ -21,7 +21,7 @@ struct LOWPOLYSURVIVAL_API FWorldInfo {
 
 	float blockSize = 100;
 	float chunkSize = 1000;
-	float deathZone = -10000;
+	float deathZone = 0;
 	float buildHeight = 20000;
 	
 

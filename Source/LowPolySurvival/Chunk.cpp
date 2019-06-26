@@ -27,6 +27,8 @@ AChunk::AChunk()
 	proceduralMesh = CreateDefaultSubobject<UProceduralMeshGeneratorComponent>("Procedural Mesh");
 	proceduralMesh->SetupAttachment(RootComponent);
 	proceduralMesh->AddRelativeLocation(FVector(-100, -100, -100));
+	proceduralMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel3);
+	proceduralMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
 }
 
 // Called when the game starts or when spawned 
@@ -39,12 +41,14 @@ void AChunk::BeginPlay(){
 
 void AChunk::InitBlockGrid(){
 
-	blockGrid.Init(TArray<TArray<FBlockInfo>>(), worldInfo->chunkSize / worldInfo->blockSize +3);
-	for (size_t x = 0; x < blockGrid.Num(); x++) {
-		blockGrid[x].Init(TArray<FBlockInfo>(), worldInfo->chunkSize / worldInfo->blockSize +3);
+	gridDim = FVector(worldInfo->chunkSize / worldInfo->blockSize + 3, worldInfo->chunkSize / worldInfo->blockSize + 3, 200);
 
-		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
-			blockGrid[x][y].Init(FBlockInfo(), 200);
+	blockGrid.Init(TArray<TArray<FBlockInfo>>(), gridDim.X);
+	for (size_t x = 0; x < gridDim.X; x++) {
+		blockGrid[x].Init(TArray<FBlockInfo>(), gridDim.Y);
+
+		for (size_t y = 0; y < gridDim.Y; y++) {
+			blockGrid[x][y].Init(FBlockInfo(), gridDim.Z);
 		}
 	}
 
@@ -216,5 +220,27 @@ void AChunk::Load(FVector2D _chunkLoc){
 
 void AChunk::Unload(){
 	Destroy();
+}
+
+void AChunk::RemoveBlock(int32 gridX, int32 gridY, int32 gridZ){
+	gridX += 2;
+	gridY += 2;
+	if (gridX > -1 && gridY > -1 && gridZ > -1 && gridX <= gridDim.X && gridY <= gridDim.Y && gridZ <= gridDim.Z) {
+		UE_LOG(LogTemp, Warning, TEXT("removeBlock"));
+
+		blockGrid[gridX][gridY][gridZ].value = 0;
+
+		for (size_t z = 0; z < gridDim.Z; z++) {
+			if (blockGrid[gridX][gridY][z].value == 1) {
+				UE_LOG(LogTemp, Warning, TEXT("Z block: %i"), z);
+
+			}
+			
+		}
+	}
+
+
+
+	proceduralMesh->UpdateMesh(blockGrid);
 }
 

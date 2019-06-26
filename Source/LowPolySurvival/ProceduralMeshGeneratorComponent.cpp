@@ -25,10 +25,19 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(){
 
 void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
 
+	marchCubes.Empty();
+	grid.Empty();
+
 	gridSize = FVector(blockGrid.Num(), blockGrid.IsValidIndex(0) ? blockGrid[0].Num() : 0, blockGrid[0].IsValidIndex(0) ? blockGrid[0][0].Num() : 0);
 
 	CreateMarchCubes(blockGrid);
 	MarchingCubes();
+}
+
+void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
+	ClearMeshSection(0);
+
+	GenerateMesh(blockGrid);
 }
 
 void UProceduralMeshGeneratorComponent::CreateCornerGrid(){
@@ -123,6 +132,15 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TAr
 				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z + 1].value);
 				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z + 1].value);
 
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y][z].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y + 1][z].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y + 1][z].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y][z].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y][z + 1].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y + 1][z + 1].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y + 1][z + 1].color);
+				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y][z + 1].color);
+
 			}
 		}
 	}
@@ -137,6 +155,16 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 	meshVertexArray.Empty();
 	meshTriangles.Empty();
 
+
+	UVs.Empty();
+	normals.Empty();
+	tangents.Empty();
+	vertColors.Empty();
+	borderVertexIndecies.Empty();
+
+	//For calculate normals and tangents
+	meshUV.Empty();
+
 	int32 borderSize = bBorderNormalsOnly ? 1 : 0;
 	FVector cubeGridSize = FVector( gridSize.X - (1 + borderSize), gridSize.Y - (1 + borderSize), gridSize.Z - 1);
 
@@ -146,7 +174,7 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 			for (size_t z = 0; z < cubeGridSize.Z; z++) {
 				uint8 cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
 				
-				//Loop through all Vertecies in a Cube
+				//Loop through all Vertecies in a Cube 
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
 					uint8 edgeIndex = triTable[cubeIndex][i];
 
@@ -173,27 +201,34 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 					FVector vertex = (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 					int32 vertIndex = 0;
-					//if (uniqueVertex.Find(vertex, vertIndex)) {
-						//triangles.Add(vertIndex);
-					//}
-					//else {
-						
-						if (bDrawDebug) {
-							DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 30, 0, 1);
-						} 
-						
-						triangles.Add(vertexArray.Add(vertex));
+
+						//if (bDrawDebug) {
+							if (z > 40 && z < 50) {
+								DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 60, 0, 1);
+							}
+							
+						//}  
+						 
+						triangles.Add(vertexArray.Add(vertex)); 
 						meshTriangles.Add(meshVertexArray.Add(vertex));
+						if (z < 50) {
+							vertColors.Add(FColor::Black);
+						}
+						else {
+							vertColors.Add(FColor::Green);
+						}
+						
 
-						//uniqueVertex.Add(vertex);
+						if (cubeIndex < 127) {
+							UVs.Add(FVector2D(130.0f / 1024, 230.0f / 1024));
+							meshUV.Add(FVector2D(130.0f / 1024, 230.0f / 1024));
 
-						//if (cubeIndex < 127) {
+						} 
+						else {
 							UVs.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
-							meshUV.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
-						//}
-						//else {
+							meshUV.Add(FVector2D(200.0f / 1024, 170.0f / 1024)); 
 							//uvs.Add(FVector2D(vertex.X * 0.0001, vertex.Y*0.0001));
-						//}
+						}
 					//}
 					
 				}
@@ -244,11 +279,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 							}
 
 							FVector vertex = (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
-							//int32 vertIndex = 0;
-							//if (uniqueVertex.Find(vertex, vertIndex)) {
-								//borderTriangles.Add(vertIndex);
-							//}
-							//else {
 
 							int32 vertIndex = vertexArray.Add(vertex);
 							triangles.Add(vertIndex);
@@ -256,18 +286,12 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 							if (meshVertexArray.Contains(vertex)) {
 								meshVertexArray.Add(vertex);
 								meshUV.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
+								vertColors.Add(FColor::White);
 							}
 							else {
 								borderVertexIndecies.Add(vertIndex);
 							}
-								//vertexArray.Add(vertex);
-								//UVs.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
 
-								
-
-								//uniqueVertex.Add(vertex);
-								//borderUVs.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
-							//}
 
 						}
 					}
@@ -282,7 +306,7 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: triangles:%i, Vertecies:%i"), triangles.Num(), vertexArray.Num());
 
-	//UKismetProceduralMeshLibrary::CalculateTangentsForMesh(vertexArray, triangles, UVs, normals, tangents);
+	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(vertexArray, triangles, UVs, normals, tangents);
 	CalculateNormalsAndTangents();
 
 	FOccluderVertexArray meshNormals;
@@ -290,10 +314,10 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	for (size_t i = 0; i < vertexArray.Num(); i++){ 
 		 
-		if (!borderVertexIndecies.Contains(i)) {
-			meshNormals.Add(normals[i]); 
+		if (!borderVertexIndecies.Contains(i)) { 
+			meshNormals.Add(normals[i]);  
 			meshTangents.Add(tangents[i]); 
-
+			 
 			
 			//Draw Normals
 			//DrawDebugLine(GetWorld(), GetComponentLocation() + vertexArray[i], GetComponentLocation() + normals[i] * 100 + vertexArray[i], FColor::Red, false, 60, 0, 1);
@@ -303,8 +327,11 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), *GetComponentLocation().ToString());
 
+	//UE_LOG(LogTemp, Warning, TEXT("meshVertecies:%i, meshVertColors:%i"), meshVertexArray.Num(), vertColors.Num());
+
 	
-	CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, meshUV, TArray<FColor>(), meshTangents, true);
+	 
+	CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), vertColors, meshTangents, true); 
 
 	
 }
@@ -328,24 +355,27 @@ void FindVertOverlaps(int32 TestVertIndex, const TArray<FVector>& Verts, TArray<
 		}
 	}
 }
+ 
 
 
 void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
-	
 
+	float normalsMultiplyer = 0.65f;
+	
 	if (vertexArray.Num() == 0)
-	{
+	{ 
 		return;
 	}
 
-
-	// Number of triangles
-	const int32 NumTris = triangles.Num() / 3;
+	// Number of triangles 
+	const int32 NumTris = triangles.Num() / 3; 
 	// Number of verts
 	const int32 NumVerts = vertexArray.Num();
 
 	// Map of vertex to triangles in Triangles array
 	TMultiMap<int32, int32> VertToTriMap;
+	// Map of vertex to triangles to consider for normal calculation
+	TMultiMap<int32, int32> VertToTriSmoothMap;
 
 	// Normal/tangents for each face
 	TArray<FVector> FaceTangentX, FaceTangentY, FaceTangentZ;
@@ -373,7 +403,25 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
 
 			// Remember which triangles map to this vert
 			VertToTriMap.AddUnique(VertIndex, TriIdx);
+			VertToTriSmoothMap.AddUnique(VertIndex, TriIdx);
 
+			// Also update map of triangles that 'overlap' this vert (ie don't match UV, but do match smoothing) and should be considered when calculating normal
+			for (int32 OverlapIdx = 0; OverlapIdx < VertOverlaps.Num(); OverlapIdx++)
+			{
+				// For each vert we overlap..
+				int32 OverlapVertIdx = VertOverlaps[OverlapIdx];
+
+				// Add this triangle to that vert
+				VertToTriSmoothMap.AddUnique(OverlapVertIdx, TriIdx);
+
+				// And add all of its triangles to us
+				TArray<int32> OverlapTris;
+				VertToTriMap.MultiFind(OverlapVertIdx, OverlapTris);
+				for (int32 OverlapTriIdx = 0; OverlapTriIdx < OverlapTris.Num(); OverlapTriIdx++)
+				{
+					VertToTriSmoothMap.AddUnique(VertIndex, OverlapTris[OverlapTriIdx]);
+				}
+			}
 		}
 
 		// Calculate triangle edge vectors and normal
@@ -381,8 +429,10 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
 		const FVector Edge20 = P[0] - P[2];
 		const FVector TriNormal = (Edge21 ^ Edge20).GetSafeNormal();
 
+
 		FaceTangentX[TriIdx] = Edge20.GetSafeNormal();
 		FaceTangentY[TriIdx] = (FaceTangentX[TriIdx] ^ TriNormal).GetSafeNormal();
+		
 
 		FaceTangentZ[TriIdx] = TriNormal;
 	}
@@ -390,25 +440,40 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
 
 	// Arrays to accumulate tangents into
 	TArray<FVector> VertexTangentXSum, VertexTangentYSum, VertexTangentZSum;
-	VertexTangentXSum.AddZeroed(NumVerts); 
+	VertexTangentXSum.AddZeroed(NumVerts);
 	VertexTangentYSum.AddZeroed(NumVerts);
 	VertexTangentZSum.AddZeroed(NumVerts);
 
 	// For each vertex..
-	for (int VertxIdx = 0; VertxIdx < vertexArray.Num(); VertxIdx++){
+	for (int VertxIdx = 0; VertxIdx < vertexArray.Num(); VertxIdx++)
+	{
+		// Find relevant triangles for normal
+		TArray<int32> SmoothTris;
+		VertToTriSmoothMap.MultiFind(VertxIdx, SmoothTris); 
 
-		int32 TriIdx = *VertToTriMap.Find(VertxIdx);
-		VertexTangentZSum[VertxIdx] = FaceTangentZ[TriIdx]; 
+		int32 mainTriIdx = *VertToTriMap.Find(VertxIdx); 
+		VertexTangentZSum[VertxIdx] = FaceTangentZ[mainTriIdx];
+		
+		for (int i = 0; i < SmoothTris.Num(); i++) 
+		{  
+			int32 TriIdx = SmoothTris[i];
 
-		// Find relevant triangles for tangents
+			if (TriIdx != mainTriIdx) {
+				VertexTangentZSum[VertxIdx] += FaceTangentZ[TriIdx] * normalsMultiplyer;
+			}
+			
+		} 
+		
+		  
+		// Find relevant triangles for tangents  
 		TArray<int32> TangentTris;
-		VertToTriMap.MultiFind(VertxIdx, TangentTris);
-
+		VertToTriMap.MultiFind(VertxIdx, TangentTris); 
+		 
 		for (int i = 0; i < TangentTris.Num(); i++)
 		{
 			int32 TriIdx = TangentTris[i];
-			VertexTangentXSum[VertxIdx] = FaceTangentX[TriIdx];  
-			VertexTangentYSum[VertxIdx] = FaceTangentY[TriIdx];
+			VertexTangentXSum[VertxIdx] += FaceTangentX[TriIdx];
+			VertexTangentYSum[VertxIdx] += FaceTangentY[TriIdx];
 		}
 	}
 
@@ -422,25 +487,23 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
 
 	for (int VertxIdx = 0; VertxIdx < NumVerts; VertxIdx++)
 	{
+		FVector& TangentX = VertexTangentXSum[VertxIdx];
+		FVector& TangentY = VertexTangentYSum[VertxIdx];
+		FVector& TangentZ = VertexTangentZSum[VertxIdx];
 
-			FVector& TangentX = VertexTangentXSum[VertxIdx];
-			FVector& TangentY = VertexTangentYSum[VertxIdx];
-			FVector& TangentZ = VertexTangentZSum[VertxIdx];
+		TangentX.Normalize();
+		TangentZ.Normalize();
 
-			TangentX.Normalize();
-			TangentZ.Normalize();
+		normals[VertxIdx] = TangentZ;
 
-			normals[VertxIdx] = TangentZ;
+		// Use Gram-Schmidt orthogonalization to make sure X is orth with Z
+		TangentX -= TangentZ * (TangentZ | TangentX);
+		TangentX.Normalize();
 
-			// Use Gram-Schmidt orthogonalization to make sure X is orth with Z
-			TangentX -= TangentZ * (TangentZ | TangentX);
-			TangentX.Normalize();
+		// See if we need to flip TangentY when generating from cross product
+		const bool bFlipBitangent = ((TangentZ ^ TangentX) | TangentY) < 0.f;
 
-			// See if we need to flip TangentY when generating from cross product
-			const bool bFlipBitangent = ((TangentZ ^ TangentX) | TangentY) < 0.f;
-
-			tangents[VertxIdx] = FProcMeshTangent(TangentX, bFlipBitangent);
-
+		tangents[VertxIdx] = FProcMeshTangent(TangentX, bFlipBitangent);
 	}
 }
 

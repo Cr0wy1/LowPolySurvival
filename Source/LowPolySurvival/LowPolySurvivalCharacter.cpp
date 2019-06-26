@@ -21,6 +21,7 @@
 #include "PlacementMenuWidget.h"
 #include "PlayercharController.h"
 #include "CraftingComponent.h"
+#include "Chunk.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -271,6 +272,23 @@ void ALowPolySurvivalCharacter::OnHit(){
 		}
 
 
+		AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+
+		if (chunk) {
+			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
+			FIntVector blockLoc = FIntVector(FMath::RoundToInt(hitResult.ImpactPoint.X / 100) % 10, FMath::RoundToInt(hitResult.ImpactPoint.Y / 100) % 10, FMath::RoundToInt((hitResult.ImpactPoint.Z-70) / 100));
+			//FIntVector blockLoc = FIntVector((FMath::RoundToInt(absHitLoc.X) % 1000) / 100, (FMath::RoundToInt(absHitLoc.Y) % 1000) / 100, FMath::RoundToInt(absHitLoc.Z) / 100);
+
+
+
+			chunk->RemoveBlock(blockLoc.X, blockLoc.Y, blockLoc.Z);
+
+			UE_LOG(LogTemp, Warning, TEXT("Chunk hitted at block Location: %s"), *blockLoc.ToString());
+
+		}
+		
+
+
 		bIsInHit = true;
 
 		ApplyDamage(1);
@@ -287,16 +305,19 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 
 	FVector startLocation = worldLocation;
 	FVector endLocation = OUT_Direction * 1000 + startLocation;
-
+	
 	FCollisionQueryParams params;
-	params.AddIgnoredActor(this);
+	params.AddIgnoredActor(this); 
 	GetWorld()->LineTraceSingleByChannel(OUT_hitresult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2, params);
 
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
+		
+		FVector blockCenter = FVector(FMath::RoundToFloat(OUT_hitresult.ImpactPoint.X / 100), FMath::RoundToFloat(OUT_hitresult.ImpactPoint.Y / 100), FMath::RoundToFloat((OUT_hitresult.ImpactPoint.Z-70) / 100)) * 100;
+		DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
 	}
 
-	//DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red);
+	//DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red); 
 
 
 	return true;

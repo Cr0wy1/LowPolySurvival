@@ -16,6 +16,7 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 	GENERATED_BODY()
 
 	TArray<float> corners;
+	TArray<FColor> cornerColors;
 
 	uint8 GetCubeIndex(float surfaceLevel) const{
 		uint8 cubeIndex = 0;
@@ -25,6 +26,16 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 			}
 		}
 		return cubeIndex;
+	}
+
+	FColor GetColor() const{
+		TMap<FColor, int32> colorCount;
+
+		for (size_t i = 0; i < cornerColors.Num(); i++){
+
+		}
+		 
+		return FColor();
 	}
 };
 /**
@@ -43,6 +54,7 @@ protected:
 	TArray<FVector2D> UVs;
 	FOccluderVertexArray normals;
 	TArray<FProcMeshTangent> tangents;
+	TArray<FColor> vertColors;
 	TArray<int32> borderVertexIndecies;
 
 	//For calculate normals and tangents
@@ -91,6 +103,8 @@ public:
 
 	
 	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
+
+	void UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 
 protected:
 
