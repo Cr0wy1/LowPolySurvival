@@ -74,3 +74,37 @@ UDataTable * UMyGameInstance::GetWorldGenTable() const
 FWorldInfo const*const UMyGameInstance::GetWorldInfo() const{
 	return worldInfo;
 }
+
+FVector WorldToBlockLocation(const FVector & worldLocation){
+
+	FVector result = worldLocation * 0.01f;
+	result.X = FMath::RoundToFloat(result.X);
+	result.Y = FMath::RoundToFloat(result.Y);
+	result.Z = FMath::RoundToFloat(result.Z);
+
+	return result;
+}  
+
+FVector2D WorldToChunkLocation(const FVector & worldLocation){ 
+
+	FVector2D result = FVector2D(worldLocation * 0.001).IntPoint(); 
+	//result.X = FMath::RoundToFloat(result.X);
+	//result.Y = FMath::RoundToFloat(result.Y);
+
+	return result;
+}
+
+FVector BlockToWorldLocation(const FVector & blockLocation){
+
+	return blockLocation * 100;
+}
+
+FVector ChunkToWorldLocation(const FVector2D & chunkLocation){
+
+	return FVector(chunkLocation * 1000, 0);
+}
+
+FVector ChunkToBlockLocation(const FVector2D & chunkLocation){
+
+	return FVector(chunkLocation * 10, 0);
+}

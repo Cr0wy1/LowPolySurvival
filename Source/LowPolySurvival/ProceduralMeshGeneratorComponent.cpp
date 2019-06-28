@@ -6,6 +6,7 @@
 #include "SimplexNoise.h"
 #include "Chunk.h"
 #include "KismetProceduralMeshLibrary.h"
+#include "MyGameInstance.h"
 
 
 UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer) : UProceduralMeshComponent(ObjectInitializer){
@@ -155,25 +156,25 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 	meshVertexArray.Empty();
 	meshTriangles.Empty();
 
-
-	UVs.Empty();
 	normals.Empty();
 	tangents.Empty();
 	vertColors.Empty();
 	borderVertexIndecies.Empty();
-
-	//For calculate normals and tangents
-	meshUV.Empty();
+	 
 
 	int32 borderSize = bBorderNormalsOnly ? 1 : 0;
-	FVector cubeGridSize = FVector( gridSize.X - (1 + borderSize), gridSize.Y - (1 + borderSize), gridSize.Z - 1);
+	FVector cubeGridSize = FVector( gridSize.X - 1, gridSize.Y - 1, gridSize.Z - 1);
 
 	//loop through cubeGrid without border
-	for (size_t x = borderSize; x < cubeGridSize.X; x++) { 
-		for (size_t y = borderSize; y < cubeGridSize.Y; y++) {
+	for (size_t x = borderSize; x < cubeGridSize.X - borderSize; x++) {
+		for (size_t y = borderSize; y < cubeGridSize.Y - borderSize; y++) {
 			for (size_t z = 0; z < cubeGridSize.Z; z++) {
 				uint8 cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
 				
+				if (z == 30) {
+					//DrawDebugBox(GetWorld(), BlockToWorldLocation(FVector(x, y, z) - borderSize) + FVector(50,50,0), FVector(50, 50, 50), FColor::Purple, false, 60, 0, 1);
+				}
+
 				//Loop through all Vertecies in a Cube 
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
 					uint8 edgeIndex = triTable[cubeIndex][i];
@@ -199,17 +200,19 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 						}
 					}
 
-					FVector vertex = (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
+					FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z) + relEdgeCenter) + FVector(50, 50, 0);// (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 					int32 vertIndex = 0;
+
+					//UE_LOG(LogTemp, Warning, TEXT("cubegridsize: %s"), *cubeGridSize.ToCompactString());
 
 						//if (bDrawDebug) {
 							if (z > 40 && z < 50) {
-								DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 60, 0, 1);
+								//DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 60, 0, 1); 
 							}
 							
 						//}  
 						 
-						triangles.Add(vertexArray.Add(vertex)); 
+						triangles.Add(vertexArray.Add(vertex));  
 						meshTriangles.Add(meshVertexArray.Add(vertex));
 						if (z < 50) {
 							vertColors.Add(FColor::Black);
@@ -217,24 +220,12 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 						else {
 							vertColors.Add(FColor::Green);
 						}
-						
 
-						if (cubeIndex < 127) {
-							UVs.Add(FVector2D(130.0f / 1024, 230.0f / 1024));
-							meshUV.Add(FVector2D(130.0f / 1024, 230.0f / 1024));
-
-						} 
-						else {
-							UVs.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
-							meshUV.Add(FVector2D(200.0f / 1024, 170.0f / 1024)); 
-							//uvs.Add(FVector2D(vertex.X * 0.0001, vertex.Y*0.0001));
-						}
-					//}
 					
 				}
 
 				if (bDrawDebug) {
-					DrawDebugBox(GetWorld(), FVector(x, y, z)* blockSize, FVector(100, 100, 100), FColor::White, false, 30, 0, 1);
+					//DrawDebugBox(GetWorld(), FVector(x, y, z)* blockSize, FVector(100, 100, 100), FColor::White, false, 30, 0, 1);
 				}
 			}
 		}
@@ -242,11 +233,11 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	//loop through cubeGride Border
 	if (bBorderNormalsOnly) {
-		for (size_t x = 0; x < cubeGridSize.X + 1; x++) {
-			for (size_t y = 0; y < cubeGridSize.Y + 1; y++) {
+		for (size_t x = 0; x < cubeGridSize.X; x++) {
+			for (size_t y = 0; y < cubeGridSize.Y; y++) {
 
 				//check if index is border
-				if (x == 0 || y == 0 || x == (cubeGridSize.X) || y == (cubeGridSize.Y)) {
+				if (x == 0 || y == 0 || x == (cubeGridSize.X-1) || y == (cubeGridSize.Y-1)) {
 					//UE_LOG(LogTemp, Warning, TEXT("loop: x:%i, y:%i"), x, y);
 
 					for (size_t z = 0; z < cubeGridSize.Z; z++) {
@@ -278,14 +269,15 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 								}
 							}
 
-							FVector vertex = (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
+							FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z)  + relEdgeCenter) + FVector(50, 50, 0);//(FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 
 							int32 vertIndex = vertexArray.Add(vertex);
 							triangles.Add(vertIndex);
+							
 
 							if (meshVertexArray.Contains(vertex)) {
 								meshVertexArray.Add(vertex);
-								meshUV.Add(FVector2D(200.0f / 1024, 170.0f / 1024));
+								
 								vertColors.Add(FColor::White);
 							}
 							else {
@@ -304,9 +296,9 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	
 
-	UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: triangles:%i, Vertecies:%i"), triangles.Num(), vertexArray.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: triangles:%i, Vertecies:%i"), triangles.Num(), vertexArray.Num());
 
-	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(vertexArray, triangles, UVs, normals, tangents);
+	//UKismetProceduralMeshLibrary::CalculateTangentsForMesh(vertexArray, triangles, UVs, normals, tangents);
 	CalculateNormalsAndTangents();
 
 	FOccluderVertexArray meshNormals;
@@ -327,11 +319,11 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), *GetComponentLocation().ToString());
 
-	//UE_LOG(LogTemp, Warning, TEXT("meshVertecies:%i, meshVertColors:%i"), meshVertexArray.Num(), vertColors.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("meshVertecies:%i, meshVertColors:%i"), meshVertexArray.Num(), vertColors.Num()); 
 
 	
 	 
-	CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), vertColors, meshTangents, true); 
+	CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), vertColors, meshTangents, true);
 
 	
 }
@@ -485,25 +477,33 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(){
 	tangents.Reset();
 	tangents.AddUninitialized(NumVerts);
 
+	int32 innerIndex = 0;
 	for (int VertxIdx = 0; VertxIdx < NumVerts; VertxIdx++)
 	{
-		FVector& TangentX = VertexTangentXSum[VertxIdx];
-		FVector& TangentY = VertexTangentYSum[VertxIdx];
-		FVector& TangentZ = VertexTangentZSum[VertxIdx];
+		
+		//if (!borderVertexIndecies.Contains(VertxIdx)) {
 
-		TangentX.Normalize();
-		TangentZ.Normalize();
 
-		normals[VertxIdx] = TangentZ;
+			FVector& TangentX = VertexTangentXSum[VertxIdx];
+			FVector& TangentY = VertexTangentYSum[VertxIdx];
+			FVector& TangentZ = VertexTangentZSum[VertxIdx];
 
-		// Use Gram-Schmidt orthogonalization to make sure X is orth with Z
-		TangentX -= TangentZ * (TangentZ | TangentX);
-		TangentX.Normalize();
+			TangentX.Normalize();
+			TangentZ.Normalize();
 
-		// See if we need to flip TangentY when generating from cross product
-		const bool bFlipBitangent = ((TangentZ ^ TangentX) | TangentY) < 0.f;
+			normals[VertxIdx] = TangentZ;
 
-		tangents[VertxIdx] = FProcMeshTangent(TangentX, bFlipBitangent);
+			// Use Gram-Schmidt orthogonalization to make sure X is orth with Z
+			TangentX -= TangentZ * (TangentZ | TangentX);
+			TangentX.Normalize();
+			 
+			// See if we need to flip TangentY when generating from cross product
+			const bool bFlipBitangent = ((TangentZ ^ TangentX) | TangentY) < 0.f;
+
+			tangents[VertxIdx] = FProcMeshTangent(TangentX, bFlipBitangent);
+
+			innerIndex++;
+		//}
 	}
 }
 

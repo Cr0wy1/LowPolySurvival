@@ -10,6 +10,7 @@
 
 class APlayercharController;
 class AChunk;
+class UMaterialInterface;
 
 
 UENUM(BlueprintType)
@@ -51,16 +52,18 @@ protected:
 
 	bool bDrawDebug = false;
 
-	float chunkSize;
 	int32 checkedRadius = 2;
 	 
 	APlayercharController * playerController = nullptr;
 
 	FVector2D cPlayerChunkLoc;
 
-	TArray<FVector2D> createdChunks;
+	TArray<FVector2D> createdChunks; 
 	TMap<FVector2D, AChunk*> loadedChunks;
 	TArray<FVector2D> checkedChunkLocs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	UMaterialInterface* terrainMaterial;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

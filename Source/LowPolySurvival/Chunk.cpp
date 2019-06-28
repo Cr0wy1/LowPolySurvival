@@ -26,9 +26,10 @@ AChunk::AChunk()
 
 	proceduralMesh = CreateDefaultSubobject<UProceduralMeshGeneratorComponent>("Procedural Mesh");
 	proceduralMesh->SetupAttachment(RootComponent);
-	proceduralMesh->AddRelativeLocation(FVector(-100, -100, -100));
+	//proceduralMesh->AddRelativeLocation(FVector(-100, -100, -100));
 	proceduralMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel3);
 	proceduralMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
+
 }
 
 // Called when the game starts or when spawned 
@@ -75,19 +76,20 @@ void AChunk::TopDownTrace(){
 	
 	FCollisionQueryParams params;
 	params.bReturnPhysicalMaterial = true;
-
+	 
 	TArray<FHitResult> hitResults;
 	FVector start = GetActorLocation() + FVector(0, 0, worldInfo->buildHeight);
 	FVector end = GetActorLocation() + FVector(0, 0, worldInfo->deathZone);
-	GetWorld()->LineTraceMultiByChannel(hitResults, start, end, ECollisionChannel::ECC_WorldStatic, params);
+	GetWorld()->LineTraceMultiByChannel(hitResults, start, end, ECollisionChannel::ECC_WorldStatic, params); 
 
 	if (bDrawDebug) {
-		DrawDebugLine(GetWorld(), start, end, FColor::Green, true, 100, 0, 5);
-	}
+		//DrawDebugLine(GetWorld(), start, end, FColor::Green, true, 100, 0, 5);
+		DrawDebugBox(GetWorld(), GetActorLocation() + FVector(500,500, 10000), FVector(500, 500, worldInfo->buildHeight / 2), FColor::Green, true, 100, 0, 5);
+	} 
 	
 
 	UDataTable* worldGenTable = gameInstance->GetWorldGenTable();
-	
+	 
 	TArray<FWorldGenInfo*> worldGenInfos;
 	worldGenTable->GetAllRows(FString(), worldGenInfos);
 
@@ -141,8 +143,8 @@ void AChunk::ApplyNoiseOnGrid(){
 
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
-			FVector2D blockLoc = FVector2D(chunkLoc * (worldInfo->chunkSize / worldInfo->blockSize));
-			//UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString());
+			FVector blockLoc = ChunkToBlockLocation(chunkLoc);
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString()); 
 
 			float noise = USimplexNoise::SimplexNoise2D((blockLoc.X +x) * noiseScale, (blockLoc.Y + y) * noiseScale);
 
@@ -153,10 +155,10 @@ void AChunk::ApplyNoiseOnGrid(){
 
 				blockGrid[x][y][islandOffset - downAmount].value = 1;
 				blockGrid[x][y][islandOffset + upAmount].value = 1;
-
+				 
 				for (size_t z = islandOffset - downAmount; z < islandOffset; z++) {
 					blockGrid[x][y][z].value = 1;
-				}
+				}  
 
 				for (size_t z = islandOffset + upAmount; z >= islandOffset; z--) {
 					blockGrid[x][y][z].value = 1;
@@ -189,26 +191,24 @@ void AChunk::Tick(float DeltaTime)
 
 void AChunk::Create(FVector2D _chunkLoc){
 	chunkLoc = _chunkLoc;
-	
-	float chunkSize = worldInfo->chunkSize;
-
-	float baseSpawnChance = 0.2f;
 
 	InitBlockGrid();
 
-	UDataTable* islandTable = GetGameInstance<UMyGameInstance>()->GetIslandTable();
+	////Spawn Island
+	//float baseSpawnChance = 0.2f;
+	//UDataTable* islandTable = GetGameInstance<UMyGameInstance>()->GetIslandTable();
 
-	TArray<FIslandInfo*> islandInfos;
-	islandTable->GetAllRows(FString(), islandInfos);
+	//TArray<FIslandInfo*> islandInfos;
+	//islandTable->GetAllRows(FString(), islandInfos);
 
-	float spawnChance = (FMath::Rand() % 100) * 0.01;
-	
-	if (spawnChance <= baseSpawnChance) {
-		float zLoc = ((FMath::Rand() % 1000) - 500) * 100;
-		float zRot = FMath::Rand() % 360;
+	//float spawnChance = (FMath::Rand() % 100) * 0.01;
+	//
+	//if (spawnChance <= baseSpawnChance) {
+	//	float zLoc = ((FMath::Rand() % 1000) - 500) * 100;
+	//	float zRot = FMath::Rand() % 360;
 
-		//GetWorld()->SpawnActor<AIsland>(islandInfos[0]->island_BP, FVector(chunkLoc * chunkSize, zLoc), FRotator(0, zRot, 0));
-	}
+	//	//GetWorld()->SpawnActor<AIsland>(islandInfos[0]->island_BP, FVector(chunkLoc * chunkSize, zLoc), FRotator(0, zRot, 0));
+	//}
 
 	TopDownTrace();
 	
@@ -223,8 +223,8 @@ void AChunk::Unload(){
 }
 
 void AChunk::RemoveBlock(int32 gridX, int32 gridY, int32 gridZ){
-	gridX += 2;
-	gridY += 2;
+	gridX += 1;
+	gridY += 1;
 	if (gridX > -1 && gridY > -1 && gridZ > -1 && gridX <= gridDim.X && gridY <= gridDim.Y && gridZ <= gridDim.Z) {
 		UE_LOG(LogTemp, Warning, TEXT("removeBlock"));
 
@@ -242,5 +242,9 @@ void AChunk::RemoveBlock(int32 gridX, int32 gridY, int32 gridZ){
 
 
 	proceduralMesh->UpdateMesh(blockGrid);
+}
+
+void AChunk::SetTerrainMaterial(UMaterialInterface * material){
+	proceduralMesh->SetMaterial(0, material);
 }
 

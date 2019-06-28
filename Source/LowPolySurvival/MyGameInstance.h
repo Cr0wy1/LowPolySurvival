@@ -67,3 +67,11 @@ public:
 	FWorldInfo const *const GetWorldInfo() const;
 	
 };
+
+FVector WorldToBlockLocation(const FVector &worldLocation);
+FVector2D WorldToChunkLocation(const FVector &worldLocation);
+
+FVector BlockToWorldLocation(const FVector &blockLocation);
+FVector ChunkToWorldLocation(const FVector2D &chunkLocation);
+
+FVector ChunkToBlockLocation(const FVector2D &chunkLocation);

@@ -71,4 +71,6 @@ public:
 	void Unload();
 
 	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
+
+	void SetTerrainMaterial(UMaterialInterface* material);
 };

@@ -22,6 +22,7 @@
 #include "PlayercharController.h"
 #include "CraftingComponent.h"
 #include "Chunk.h"
+#include "MyGameInstance.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -276,7 +277,11 @@ void ALowPolySurvivalCharacter::OnHit(){
 
 		if (chunk) {
 			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
-			FIntVector blockLoc = FIntVector(FMath::RoundToInt(hitResult.ImpactPoint.X / 100) % 10, FMath::RoundToInt(hitResult.ImpactPoint.Y / 100) % 10, FMath::RoundToInt((hitResult.ImpactPoint.Z-70) / 100));
+			FIntVector blockLoc = FIntVector(WorldToBlockLocation(hitResult.ImpactPoint));
+			blockLoc.X = blockLoc.X % 10;
+			blockLoc.Y = blockLoc.Y % 10;
+			
+			//FIntVector blockLoc = FIntVector(FMath::RoundToInt(hitResult.ImpactPoint.X / 100) % 10, FMath::RoundToInt(hitResult.ImpactPoint.Y / 100) % 10, FMath::RoundToInt((hitResult.ImpactPoint.Z-70) / 100));
 			//FIntVector blockLoc = FIntVector((FMath::RoundToInt(absHitLoc.X) % 1000) / 100, (FMath::RoundToInt(absHitLoc.Y) % 1000) / 100, FMath::RoundToInt(absHitLoc.Z) / 100);
 
 

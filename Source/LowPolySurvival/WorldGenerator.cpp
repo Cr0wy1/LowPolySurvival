@@ -23,9 +23,6 @@ void AWorldGenerator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	chunkSize = GetGameInstance<UMyGameInstance>()->GetWorldInfo()->chunkSize;
-	
-
 	playerController = GetWorld()->GetFirstPlayerController<APlayercharController>();
 	
 	//Random Seed
@@ -41,25 +38,18 @@ void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	  
-	//FConstPlayerControllerIterator playerIterator = GetWorld()->GetPlayerControllerIterator();
-
-	//for (size_t i = 0; i < GetWorld()->GetNumPlayerControllers(); i++){
-
 	
 	if (playerController) {
-		FVector2D playerPos(playerController->GetPawn()->GetActorLocation()); 
-		FVector2D chunkLoc = (playerPos / chunkSize).IntPoint();
+		FVector playerPos(playerController->GetPawn()->GetActorLocation()); 
+		FVector2D chunkLoc = WorldToChunkLocation(playerPos); 
 
-		if (chunkLoc != cPlayerChunkLoc) {
+		if (chunkLoc != cPlayerChunkLoc) { 
 			cPlayerChunkLoc = chunkLoc;
 			OnEnterChunk();
 			//UE_LOG(LogTemp, Warning, TEXT("World Generator( controllers: %s, playerLoc: %s, chunkLoc: %s )"), *playerController->GetName(), *playerPos.ToString(), *chunkLoc.ToString());
 		}
 
 	}
-
-		//++playerIterator;
-	//}
 
 }
 
@@ -78,7 +68,7 @@ void AWorldGenerator::OnEnterChunk(){
 	for (const FVector2D loc : chunksToUnload) {
 		loadedChunks[loc]->Unload();
 		loadedChunks.Remove(loc);
-		UE_LOG(LogTemp, Warning, TEXT("removed"));
+		//UE_LOG(LogTemp, Warning, TEXT("removed"));
 	}
 
 
@@ -97,7 +87,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 	}
 
 	if (bDrawDebug) {
-		FVector startLoc(chunkLoc * chunkSize, -10000);
+		FVector startLoc = ChunkToWorldLocation(chunkLoc);
 		FVector endLoc = startLoc + FVector(0, 0, 20000);
 		DrawDebugLine(GetWorld(), startLoc, endLoc, FColor::Red, true, 1000, 0, 100);
 	}
@@ -107,8 +97,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 
 void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
-	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), FVector(chunkLoc * chunkSize, 0), FRotator::ZeroRotator);
-	//newChunk->SetActorLocation(FVector(chunkLoc * chunkSize, 0)); 
+	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
 	//UE_LOG(LogTemp, Warning, TEXT("LoadChunk: chunk spawned at %s"), *FVector(chunkLoc * chunkSize, 0).ToString());
 
 	
@@ -121,6 +110,8 @@ void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 		createdChunks.Add(chunkLoc);
 		newChunk->Create(chunkLoc);
 	}
+
+	newChunk->SetTerrainMaterial(terrainMaterial);
 
 	//UE_LOG(LogTemp, Warning, TEXT("WorldGenerator: load Chunk at: %s"), *chunkLoc.ToString());
 }
