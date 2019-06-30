@@ -35,7 +35,7 @@ struct LOWPOLYSURVIVAL_API FAttributes {
 	int32 dashCost = 300;
 
 	UPROPERTY(EditAnywhere)
-	float hitRange = 200.0f;
+	float hitRange = 400.0f;
 };
 
 

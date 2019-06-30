@@ -3,6 +3,8 @@
 #include "MyGameInstance.h"
 #include "Engine/DataTable.h"
 #include "Item.h"
+#include "WorldGenerator.h"
+#include "Engine/World.h"
 
 void UMyGameInstance::Init(){
 	Super::Init();
@@ -13,6 +15,13 @@ void UMyGameInstance::Init(){
 
 	InitDataTables();
 
+	if (worldGenerator_BP) {
+		worldGenerator = GetWorld()->SpawnActor<AWorldGenerator>(worldGenerator_BP);
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("MyGameInstance: Missing worldGenerator_BP"));
+	}
+	
 }
 
 void UMyGameInstance::InitDataTables(){
@@ -75,6 +84,11 @@ FWorldInfo const*const UMyGameInstance::GetWorldInfo() const{
 	return worldInfo;
 }
 
+AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
+
+	return worldGenerator;
+}
+
 FVector WorldToBlockLocation(const FVector & worldLocation){
 
 	FVector result = worldLocation * 0.01f;
@@ -107,4 +121,35 @@ FVector ChunkToWorldLocation(const FVector2D & chunkLocation){
 FVector ChunkToBlockLocation(const FVector2D & chunkLocation){
 
 	return FVector(chunkLocation * 10, 0);
+}
+
+TArray<FVector2D> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation) {
+
+	TArray<FVector2D> result;
+
+	FVector2D chunkLoc(FVector(blockLocation) * 0.1);
+	chunkLoc.X = FMath::FloorToFloat(chunkLoc.X);
+	chunkLoc.Y = FMath::FloorToFloat(chunkLoc.Y);
+
+	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % 10, blockLocation.Y % 10, blockLocation.Z);
+
+	result.Add(chunkLoc);
+	OUT_chunkBlockLocation.Add(chunkBlockLoc);
+
+	if (chunkBlockLoc.X == 0) {
+		result.Add(FVector2D(chunkLoc.X - 1, chunkLoc.Y) );
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X + 10, chunkBlockLoc.Y, chunkBlockLoc.Z));
+	}
+
+	if (chunkBlockLoc.Y == 0) {
+		result.Add(FVector2D(chunkLoc.X, chunkLoc.Y - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, chunkBlockLoc.Y + 10, chunkBlockLoc.Z));
+	}
+	
+	if (result.Num() == 3) {
+		result.Add(FVector2D(chunkLoc.X - 1, chunkLoc.Y - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X + 10, chunkBlockLoc.Y + 10, chunkBlockLoc.Z));
+	}
+
+	return result;
 }

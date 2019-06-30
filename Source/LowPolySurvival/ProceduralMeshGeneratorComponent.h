@@ -17,6 +17,7 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 
 	TArray<float> corners;
 	TArray<FColor> cornerColors;
+	TArray<uint32> holdingVertexIndecies;
 
 	uint8 GetCubeIndex(float surfaceLevel) const{
 		uint8 cubeIndex = 0;
@@ -68,7 +69,7 @@ protected:
 	FVector gridSize = { 7,7,7 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-	float surfaceLevel = 0.2f;
+	float surfaceLevel = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		float offset = 0.1;
@@ -77,7 +78,7 @@ protected:
 		bool bDrawDebug = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-		bool bUseLerp = false;
+		bool bUseLerp = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		float lerpMultiply = 1.0f;
@@ -104,7 +105,7 @@ public:
 	
 	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 
-	void UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
+	void UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid, FIntVector blockLocation);
 
 protected:
 

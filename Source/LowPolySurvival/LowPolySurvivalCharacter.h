@@ -22,6 +22,7 @@ class UAttributeComponent;
 class UPlacementComponent;
 class UWidgetInteractionComponent;
 class UPlacementMenuWidget;
+class UMyGameInstance;
 struct FItemStack;
 
 
@@ -41,6 +42,8 @@ public:
 protected:
 
 	bool bIsInHit = false;
+
+	UMyGameInstance* gameInstance = nullptr;
 
 	FHitResult cCrosshairTraceResult;
 	FVector cCrosshairTraceDirection;

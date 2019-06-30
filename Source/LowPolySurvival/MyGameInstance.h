@@ -12,7 +12,7 @@
 #define PM_ICE SurfaceType4
 
 class UDataTable;
-
+class AWorldGenerator;
 
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FWorldInfo {
@@ -22,7 +22,7 @@ struct LOWPOLYSURVIVAL_API FWorldInfo {
 	float blockSize = 100;
 	float chunkSize = 1000;
 	float deathZone = 0;
-	float buildHeight = 20000;
+	float buildHeight = 10000;
 	
 
 };
@@ -52,6 +52,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable * worldGenDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WorldGenerator")
+	TSubclassOf<AWorldGenerator> worldGenerator_BP;
+
+	AWorldGenerator* worldGenerator = nullptr;
+
 public:
 	
 	const FWorldInfo* worldInfo = new FWorldInfo();
@@ -65,6 +70,8 @@ public:
 	UDataTable* GetIslandTable() const;
 	UDataTable* GetWorldGenTable() const;
 	FWorldInfo const *const GetWorldInfo() const;
+
+	AWorldGenerator* GetWorldGenerator() const;
 	
 };
 
@@ -75,3 +82,4 @@ FVector BlockToWorldLocation(const FVector &blockLocation);
 FVector ChunkToWorldLocation(const FVector2D &chunkLocation);
 
 FVector ChunkToBlockLocation(const FVector2D &chunkLocation);
+TArray<FVector2D> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation);

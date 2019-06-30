@@ -207,7 +207,8 @@ float USimplexNoise::SimplexNoise2D(float x, float y)
 	// Add contributions from each corner to get the final noise value.
 	// The result is scaled to return values in the interval [-1,1].
 	//return 40.0f * (n0 + n1 + n2); // TODO: The scale factor is preliminary!	//These values currently scale from ~ [-0.884343445, 0.884343445]
-	return 40.0f / 0.884343445f * (n0 + n1 + n2);	//accurate to e-9 so that values scale to [-1, 1], same acc as F2 G2.
+	float value = 40.0f / 0.884343445f * (n0 + n1 + n2);	//accurate to e-9 so that values scale to [-1, 1], same acc as F2 G2.
+	return (value + 1) * 0.5f; //scale value to [0, 1]
 }
 
 

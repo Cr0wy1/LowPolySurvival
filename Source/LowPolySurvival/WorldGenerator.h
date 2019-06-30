@@ -52,12 +52,12 @@ protected:
 
 	bool bDrawDebug = false;
 
-	int32 checkedRadius = 2;
+	int32 checkedRadius = 3;
 	 
 	APlayercharController * playerController = nullptr;
 
 	FVector2D cPlayerChunkLoc;
-
+	 
 	TArray<FVector2D> createdChunks; 
 	TMap<FVector2D, AChunk*> loadedChunks;
 	TArray<FVector2D> checkedChunkLocs;
@@ -79,5 +79,7 @@ public:
 	virtual void Tick(float DeltaTime) override; 
 
 	void CheckChunks(int32 centerX, int32 centerY) ;
+
+	void RemoveBlock(FIntVector blockLocation);
 
 };

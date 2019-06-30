@@ -141,3 +141,16 @@ void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){
 	
 }
 
+void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
+
+	TArray<FIntVector> chunkBlockLocs;
+	TArray<FVector2D> chunkLocs = BlockToChunkBlockLocation(blockLocation, chunkBlockLocs);
+
+	for (size_t i = 0; i < chunkLocs.Num(); i++){
+		//UE_LOG(LogTemp, Warning, TEXT("Chunk Locations: %s"), *chunkLocs[i].ToString());
+
+		loadedChunks[chunkLocs[i]]->RemoveBlock(chunkBlockLocs[i]);
+	}
+
+}
+

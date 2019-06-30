@@ -136,47 +136,123 @@ void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
 
 void AChunk::ApplyNoiseOnGrid(){
 
+	float frequency = 3.0f;
+	uint8 octaves = 6;
+
+	int32 islandOffset = 50;
+	int32 upOffset = 10;
+	int32 downOffset = 30;
+
+	
+
+	for (size_t x = 0; x < blockGrid.Num(); x++) {
+		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+			float noise = 0.0f;
+
+			FVector blockLoc = ChunkToBlockLocation(chunkLoc);
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString()); 
+
+			float nx = (blockLoc.X + x) * 0.01f - 0.5f;
+			float ny = (blockLoc.Y + y) * 0.01f - 0.5f;
+
+			//with frequency
+			//float noise = USimplexNoise::SimplexNoise2D((blockLoc.X +x) * frequency, (blockLoc.Y + y) * frequency);
+
+			//with Octaves
+			float persistence = 0.5f;
+			float maxValue = 0;
+			float amplitude = 128.0f;
+			float cOctaveFrequency = 1.0f;
+			for (size_t i = 0; i < octaves; i++) {
+				noise += USimplexNoise::SimplexNoise2D(nx * cOctaveFrequency, ny * cOctaveFrequency) * amplitude;
+				UE_LOG(LogTemp, Warning, TEXT("noise: %f"), noise);
+				maxValue += amplitude;
+				amplitude *= persistence;
+				
+				cOctaveFrequency *= 2;
+			}
+			noise /= maxValue;
+			
+			//Apply Redistribution
+			float redistribution = 2.0f;
+			noise = FMath::Pow(noise, redistribution);
+
+			//Apply Terraces
+			//uint32 terracesSteps = 2;
+			//noise = FMath::RoundToFloat(noise * terracesSteps) / terracesSteps;
+
+			
+
+			uint32 downAmount = noise * downOffset;
+			uint32 upAmount = noise * upOffset;
+
+			//if (noise > 0.1) {
+
+				blockGrid[x][y][islandOffset - downAmount].value = noise;
+				blockGrid[x][y][islandOffset + upAmount].value = noise;
+				 
+				for (size_t z = islandOffset - downAmount + 1; z < islandOffset; z++) {
+					blockGrid[x][y][z].value = 1;
+				}  
+
+				for (size_t z = islandOffset + upAmount - 1; z >= islandOffset; z--) {
+					blockGrid[x][y][z].value = 1;
+				}
+				
+
+			//}
+
+		}
+	}
+
+}
+
+void AChunk::ApplyNoise3DOnGrid(){
+
 	float noiseScale = 0.01f;
 	int32 islandOffset = 50;
 	int32 upOffset = 10;
 	int32 downOffset = 30;
 
+	FVector blockLoc = ChunkToBlockLocation(chunkLoc);
+
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
-			FVector blockLoc = ChunkToBlockLocation(chunkLoc);
-			//UE_LOG(LogTemp, Warning, TEXT("%s"), *blockLoc.ToString()); 
+			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
 
-			float noise = USimplexNoise::SimplexNoise2D((blockLoc.X +x) * noiseScale, (blockLoc.Y + y) * noiseScale);
+				float noise = USimplexNoise::SimplexNoise3D((blockLoc.X + x) * noiseScale, (blockLoc.Y + y) * noiseScale, (blockLoc.Z + z) * noiseScale);
 
-			int32 downAmount = noise * downOffset + (noise * downOffset * 0.6);
-			int32 upAmount = noise * upOffset;
+				blockGrid[x][y][z].value = -50 + ((noise + 1) / 2);
 
-			if (noise > 0.1) {
+				//int32 downAmount = noise * downOffset + (noise * downOffset * 0.6);
+				//int32 upAmount = noise * upOffset;
 
-				blockGrid[x][y][islandOffset - downAmount].value = 1;
-				blockGrid[x][y][islandOffset + upAmount].value = 1;
-				 
-				for (size_t z = islandOffset - downAmount; z < islandOffset; z++) {
-					blockGrid[x][y][z].value = 1;
-				}  
+				//if (noise > 0.1) {
 
-				for (size_t z = islandOffset + upAmount; z >= islandOffset; z--) {
-					blockGrid[x][y][z].value = 1;
-				}
+				//	blockGrid[x][y][islandOffset - downAmount].value = 1;
+				//	blockGrid[x][y][islandOffset + upAmount].value = 1;
 
-				
+				//	for (size_t z = islandOffset - downAmount; z < islandOffset; z++) {
+				//		blockGrid[x][y][z].value = 1;
+				//	}
 
-				int32 iOuter = islandOffset - downAmount;
+				//	for (size_t z = islandOffset + upAmount; z >= islandOffset; z--) {
+				//		blockGrid[x][y][z].value = 1;
+				//	}
 
-				float outerNoise = USimplexNoise::SimplexNoise3D((blockLoc.X + x) * 0.1f, (blockLoc.Y + y)*0.1f, iOuter*0.1f);
 
-				if (outerNoise > 0.1) {
-					blockGrid[x][y][iOuter].value = 0;
-				}
-				
 
+				//	int32 iOuter = islandOffset - downAmount;
+
+				//	float outerNoise = USimplexNoise::SimplexNoise3D((blockLoc.X + x) * 0.1f, (blockLoc.Y + y)*0.1f, iOuter*0.1f);
+
+				//	if (outerNoise > 0.1) {
+				//		blockGrid[x][y][iOuter].value = 0;
+				//	}
+
+
+				//}
 			}
-
 		}
 	}
 
@@ -226,22 +302,27 @@ void AChunk::RemoveBlock(int32 gridX, int32 gridY, int32 gridZ){
 	gridX += 1;
 	gridY += 1;
 	if (gridX > -1 && gridY > -1 && gridZ > -1 && gridX <= gridDim.X && gridY <= gridDim.Y && gridZ <= gridDim.Z) {
-		UE_LOG(LogTemp, Warning, TEXT("removeBlock"));
+		//UE_LOG(LogTemp, Warning, TEXT("removeBlock"));
 
 		blockGrid[gridX][gridY][gridZ].value = 0;
 
-		for (size_t z = 0; z < gridDim.Z; z++) {
-			if (blockGrid[gridX][gridY][z].value == 1) {
-				UE_LOG(LogTemp, Warning, TEXT("Z block: %i"), z);
+	}
 
-			}
-			
-		}
+	proceduralMesh->UpdateMesh(blockGrid, FIntVector(gridX,gridY,gridZ));
+}
+
+void AChunk::RemoveBlock(FIntVector gridLoc){
+	gridLoc.X += 1;
+	gridLoc.Y += 1;
+	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
+		//UE_LOG(LogTemp, Warning, TEXT("removeBlock"));
+
+		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].value = 0;
+
 	}
 
 
-
-	proceduralMesh->UpdateMesh(blockGrid);
+	proceduralMesh->UpdateMesh(blockGrid, gridLoc);
 }
 
 void AChunk::SetTerrainMaterial(UMaterialInterface * material){

@@ -23,6 +23,7 @@
 #include "CraftingComponent.h"
 #include "Chunk.h"
 #include "MyGameInstance.h"
+#include "WorldGenerator.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -98,6 +99,8 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 void ALowPolySurvivalCharacter::BeginPlay(){
 
 	Super::BeginPlay();
+
+	gameInstance = GetGameInstance<UMyGameInstance>();
 
 	//UE_LOG(LogTemp, Warning, TEXT("Character: Begin Play"));
 
@@ -277,21 +280,18 @@ void ALowPolySurvivalCharacter::OnHit(){
 
 		if (chunk) {
 			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
-			FIntVector blockLoc = FIntVector(WorldToBlockLocation(hitResult.ImpactPoint));
-			blockLoc.X = blockLoc.X % 10;
-			blockLoc.Y = blockLoc.Y % 10;
+			FVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction));
+			FIntVector chunkBlockLoc(blockLoc);
+			chunkBlockLoc.X = chunkBlockLoc.X % 10;
+			chunkBlockLoc.Y = chunkBlockLoc.Y % 10;
 			
-			//FIntVector blockLoc = FIntVector(FMath::RoundToInt(hitResult.ImpactPoint.X / 100) % 10, FMath::RoundToInt(hitResult.ImpactPoint.Y / 100) % 10, FMath::RoundToInt((hitResult.ImpactPoint.Z-70) / 100));
-			//FIntVector blockLoc = FIntVector((FMath::RoundToInt(absHitLoc.X) % 1000) / 100, (FMath::RoundToInt(absHitLoc.Y) % 1000) / 100, FMath::RoundToInt(absHitLoc.Z) / 100);
+			DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
+			DrawDebugBox(GetWorld(), blockLoc*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
 
-
-
-			chunk->RemoveBlock(blockLoc.X, blockLoc.Y, blockLoc.Z);
-
-			UE_LOG(LogTemp, Warning, TEXT("Chunk hitted at block Location: %s"), *blockLoc.ToString());
-
+			gameInstance->GetWorldGenerator()->RemoveBlock(FIntVector(blockLoc));
+			
 		}
-		
+		 
 
 
 		bIsInHit = true;
@@ -318,7 +318,7 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 		
-		FVector blockCenter = FVector(FMath::RoundToFloat(OUT_hitresult.ImpactPoint.X / 100), FMath::RoundToFloat(OUT_hitresult.ImpactPoint.Y / 100), FMath::RoundToFloat((OUT_hitresult.ImpactPoint.Z-70) / 100)) * 100;
+		FVector blockCenter = WorldToBlockLocation(OUT_hitresult.ImpactPoint) * 100;
 		DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
 	}
 

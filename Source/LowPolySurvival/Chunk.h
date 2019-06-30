@@ -58,6 +58,7 @@ protected:
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();
+	void ApplyNoise3DOnGrid();
 
 public:	
 
@@ -71,6 +72,7 @@ public:
 	void Unload();
 
 	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
+	void RemoveBlock(FIntVector gridLoc);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 };
