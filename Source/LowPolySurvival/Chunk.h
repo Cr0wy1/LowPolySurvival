@@ -10,6 +10,7 @@
 
 class UMyGameInstance;
 class UProceduralMeshGeneratorComponent;
+class AWorldGenerator;
 struct FWorldInfo;
 
 USTRUCT()
@@ -33,12 +34,16 @@ public:
 	// Sets default values for this actor's properties
 	AChunk();
 
+	void Init(AWorldGenerator* _worldGenerator);
+
 protected:
 
 	
 
 	UMyGameInstance * gameInstance = nullptr;
 	const FWorldInfo* worldInfo = nullptr;
+	AWorldGenerator* worldGenerator = nullptr;
+	
 
 	FVector gridDim;
 	TArray<TArray<TArray<FBlockInfo>>> blockGrid;
@@ -48,6 +53,8 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	
 
 	void InitBlockGrid();
 
@@ -62,6 +69,7 @@ protected:
 
 public:	
 
+	UPROPERTY(VisibleAnywhere)
 	FVector2D chunkLoc;
 
 	// Called every frame

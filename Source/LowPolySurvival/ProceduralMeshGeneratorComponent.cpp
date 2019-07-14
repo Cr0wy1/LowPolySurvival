@@ -7,6 +7,7 @@
 #include "Chunk.h"
 #include "KismetProceduralMeshLibrary.h"
 #include "MyGameInstance.h"
+#include "GridComponent.h"
 
 
 UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer) : UProceduralMeshComponent(ObjectInitializer){
@@ -14,20 +15,15 @@ UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObje
 
 }
 
-void UProceduralMeshGeneratorComponent::GenerateMesh(){
 
-
-	FlushPersistentDebugLines(GetWorld());
-	CreateCornerGrid();
-	CreateMarchCubes();
-	MarchingCubes(false);
-
+void UProceduralMeshGeneratorComponent::GenerateMesh(const UGridComponent * gridComp){
+	 
+	GenerateMesh(*gridComp->GetGridPointer()); 
 }
 
 void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
 
 	marchCubes.Empty();
-	grid.Empty();
 
 	gridSize = FVector(blockGrid.Num(), blockGrid.IsValidIndex(0) ? blockGrid[0].Num() : 0, blockGrid[0].IsValidIndex(0) ? blockGrid[0][0].Num() : 0);
 
@@ -178,79 +174,6 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FB
 	*/
 }
 
-void UProceduralMeshGeneratorComponent::CreateCornerGrid(){
-	
-	 
-	for (size_t x = 0; x < gridSize.X; x++) {
-		grid.Add(TArray<TArray<float>>());
-		for (size_t y = 0; y < gridSize.Y; y++) {
-			grid[x].Add(TArray<float >());
-
-			float noiseValue = (USimplexNoise::SimplexNoise2D((float)x*0.1, (float)y*0.1) + 1) / 2;
-
-			int32 clamped = FMath::FloorToInt(noiseValue*offset*gridSize.Z);
-
-			//UE_LOG(LogTemp, Warning, TEXT("CreateCornerGrid: clamped: %i"), clamped);
-
-			for (size_t z = 0; z < gridSize.Z; z++) {
-
-				grid[x][y].Add(0);
-				
-			}
-
-			for (size_t z = 0; z < clamped; z++) {
-
-				grid[x][y][z] = 1;
-
-
-				
-			}
-
-			grid[x][y][clamped] = noiseValue * 0.5 * lerpMultiply;
-			if (clamped > 0) {
-				grid[x][y][clamped - 1] = noiseValue * lerpMultiply;
-			}
-
-			if (clamped < grid[x][y].Num() - 1) {
-				grid[x][y][clamped + 1] = noiseValue * 0.25 * lerpMultiply;
-			}
-			
-
-			UE_LOG(LogTemp, Warning, TEXT("noiseValue: %f"), noiseValue);
-
-
-			if (bDrawDebug) {
-				DrawDebugBox(GetWorld(), FVector(x, y, clamped)*blockSize, FVector(3, 3, 3), FLinearColor(noiseValue, noiseValue, noiseValue, 1).ToFColor(true), false, 30, 0, 1);
-			}
-
-		}
-		
-	}
-}
-
-void UProceduralMeshGeneratorComponent::CreateMarchCubes(){
-
-	for (size_t x = 0; x < gridSize.X - 1; x++) {
-		marchCubes.Add(TArray<TArray<FMarchCube>>());
-		for (size_t y = 0; y < gridSize.Y - 1; y++) {
-			marchCubes[x].Add(TArray<FMarchCube>());
-			for (size_t z = 0; z < gridSize.Z - 1; z++) {
-				marchCubes[x][y].Add(FMarchCube());
-
-				marchCubes[x][y][z].corners.Add(grid[x+1][y][z]);
-				marchCubes[x][y][z].corners.Add(grid[x+1][y+1][z]);
-				marchCubes[x][y][z].corners.Add(grid[x][y+1][z]);
-				marchCubes[x][y][z].corners.Add(grid[x][y][z]);
-				marchCubes[x][y][z].corners.Add(grid[x+1][y][z+1]);
-				marchCubes[x][y][z].corners.Add(grid[x+1][y+1][z+1]);
-				marchCubes[x][y][z].corners.Add(grid[x][y+1][z+1]);
-				marchCubes[x][y][z].corners.Add(grid[x][y][z+1]);
-			
-			}
-		}
-	}
-
-}
 
 void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
 
@@ -314,7 +237,7 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 				if (z == 0) {
 					//DrawDebugBox(GetWorld(), BlockToWorldLocation(FVector(x, y, z) - borderSize) + FVector(50,50,50), FVector(50, 50, 50), FColor::Purple, false, 60, 0, 1);
 				}
-
+				 
 				//Loop through all Vertecies in a Cube 
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
 					uint8 edgeIndex = triTable[cubeIndex][i];

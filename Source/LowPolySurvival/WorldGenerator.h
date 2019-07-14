@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+#include "SimplexNoise.h"
 #include "WorldGenerator.generated.h"
 
 
@@ -39,6 +40,18 @@ struct LOWPOLYSURVIVAL_API FWorldGenInfo : public FTableRowBase {
 
 
 
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FGenerationParams {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float surfaceLevel = 0.2f;
+
+};
+
+
 UCLASS()
 class LOWPOLYSURVIVAL_API AWorldGenerator : public AActor
 {
@@ -52,7 +65,9 @@ protected:
 
 	bool bDrawDebug = false;
 
-	int32 checkedRadius = 3;
+	uint8 chunkBlocksize = 11;
+
+	int32 checkedRadius = 6;
 	 
 	APlayercharController * playerController = nullptr;
 
@@ -61,6 +76,13 @@ protected:
 	TArray<FVector2D> createdChunks; 
 	TMap<FVector2D, AChunk*> loadedChunks;
 	TArray<FVector2D> checkedChunkLocs;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	FNoiseParams noiseParams;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	FGenerationParams generationParams;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	UMaterialInterface* terrainMaterial;
@@ -82,4 +104,10 @@ public:
 
 	void RemoveBlock(FIntVector blockLocation);
 
+	float BlockNoise(float blockX, float blockY) const;
+	 
+	const FNoiseParams GetNoiseParams() const;
+	const FGenerationParams GetGenerationParams() const;
+
+	bool IsIslandInChunk(FVector2D chunkLoc);
 };

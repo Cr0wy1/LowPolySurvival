@@ -98,6 +98,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
 	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
+	newChunk->Init(this);
 	//UE_LOG(LogTemp, Warning, TEXT("LoadChunk: chunk spawned at %s"), *FVector(chunkLoc * chunkSize, 0).ToString());
 
 	
@@ -152,5 +153,61 @@ void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 		loadedChunks[chunkLocs[i]]->RemoveBlock(chunkBlockLocs[i]);
 	}
 
+}
+
+float AWorldGenerator::BlockNoise(float blockX, float blockY) const{
+
+	//with Octaves
+	float noise = Noise(blockX, blockY, noiseParams);
+
+	//Apply Redistribution
+	noise = FMath::Pow(noise, noiseParams.redistribution);
+
+	//Apply Terraces
+	//uint32 terracesSteps = 2;
+	//noise = FMath::RoundToFloat(noise * terracesSteps) / terracesSteps;
+
+	//Island Shape
+	FVector worldBlock = FVector(blockX, blockY, 0);
+	float distance = worldBlock.Size() * 0.01; //<-- Magnitude
+	float lowerDis = FMath::CeilToFloat(distance);
+	float upperDis = FMath::FloorToFloat(distance);
+	//noise = lowerDis + noise * (upperDis - lowerDis);
+	noise -= 0.4;
+
+	return noise;
+}
+
+const FNoiseParams AWorldGenerator::GetNoiseParams() const{
+	return noiseParams;
+}
+
+const FGenerationParams AWorldGenerator::GetGenerationParams() const{
+	return generationParams;
+}
+
+bool AWorldGenerator::IsIslandInChunk(FVector2D chunkLoc){
+
+	FGenerationParams params = GetGenerationParams();
+
+	FVector blockLoc = ChunkToBlockLocation(chunkLoc);
+
+	for (uint8 x = 0; x < chunkBlocksize; x++){
+		for (uint8 y = 0; y < chunkBlocksize; y++) {
+			
+			float noise = BlockNoise(blockLoc.X+x, blockLoc.Y+y);
+
+			if (noise > params.surfaceLevel) {
+				FVector start(blockLoc.X + x, blockLoc.Y + y, 0);
+				start *= 100;
+				DrawDebugLine(GetWorld(), start, start + FVector(0,0,20000), FColor::Purple, true, 60, 0, 20);
+				return true;
+			}
+
+			
+		}
+	}
+
+	return false;
 }
 

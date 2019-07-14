@@ -2,6 +2,7 @@
 
 
 #include "SimplexNoise.h"
+#include "WorldGenerator.h"
 
 USimplexNoise::USimplexNoise() {
 
@@ -312,7 +313,8 @@ float USimplexNoise::SimplexNoise3D(float x, float y, float z)
 
 	// Add contributions from each corner to get the final noise value.
 	// The result is scaled to stay just inside [-1,1]
-	return 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
+	float value = 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
+	return (value + 1) * 0.5f; //scale value to [0, 1]
 }
 
 
@@ -360,4 +362,58 @@ float USimplexNoise::SimplexNoiseInRange3D(float x, float y, float z, float rang
 {
 	if (rangeMax < rangeMin)rangeMax = rangeMin + 1.0f; // prevent negative numbers in that case we will return value between 0 - 1
 	return SimplexNoiseScaled3D(x, y, z, (rangeMax - rangeMin)) + rangeMin;
+}
+
+inline float Noise(float x, float y, FNoiseParams params){
+
+	return Noise(x, y, params.octaves, params.frequency, params.amplitude, params.persistence);
+
+}
+
+inline float Noise(float x, float y, uint8 octaves, float frequency, float amplitude, float persistence){
+
+	float nx = x * 0.01f - 0.5f;
+	float ny = y * 0.01f - 0.5f;
+
+	float noise = 0.0f;
+
+	float maxValue = 0;
+
+	for (size_t i = 0; i < octaves; i++) {
+		noise += USimplexNoise::SimplexNoise2D(nx * frequency, ny * frequency) * amplitude;
+
+		maxValue += amplitude;
+		amplitude *= persistence;
+
+		amplitude *= 2.0f;
+	}
+
+	return noise / maxValue;
+}
+
+inline float Noise3D(float x, float y, float z, FNoiseParams params)
+{
+	return Noise3D(x, y, z, params.octaves, params.frequency, params.amplitude, params.persistence);
+}
+
+inline float Noise3D(float x, float y, float z, uint8 octaves, float frequency, float amplitude, float persistence){
+
+	float nx = x * 0.01f - 0.5f;
+	float ny = y * 0.01f - 0.5f;
+	float nz = z * 0.01f - 0.5f;
+
+	float noise = 0.0f;
+
+	float maxValue = 0;
+
+	for (size_t i = 0; i < octaves; i++) {
+		noise += USimplexNoise::SimplexNoise3D(nx * frequency, ny * frequency, nz * frequency) * amplitude;
+
+		maxValue += amplitude;
+		amplitude *= persistence;
+
+		amplitude *= 2.0f;
+	}
+
+	return noise / maxValue;;
 }

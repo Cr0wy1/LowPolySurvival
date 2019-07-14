@@ -7,6 +7,7 @@
 #include "ProceduralMeshGeneratorComponent.generated.h"
 
 
+class UGridComponent;
 struct FBlockInfo;
 
 
@@ -69,7 +70,7 @@ protected:
 	FVector gridSize = { 7,7,7 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-	float surfaceLevel = 0.5f;
+	float surfaceLevel = 0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		float offset = 0.1;
@@ -85,11 +86,7 @@ protected:
 
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 
-	TArray<TArray<TArray<float>>> grid;
 
-	void CreateCornerGrid();
-
-	void CreateMarchCubes();
 	void CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 	void MarchingCubes(bool bBorderNormalsOnly = true);
 
@@ -98,13 +95,11 @@ protected:
 public:
 
 	UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer);
-
-	UFUNCTION(BlueprintCallable, Category = "Procedural")
-	void GenerateMesh();
-
 	
-	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
+	UFUNCTION(BlueprintCallable, Category = "MeshGeneration")
+	void GenerateMesh(const UGridComponent* gridComp);
 
+	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
 	void UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid, FIntVector blockLocation);
 
 protected:

@@ -6,6 +6,26 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "SimplexNoise.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FNoiseParams {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	uint8 octaves = 6;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float frequency = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float amplitude = 128.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float persistence = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float redistribution = 1.0f;
+};
 /**
  * 
  */
@@ -64,4 +84,13 @@ public:
 		static float SimplexNoiseInRange3D(float x, float y, float z, float rangeMin, float rangeMax);
 
 
+	
 };
+
+extern inline float Noise(float x, float y, FNoiseParams params);
+extern inline float Noise(float x, float y, uint8 octaves = 6, float frequency = 1.0f, float amplitude = 128.0f, float persistence = 0.5f);
+
+extern inline float Noise3D(float x, float y, float z, FNoiseParams params);
+extern inline float Noise3D(float x, float y, float z, uint8 octaves = 6, float frequency = 1.0f, float amplitude = 128.0f, float persistence = 0.5f);
+
+
