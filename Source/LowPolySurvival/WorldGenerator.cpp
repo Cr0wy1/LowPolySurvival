@@ -8,7 +8,7 @@
 #include "DrawDebugHelpers.h"
 #include "MyGameInstance.h"
 
-
+ 
 // Sets default values
 AWorldGenerator::AWorldGenerator()
 {
@@ -95,6 +95,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 }
 
 
+
 void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
 	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
@@ -167,13 +168,6 @@ float AWorldGenerator::BlockNoise(float blockX, float blockY) const{
 	//uint32 terracesSteps = 2;
 	//noise = FMath::RoundToFloat(noise * terracesSteps) / terracesSteps;
 
-	//Island Shape
-	FVector worldBlock = FVector(blockX, blockY, 0);
-	float distance = worldBlock.Size() * 0.01; //<-- Magnitude
-	float lowerDis = FMath::CeilToFloat(distance);
-	float upperDis = FMath::FloorToFloat(distance);
-	//noise = lowerDis + noise * (upperDis - lowerDis);
-	noise -= 0.4;
 
 	return noise;
 }

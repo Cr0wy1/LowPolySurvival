@@ -4,6 +4,7 @@
 #include "LowPolySurvivalHUD.h"
 #include "LowPolySurvivalCharacter.h"
 #include "PlayercharController.h"
+#include "MyGameStateBase.h"
 #include "UObject/ConstructorHelpers.h"
 
 ALowPolySurvivalGameMode::ALowPolySurvivalGameMode()
@@ -16,4 +17,5 @@ ALowPolySurvivalGameMode::ALowPolySurvivalGameMode()
 	// use our custom HUD class
 	HUDClass = ALowPolySurvivalHUD::StaticClass();
 	PlayerControllerClass = APlayercharController::StaticClass();
+	GameStateClass = AMyGameStateBase::StaticClass();
 }

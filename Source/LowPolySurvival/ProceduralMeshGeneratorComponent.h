@@ -78,11 +78,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		bool bDrawDebug = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-		bool bUseLerp = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-		float lerpMultiply = 1.0f;
 
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 

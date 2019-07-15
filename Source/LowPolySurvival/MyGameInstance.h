@@ -64,6 +64,8 @@ public:
 	virtual void Init() override;
 	void InitDataTables();
 
+	void CreateWorld(FName worldName);
+
 	UDataTable* GetItemTable() const;
 	UDataTable* GetDropsTable() const;
 	UDataTable* GetCraftingTable() const;

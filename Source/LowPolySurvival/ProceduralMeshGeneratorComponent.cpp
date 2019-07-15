@@ -54,24 +54,6 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FB
 
 					FVector relEdgeCenter = relativEdgeCenters[edgeIndex];
 
-					if (bUseLerp) {
-
-						uint8 edgeCor1 = edgeCorners[edgeIndex][0];
-						uint8 edgeCor2 = edgeCorners[edgeIndex][1];
-
-						float edgeCorValue1 = marchCubes[x][y][z].corners[edgeCor1];
-						float edgeCorValue2 = marchCubes[x][y][z].corners[edgeCor2];
-
-						if (relEdgeCenter.X == 0) {
-							relEdgeCenter.X = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-						else if (relEdgeCenter.Y == 0) {
-							relEdgeCenter.Y = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-						else {
-							relEdgeCenter.Z = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-					}
 
 					FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z) + relEdgeCenter) + FVector(50, 50, 50);
 
@@ -112,24 +94,6 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FB
 
 							FVector relEdgeCenter = relativEdgeCenters[edgeIndex];
 
-							if (bUseLerp) {
-
-								uint8 edgeCor1 = edgeCorners[edgeIndex][0];
-								uint8 edgeCor2 = edgeCorners[edgeIndex][1];
-
-								float edgeCorValue1 = marchCubes[x][y][z].corners[edgeCor1];
-								float edgeCorValue2 = marchCubes[x][y][z].corners[edgeCor2];
-
-								if (relEdgeCenter.X == 0) {
-									relEdgeCenter.X = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-								else if (relEdgeCenter.Y == 0) {
-									relEdgeCenter.Y = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-								else {
-									relEdgeCenter.Z = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-							}
 
 							FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z) + relEdgeCenter) + FVector(50, 50, 50);//(FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 
@@ -244,26 +208,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 					FVector relEdgeCenter = relativEdgeCenters[edgeIndex];
 
-					if (bUseLerp) {
-
-						uint8 edgeCor1 = edgeCorners[edgeIndex][0];
-						uint8 edgeCor2 = edgeCorners[edgeIndex][1];
-
-						float edgeCorValue1 = marchCubes[x][y][z].corners[edgeCor1];
-						float edgeCorValue2 = marchCubes[x][y][z].corners[edgeCor2];
-
-						
-
-						if (relEdgeCenter.X == 0) {
-							relEdgeCenter.X = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-						else if (relEdgeCenter.Y == 0) {
-							relEdgeCenter.Y = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-						else {
-							relEdgeCenter.Z = (edgeCorValue2 - edgeCorValue1) / 2;
-						}
-					}
 
 					FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z) + relEdgeCenter) + FVector(50, 50, 50);// (FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 
@@ -314,25 +258,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 							uint8 edgeIndex = triTable[cubeIndex][i];
 
 							FVector relEdgeCenter = relativEdgeCenters[edgeIndex];
-
-							if (bUseLerp) {
-
-								uint8 edgeCor1 = edgeCorners[edgeIndex][0];
-								uint8 edgeCor2 = edgeCorners[edgeIndex][1];
-
-								float edgeCorValue1 = marchCubes[x][y][z].corners[edgeCor1];
-								float edgeCorValue2 = marchCubes[x][y][z].corners[edgeCor2];
-
-								if (relEdgeCenter.X == 0) {
-									relEdgeCenter.X = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-								else if (relEdgeCenter.Y == 0) {
-									relEdgeCenter.Y = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-								else {
-									relEdgeCenter.Z = (edgeCorValue2 - edgeCorValue1) / 2;
-								}
-							}
 
 							FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z)  + relEdgeCenter) + FVector(50, 50, 50);//(FVector(x, y, z) + relEdgeCenter) * blockSize + FVector(50, 50, 50);
 

@@ -5,6 +5,8 @@
 #include "Item.h"
 #include "WorldGenerator.h"
 #include "Engine/World.h"
+#include "GameFramework/SaveGame.h"
+#include "Kismet/GameplayStatics.h"
 
 void UMyGameInstance::Init(){
 	Super::Init();
@@ -53,6 +55,10 @@ void UMyGameInstance::InitDataTables(){
 		}
 	}
 
+}
+
+void UMyGameInstance::CreateWorld(FName worldName){
+	//UGameplayStatics::CreateSaveGameObject()
 }
 
 UDataTable * UMyGameInstance::GetItemTable() const{

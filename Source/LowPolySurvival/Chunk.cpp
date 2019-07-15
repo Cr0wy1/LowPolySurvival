@@ -144,8 +144,6 @@ void AChunk::ApplyNoiseOnGrid(){
 
 	int32 islandOffset = 50;
 	int32 upOffset = 10;
-	int32 downOffset = 30;
-
 
 	for (size_t x = 0; x < blockGrid.Num(); x++) {
 		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
@@ -155,29 +153,15 @@ void AChunk::ApplyNoiseOnGrid(){
 
 			float noise = worldGenerator->BlockNoise(blockLoc.X + x, blockLoc.Y + y);
 
+			uint32 upAmount = noise * upOffset;
 
-			if (noise > genParams.surfaceLevel) {
-
-
-
-				uint32 downAmount = noise * downOffset;
-				uint32 upAmount = noise * upOffset;
-
-				if (blockGrid[x][y].IsValidIndex(islandOffset - downAmount)) {
-					blockGrid[x][y][islandOffset - downAmount].value = noise;
-					for (size_t z = islandOffset - downAmount + 1; z < islandOffset; z++) {
-						blockGrid[x][y][z].value = 1;
-					}
-				}
-				if (blockGrid[x][y].IsValidIndex(islandOffset + upAmount)) {
-					blockGrid[x][y][islandOffset + upAmount].value = noise;
-					for (size_t z = islandOffset + upAmount - 1; z >= islandOffset; z--) {
-						blockGrid[x][y][z].value = 1;
-					} 
-				}
-				
-
+			if (blockGrid[x][y].IsValidIndex(islandOffset + upAmount)) {
+				blockGrid[x][y][islandOffset + upAmount].value = noise;
+				for (size_t z = 0; z < islandOffset + upAmount; z++) {
+					blockGrid[x][y][z].value = 1;
+				} 
 			}
+
 
 		}
 	}
