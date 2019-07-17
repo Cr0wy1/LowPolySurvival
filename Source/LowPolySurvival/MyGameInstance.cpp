@@ -8,6 +8,10 @@
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
+const float FWorldParams::blockSize = 100.0f;
+const float FWorldParams::deathZone = 0.0f;
+const float FWorldParams::buildHeight = 10000.0f;
+
 void UMyGameInstance::Init(){
 	Super::Init();
 
@@ -86,9 +90,6 @@ UDataTable * UMyGameInstance::GetWorldGenTable() const
 	return worldGenDataTable;
 }
 
-FWorldInfo const*const UMyGameInstance::GetWorldInfo() const{
-	return worldInfo;
-}
 
 AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
 
@@ -97,65 +98,70 @@ AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
 
 FVector WorldToBlockLocation(const FVector & worldLocation){
 
-	FVector result = worldLocation * 0.01f;
-	result.X = FMath::RoundToFloat(result.X);
-	result.Y = FMath::RoundToFloat(result.Y);
-	result.Z = FMath::RoundToFloat(result.Z);
+	FVector result = worldLocation / FWorldParams::blockSize;
+	result.X = FMath::FloorToFloat(result.X);
+	result.Y = FMath::FloorToFloat(result.Y);
+	result.Z = FMath::FloorToFloat(result.Z);
 
 	return result;
 }  
 
 FVector2D WorldToChunkLocation(const FVector & worldLocation){ 
 
-	FVector2D result = FVector2D(worldLocation * 0.001).IntPoint(); 
-	//result.X = FMath::RoundToFloat(result.X);
-	//result.Y = FMath::RoundToFloat(result.Y);
+	FVector2D result = FVector2D(worldLocation / (FWorldParams::blockSize*FWorldParams::chunkSize) );
+	result.X = FMath::FloorToFloat(result.X); 
+	result.Y = FMath::FloorToFloat(result.Y);
+
+	//UE_LOG(LogTemp, Warning, TEXT("worldLocation: %s, ChunkLocation: %s"), *worldLocation.ToCompactString(), *result.ToString());
+
 
 	return result;
 }
 
 FVector BlockToWorldLocation(const FVector & blockLocation){
 
-	return blockLocation * 100;
+	return blockLocation * FWorldParams::blockSize;
 }
 
-FVector ChunkToWorldLocation(const FVector2D & chunkLocation){
+FVector ChunkToWorldLocation(const FIntVector & chunkLocation){
 
-	return FVector(chunkLocation * 1000, 0);
+	return FVector(chunkLocation * FWorldParams::blockSize*FWorldParams::chunkSize);
 }
 
-FVector ChunkToBlockLocation(const FVector2D & chunkLocation){
+FVector ChunkToBlockLocation(const FIntVector & chunkLocation){
 
-	return FVector(chunkLocation * 10, 0);
+	return FVector(chunkLocation * FWorldParams::chunkSize);
 }
 
-TArray<FVector2D> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation) {
+TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation) {
 
-	TArray<FVector2D> result;
+	TArray<FIntVector> result;
 
-	FVector2D chunkLoc(FVector(blockLocation) * 0.1);
+	FIntVector chunkLoc(FVector(blockLocation) / FWorldParams::chunkSize);
 	chunkLoc.X = FMath::FloorToFloat(chunkLoc.X);
 	chunkLoc.Y = FMath::FloorToFloat(chunkLoc.Y);
+	chunkLoc.Z = 0;
 
-	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % 10, blockLocation.Y % 10, blockLocation.Z);
+	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z);
 
 	result.Add(chunkLoc);
 	OUT_chunkBlockLocation.Add(chunkBlockLoc);
 
 	if (chunkBlockLoc.X == 0) {
-		result.Add(FVector2D(chunkLoc.X - 1, chunkLoc.Y) );
-		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X + 10, chunkBlockLoc.Y, chunkBlockLoc.Z));
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y, 0) );
+		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize-1, chunkBlockLoc.Y, chunkBlockLoc.Z));
 	}
 
 	if (chunkBlockLoc.Y == 0) {
-		result.Add(FVector2D(chunkLoc.X, chunkLoc.Y - 1));
-		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, chunkBlockLoc.Y + 10, chunkBlockLoc.Z));
+		result.Add(FIntVector(chunkLoc.X, chunkLoc.Y - 1, 0));
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, FWorldParams::chunkSize-1, chunkBlockLoc.Z));
 	}
 	
 	if (result.Num() == 3) {
-		result.Add(FVector2D(chunkLoc.X - 1, chunkLoc.Y - 1));
-		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X + 10, chunkBlockLoc.Y + 10, chunkBlockLoc.Z));
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y - 1, 0));
+		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize-1, FWorldParams::chunkSize-1, chunkBlockLoc.Z));
 	}
 
 	return result;
-}
+} 
+ 

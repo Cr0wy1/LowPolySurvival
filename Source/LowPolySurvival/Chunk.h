@@ -16,8 +16,8 @@ struct FWorldInfo;
 USTRUCT()
 struct LOWPOLYSURVIVAL_API FBlockInfo {
 	GENERATED_BODY()
-		 
-	//FBlockInfo(float _value) : value(_value) {}
+
+	int32 blockId = 0;
 
 	float value = 0;
 
@@ -38,10 +38,7 @@ public:
 
 protected:
 
-	
-
 	UMyGameInstance * gameInstance = nullptr;
-	const FWorldInfo* worldInfo = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
 	
 
@@ -65,22 +62,27 @@ protected:
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();
-	void ApplyNoise3DOnGrid();
 
 public:	
 
 	UPROPERTY(VisibleAnywhere)
-	FVector2D chunkLoc;
+	FIntVector chunkLoc;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void Create(FVector2D _chunkLoc);
-	void Load(FVector2D _chunkLoc);
+	void Create(FIntVector _chunkLoc);
+	void Load(FIntVector _chunkLoc);
 	void Unload();
+
+	void GenerateTerrainMesh();
 
 	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
 	void RemoveBlock(FIntVector gridLoc);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
+
+	const TArray<TArray<TArray<FBlockInfo>>>* GetGridData() const;
+	const AWorldGenerator* GetWorldGenerator() const;
+	FIntVector GetChunkLocation() const;
 };

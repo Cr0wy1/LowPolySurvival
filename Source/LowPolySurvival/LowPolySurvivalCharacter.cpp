@@ -281,14 +281,13 @@ void ALowPolySurvivalCharacter::OnHit(){
 		if (chunk) {
 			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
 			FVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction));
-			FIntVector chunkBlockLoc(blockLoc);
-			chunkBlockLoc.X = chunkBlockLoc.X % 10;
-			chunkBlockLoc.Y = chunkBlockLoc.Y % 10;
+
+			gameInstance->GetWorldGenerator()->RemoveBlock(FIntVector(blockLoc));
 			
 			DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
 			DrawDebugBox(GetWorld(), blockLoc*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
 
-			gameInstance->GetWorldGenerator()->RemoveBlock(FIntVector(blockLoc));
+			
 			
 		}
 		 

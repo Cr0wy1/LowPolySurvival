@@ -33,13 +33,13 @@ void AWorldGenerator::BeginPlay()
   
 
  
-// Called every frame
+// Called every frame 
 void AWorldGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	  
-	
-	if (playerController) {
+	 
+	if (playerController) { 
 		FVector playerPos(playerController->GetPawn()->GetActorLocation()); 
 		FVector2D chunkLoc = WorldToChunkLocation(playerPos); 
 
@@ -57,15 +57,17 @@ void AWorldGenerator::OnEnterChunk(){
 
 	CheckChunks(cPlayerChunkLoc.X, cPlayerChunkLoc.Y);
 	
-	TArray<FVector2D> chunksToUnload;
+	TArray<FIntVector> chunksToUnload;
 
+	//collect unloaded chunks
 	for (auto loadedChunk : loadedChunks){
 		if (!checkedChunkLocs.Contains(loadedChunk.Key)) {
 			chunksToUnload.Add(loadedChunk.Key);
 		}
 	}
 
-	for (const FVector2D loc : chunksToUnload) {
+	//Unload unloaded chunks
+	for (const FIntVector loc : chunksToUnload) {
 		loadedChunks[loc]->Unload();
 		loadedChunks.Remove(loc);
 		//UE_LOG(LogTemp, Warning, TEXT("removed"));
@@ -74,11 +76,16 @@ void AWorldGenerator::OnEnterChunk(){
 
 	checkedChunkLocs.Empty();
 
+	//Generate Terrain Mesh for loaded Chunks
+	for (auto loadedChunk : loadedChunks) {
+		loadedChunk.Value->GenerateTerrainMesh();
+	}
+
 	//UE_LOG(LogTemp, Warning, TEXT("WorldGen: TMap size: %i"), loadedChunks.Num());
 
 }
 
-void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
+void AWorldGenerator::OnCheckChunk(FIntVector chunkLoc){
 
 	checkedChunkLocs.Add(chunkLoc);
 
@@ -96,7 +103,7 @@ void AWorldGenerator::OnCheckChunk(FVector2D chunkLoc){
 
 
 
-void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
+void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 
 	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
 	newChunk->Init(this);
@@ -120,6 +127,9 @@ void AWorldGenerator::LoadChunk(FVector2D chunkLoc){
 
 void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){
 
+	//UE_LOG(LogTemp, Warning, TEXT("CenterChunk: %s"), *(FVector(centerX, centerY, 0).ToString()));
+
+
 	int32 x, y, dx, dy;
 	x = y = dx = 0;
 	dy = -1;
@@ -129,7 +139,7 @@ void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){
 
 		//UE_LOG(LogTemp, Warning, TEXT("Spiral:(x:%i, y:%i"), (centerX + x), (centerY + y));
 
-		FVector2D chunkLoc(centerX + x, centerY + y);
+		FIntVector chunkLoc(centerX + x, centerY + y, 0);
 		OnCheckChunk(chunkLoc);
 
 		if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
@@ -146,7 +156,7 @@ void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){
 void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 
 	TArray<FIntVector> chunkBlockLocs;
-	TArray<FVector2D> chunkLocs = BlockToChunkBlockLocation(blockLocation, chunkBlockLocs);
+	TArray<FIntVector> chunkLocs = BlockToChunkBlockLocation(blockLocation, chunkBlockLocs);
 
 	for (size_t i = 0; i < chunkLocs.Num(); i++){
 		//UE_LOG(LogTemp, Warning, TEXT("Chunk Locations: %s"), *chunkLocs[i].ToString());
@@ -154,6 +164,11 @@ void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 		loadedChunks[chunkLocs[i]]->RemoveBlock(chunkBlockLocs[i]);
 	}
 
+	//for (auto loadedChunk : loadedChunks) {
+	//	UE_LOG(LogTemp, Warning, TEXT("loadedChunks: %s"), *loadedChunk.Key.ToString());
+
+	//}
+	 
 }
 
 float AWorldGenerator::BlockNoise(float blockX, float blockY) const{
@@ -180,28 +195,17 @@ const FGenerationParams AWorldGenerator::GetGenerationParams() const{
 	return generationParams;
 }
 
-bool AWorldGenerator::IsIslandInChunk(FVector2D chunkLoc){
-
-	FGenerationParams params = GetGenerationParams();
-
-	FVector blockLoc = ChunkToBlockLocation(chunkLoc);
-
-	for (uint8 x = 0; x < chunkBlocksize; x++){
-		for (uint8 y = 0; y < chunkBlocksize; y++) {
-			
-			float noise = BlockNoise(blockLoc.X+x, blockLoc.Y+y);
-
-			if (noise > params.surfaceLevel) {
-				FVector start(blockLoc.X + x, blockLoc.Y + y, 0);
-				start *= 100;
-				DrawDebugLine(GetWorld(), start, start + FVector(0,0,20000), FColor::Purple, true, 60, 0, 20);
-				return true;
-			}
-
-			
-		}
-	}
-
-	return false;
+AChunk * AWorldGenerator::GetChunk(const FIntVector & chunkLoc) const{
+	return loadedChunks[chunkLoc];
 }
+
+AChunk * AWorldGenerator::GetChunkSafe(const FIntVector & chunkLoc) const{
+	AChunk *const* findChunk = loadedChunks.Find(chunkLoc);
+	return findChunk ? *findChunk : nullptr;
+}
+
+bool AWorldGenerator::IsChunkLoaded(const FIntVector & chunkLoc) const{
+	return loadedChunks.Contains(chunkLoc);
+}
+
 

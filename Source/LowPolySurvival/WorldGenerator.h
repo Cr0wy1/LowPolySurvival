@@ -65,17 +65,17 @@ protected:
 
 	bool bDrawDebug = false;
 
-	uint8 chunkBlocksize = 11;
+	
 
-	int32 checkedRadius = 6;
+	int32 checkedRadius = 2;
 	 
 	APlayercharController * playerController = nullptr;
 
-	FVector2D cPlayerChunkLoc;
+	FVector2D cPlayerChunkLoc = FVector2D(0.5f, 0.5f); 
 	 
-	TArray<FVector2D> createdChunks; 
-	TMap<FVector2D, AChunk*> loadedChunks;
-	TArray<FVector2D> checkedChunkLocs;
+	TArray<FIntVector> createdChunks;
+	TMap<FIntVector, AChunk*> loadedChunks;
+	TArray<FIntVector> checkedChunkLocs;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
@@ -91,9 +91,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	void OnEnterChunk(); 
-	void OnCheckChunk(FVector2D chunkLoc);
+	void OnCheckChunk(FIntVector chunkLoc);
 
-	void LoadChunk(FVector2D chunkLoc);
+	void LoadChunk(FIntVector chunkLoc);
 	
 
 public:	
@@ -108,6 +108,11 @@ public:
 	 
 	const FNoiseParams GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;
+	AChunk* GetChunk(const FIntVector &chunkLoc) const;
 
-	bool IsIslandInChunk(FVector2D chunkLoc);
+	//Check if chunk exist, return nullptr if doesn't
+	AChunk* GetChunkSafe(const FIntVector &chunkLoc) const;
+
+	bool IsChunkLoaded(const FIntVector &chunkLoc) const;
+
 };

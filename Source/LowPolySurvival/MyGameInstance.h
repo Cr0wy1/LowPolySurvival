@@ -15,17 +15,17 @@ class UDataTable;
 class AWorldGenerator;
 
 USTRUCT(BlueprintType)
-struct LOWPOLYSURVIVAL_API FWorldInfo {
+struct LOWPOLYSURVIVAL_API FWorldParams {
 
 	GENERATED_BODY()
 
-	float blockSize = 100;
-	float chunkSize = 1000;
-	float deathZone = 0;
-	float buildHeight = 10000;
-	
-
+	static const float blockSize;
+	static const uint8 chunkSize = 16;
+	static const float deathZone;
+	static const float buildHeight;
 };
+
+
 /**
  * 
  */
@@ -59,7 +59,6 @@ protected:
 
 public:
 	
-	const FWorldInfo* worldInfo = new FWorldInfo();
 
 	virtual void Init() override;
 	void InitDataTables();
@@ -71,7 +70,6 @@ public:
 	UDataTable* GetCraftingTable() const;
 	UDataTable* GetIslandTable() const;
 	UDataTable* GetWorldGenTable() const;
-	FWorldInfo const *const GetWorldInfo() const;
 
 	AWorldGenerator* GetWorldGenerator() const;
 	
@@ -81,7 +79,7 @@ FVector WorldToBlockLocation(const FVector &worldLocation);
 FVector2D WorldToChunkLocation(const FVector &worldLocation);
 
 FVector BlockToWorldLocation(const FVector &blockLocation);
-FVector ChunkToWorldLocation(const FVector2D &chunkLocation);
+FVector ChunkToWorldLocation(const FIntVector &chunkLocation);
 
-FVector ChunkToBlockLocation(const FVector2D &chunkLocation);
-TArray<FVector2D> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation);
+FVector ChunkToBlockLocation(const FIntVector &chunkLocation);
+TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation);
