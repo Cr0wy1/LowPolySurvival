@@ -119,6 +119,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	if (inventoryManager_BP && playerHUDWidget_BP) {
 		inventoryManager = CreateWidget<UInventoryManagerWidget>(controller, inventoryManager_BP);
 		playerHUDWidget = CreateWidget<UPlayerHUDWidget>(controller, playerHUDWidget_BP);
+		
 
 		inventoryManager->Init(this, playerHUDWidget->playerQuickInv);
 		playerHUDWidget->Init(&attributeComp->GetAttributesRef(), equipmentInventoryComp);
@@ -179,6 +180,7 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 		}
 	}
 
+	controller->UpdateDebugScreen();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -280,12 +282,12 @@ void ALowPolySurvivalCharacter::OnHit(){
 
 		if (chunk) {
 			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
-			FVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction));
+			FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction * 25));
 
 			gameInstance->GetWorldGenerator()->RemoveBlock(FIntVector(blockLoc));
 			
 			DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
-			DrawDebugBox(GetWorld(), blockLoc*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
+			DrawDebugBox(GetWorld(), FVector(blockLoc)*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
 
 			
 			
@@ -317,7 +319,7 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 		
-		FVector blockCenter = WorldToBlockLocation(OUT_hitresult.ImpactPoint) * 100;
+		FVector blockCenter = FVector(WorldToBlockLocation(OUT_hitresult.ImpactPoint)) * 100 + FVector(50,50,50);
 		DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
 	}
 

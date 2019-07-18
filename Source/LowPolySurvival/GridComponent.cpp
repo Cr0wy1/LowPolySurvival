@@ -4,6 +4,7 @@
 #include "GridComponent.h"
 #include "Chunk.h"
 #include "SimplexNoise.h"
+#include "ProceduralMeshGeneratorComponent.h"
 // Sets default values for this component's properties
 UGridComponent::UGridComponent()
 {
@@ -34,11 +35,11 @@ void UGridComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 }
 
 void UGridComponent::InitGrid(){
-	grid.Init(TArray<TArray<FBlockInfo>>(), gridSize.X);
+	grid.Init(TArray<TArray<FBlockData>>(), gridSize.X);
 	for (size_t x = 0; x < gridSize.X; x++) {
-		grid[x].Init(TArray<FBlockInfo>(), gridSize.Y);
+		grid[x].Init(TArray<FBlockData>(), gridSize.Y);
 		for (size_t y = 0; y < gridSize.Y; y++) {
-			grid[x][y].Init(FBlockInfo(), gridSize.Z);
+			grid[x][y].Init(FBlockData(), gridSize.Z);
 		}
 	}
 
@@ -118,7 +119,7 @@ void UGridComponent::ApplyDiamondSquare(){
 	}
 }
 
-const TArray<TArray<TArray<FBlockInfo>>>* UGridComponent::GetGridPointer() const
+const TArray<TArray<TArray<FBlockData>>>* UGridComponent::GetGridPointer() const
 {
 	return &grid;
 }

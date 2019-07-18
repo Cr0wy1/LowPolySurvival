@@ -11,18 +11,9 @@
 class UMyGameInstance;
 class UProceduralMeshGeneratorComponent;
 class AWorldGenerator;
+class AChunkColumn;
 struct FWorldInfo;
-
-USTRUCT()
-struct LOWPOLYSURVIVAL_API FBlockInfo {
-	GENERATED_BODY()
-
-	int32 blockId = 0;
-
-	float value = 0;
-
-	FColor color = FColor::Green;
-};
+struct FBlockData;
 
 
 UCLASS()
@@ -34,16 +25,18 @@ public:
 	// Sets default values for this actor's properties
 	AChunk();
 
-	void Init(AWorldGenerator* _worldGenerator);
+	void Init(AWorldGenerator* _worldGenerator, AChunkColumn* _chunkColumn);
 
 protected:
 
+	bool bIsTerrainGenerated = false;
+
 	UMyGameInstance * gameInstance = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
-	
+	AChunkColumn* chunkColumn = nullptr;
 
-	FVector gridDim;
-	TArray<TArray<TArray<FBlockInfo>>> blockGrid;
+	FIntVector gridDim;
+	TArray<TArray<TArray<FBlockData>>> blockGrid;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Procedural Mesh")
 	UProceduralMeshGeneratorComponent* proceduralMesh;
@@ -76,13 +69,17 @@ public:
 	void Unload();
 
 	void GenerateTerrainMesh();
+	void UpdateTerrainMesh(const FIntVector &blockLocation);
 
 	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
 	void RemoveBlock(FIntVector gridLoc);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 
-	const TArray<TArray<TArray<FBlockInfo>>>* GetGridData() const;
+	const TArray<TArray<TArray<FBlockData>>>* GetGridData() const;
 	const AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
+
+	TArray<TArray<FBlockData>>& operator[](int32 index);
+	const TArray<TArray<FBlockData>>& operator[](int32 index) const;
 };

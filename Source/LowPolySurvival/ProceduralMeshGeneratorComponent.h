@@ -9,7 +9,20 @@
 
 class UGridComponent;
 class AChunk;
-struct FBlockInfo;
+struct FBlockData;
+
+
+USTRUCT()
+struct LOWPOLYSURVIVAL_API FBlockData {
+	GENERATED_BODY()
+
+	int32 blockId = 0;
+
+	float value = 0;
+
+	FColor color = FColor::Green;
+};
+
 
 
 USTRUCT()
@@ -17,13 +30,13 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 
 	GENERATED_BODY()
 
-	TArray<float, TInlineAllocator<8>> corners;
+	TArray<FBlockData, TInlineAllocator<8>> corners;
 	TArray<FColor, TInlineAllocator<8>> cornerColors;
 
 	uint8 GetCubeIndex(float surfaceLevel) const{
 		uint8 cubeIndex = 0;
 		for (size_t i = 0; i < 8; i++){
-			if (corners[i] < surfaceLevel) {
+			if (corners[i].blockId < surfaceLevel) {
 				cubeIndex |= 1 << i;
 			}
 		}
@@ -82,7 +95,7 @@ protected:
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 
 	void CreateMarchCubes(const AChunk* chunk);
-	void CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
+	void CreateMarchCubes(const TArray<TArray<TArray<FBlockData>>>& blockGrid);
 	void MarchingCubes(bool bBorderNormalsOnly = true);
 
 	void CalculateNormalsAndTangents();
@@ -95,10 +108,10 @@ public:
 	void GenerateMesh(const UGridComponent* gridComp);
 
 	void GenerateMesh(const AChunk* chunk);
-	void GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid);
+	void GenerateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid);
 
 	void UpdateMesh(const AChunk* chunk, FIntVector blockLocation);
-	void UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid, FIntVector blockLocation);
+	void UpdateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid, FIntVector blockLocation);
 
 protected:
 

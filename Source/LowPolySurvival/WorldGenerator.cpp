@@ -7,6 +7,7 @@
 #include "PlayercharController.h"
 #include "DrawDebugHelpers.h"
 #include "MyGameInstance.h"
+#include "ChunkColumn.h"
 
  
 // Sets default values
@@ -41,7 +42,7 @@ void AWorldGenerator::Tick(float DeltaTime)
 	 
 	if (playerController) { 
 		FVector playerPos(playerController->GetPawn()->GetActorLocation()); 
-		FVector2D chunkLoc = WorldToChunkLocation(playerPos); 
+		FIntVector chunkLoc = WorldToChunkLocation(playerPos);
 
 		if (chunkLoc != cPlayerChunkLoc) { 
 			cPlayerChunkLoc = chunkLoc;
@@ -55,7 +56,7 @@ void AWorldGenerator::Tick(float DeltaTime)
 
 void AWorldGenerator::OnEnterChunk(){
 
-	CheckChunks(cPlayerChunkLoc.X, cPlayerChunkLoc.Y);
+	CheckChunks(cPlayerChunkLoc);
 	
 	TArray<FIntVector> chunksToUnload;
 
@@ -71,17 +72,23 @@ void AWorldGenerator::OnEnterChunk(){
 		loadedChunks[loc]->Unload();
 		loadedChunks.Remove(loc);
 		//UE_LOG(LogTemp, Warning, TEXT("removed"));
-	}
+	} 
 
 
 	checkedChunkLocs.Empty();
 
 	//Generate Terrain Mesh for loaded Chunks
 	for (auto loadedChunk : loadedChunks) {
-		loadedChunk.Value->GenerateTerrainMesh();
+
+		FIntVector deltaRange = loadedChunk.Key - cPlayerChunkLoc;
+
+		//Check Terrainmesh < checkedRadius for mesh connection
+		if (deltaRange.X < checkedRadius && deltaRange.Y < checkedRadius && deltaRange.Z < checkedRadius) {
+			loadedChunk.Value->GenerateTerrainMesh();
+		}
+		
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("WorldGen: TMap size: %i"), loadedChunks.Num());
 
 }
 
@@ -92,6 +99,8 @@ void AWorldGenerator::OnCheckChunk(FIntVector chunkLoc){
 	if (!loadedChunks.Contains(chunkLoc)) {
 		LoadChunk(chunkLoc);
 	}
+
+
 
 	if (bDrawDebug) {
 		FVector startLoc = ChunkToWorldLocation(chunkLoc);
@@ -105,10 +114,26 @@ void AWorldGenerator::OnCheckChunk(FIntVector chunkLoc){
 
 void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 
-	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
-	newChunk->Init(this);
-	//UE_LOG(LogTemp, Warning, TEXT("LoadChunk: chunk spawned at %s"), *FVector(chunkLoc * chunkSize, 0).ToString());
+	FIntVector chunkColLoc = chunkLoc;
+	chunkColLoc.Z = 0;
+	auto findChunkCol = loadedChunkColumns.Find(chunkColLoc);
 
+	AChunkColumn* responseChunkColumn;
+
+	if (!findChunkCol) {
+		AChunkColumn* newChunkColumn = GetWorld()->SpawnActor<AChunkColumn>(AChunkColumn::StaticClass(), ChunkToWorldLocation(chunkColLoc), FRotator::ZeroRotator);
+		newChunkColumn->Init(this);
+		newChunkColumn->Create(chunkColLoc);
+
+		loadedChunkColumns.Add(chunkColLoc, newChunkColumn);
+		responseChunkColumn = newChunkColumn;
+	}
+	else {
+		responseChunkColumn = *findChunkCol;
+	}
+
+	AChunk* newChunk = GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
+	newChunk->Init(this, responseChunkColumn);
 	
 	loadedChunks.Add(chunkLoc, newChunk);
 
@@ -122,67 +147,77 @@ void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 
 	newChunk->SetTerrainMaterial(terrainMaterial);
 
-	//UE_LOG(LogTemp, Warning, TEXT("WorldGenerator: load Chunk at: %s"), *chunkLoc.ToString());
 }
 
-void AWorldGenerator::CheckChunks(int32 centerX, int32 centerY){
+void AWorldGenerator::CheckChunks(FIntVector center){
 
-	//UE_LOG(LogTemp, Warning, TEXT("CenterChunk: %s"), *(FVector(centerX, centerY, 0).ToString()));
+	int32 radius = checkedRadius * 2 + 1;
 
+	int32 dz = 0;
+	int32 zDir = -1;
+	for (int32 z = 0; z < radius; ++z){
 
-	int32 x, y, dx, dy;
-	x = y = dx = 0;
-	dy = -1;
-	int32 dim = checkedRadius * 2 + 1;
-	int32 maxI = dim * dim;
-	for (int32 i = 0; i < maxI; i++) {
+		dz += (z*zDir);
+		zDir *= -1;
 
-		//UE_LOG(LogTemp, Warning, TEXT("Spiral:(x:%i, y:%i"), (centerX + x), (centerY + y));
+		int32 x, y, dx, dy;
+		x = y = dx = 0;
+		dy = -1;
+		
+		int32 dim = radius;
+		int32 maxI = dim * dim;
+		for (int32 i = 0; i < maxI; i++) {
 
-		FIntVector chunkLoc(centerX + x, centerY + y, 0);
-		OnCheckChunk(chunkLoc);
+			FIntVector chunkLoc(center.X + x, center.Y + y, center.Z + dz);
+			OnCheckChunk(chunkLoc);
 
-		if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
-			dim = dx;
-			dx = -dy;
-			dy = dim;
+			if ((x == y) || ((x < 0) && (x == -y)) || ((x > 0) && (x == 1 - y))) {
+				dim = dx;
+				dx = -dy;
+				dy = dim;
+			}
+			x += dx;
+			y += dy;
 		}
-		x += dx;
-		y += dy;
+
+
+		
 	}
+
 	
 }
 
 void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 
+	
+	//TODO maybe Refactor
 	TArray<FIntVector> chunkBlockLocs;
 	TArray<FIntVector> chunkLocs = BlockToChunkBlockLocation(blockLocation, chunkBlockLocs);
 
-	for (size_t i = 0; i < chunkLocs.Num(); i++){
-		//UE_LOG(LogTemp, Warning, TEXT("Chunk Locations: %s"), *chunkLocs[i].ToString());
+	loadedChunks[chunkLocs[0]]->RemoveBlock(chunkBlockLocs[0]);
 
-		loadedChunks[chunkLocs[i]]->RemoveBlock(chunkBlockLocs[i]);
+	for (size_t i = 1; i < chunkLocs.Num(); i++){
+		loadedChunks[chunkLocs[i]]->UpdateTerrainMesh(chunkBlockLocs[i]);
+		
 	}
 
-	//for (auto loadedChunk : loadedChunks) {
-	//	UE_LOG(LogTemp, Warning, TEXT("loadedChunks: %s"), *loadedChunk.Key.ToString());
-
-	//}
 	 
 }
 
-float AWorldGenerator::BlockNoise(float blockX, float blockY) const{
+
+
+float AWorldGenerator::TerrainNoise(const FVector2D &loc) const{
 
 	//with Octaves
-	float noise = Noise(blockX, blockY, noiseParams);
+	float noise = Noise(loc.X, loc.Y, noiseParams);
 
 	//Apply Redistribution
 	noise = FMath::Pow(noise, noiseParams.redistribution);
 
+
 	//Apply Terraces
 	//uint32 terracesSteps = 2;
 	//noise = FMath::RoundToFloat(noise * terracesSteps) / terracesSteps;
-
 
 	return noise;
 }

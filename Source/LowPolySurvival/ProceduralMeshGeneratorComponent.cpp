@@ -19,11 +19,14 @@ UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObje
 
 
 void UProceduralMeshGeneratorComponent::GenerateMesh(const UGridComponent * gridComp){
+	if (!gridComp) return;
 	 
 	GenerateMesh(*gridComp->GetGridPointer()); 
 }
 
 void UProceduralMeshGeneratorComponent::GenerateMesh(const AChunk * chunk){
+
+	if (!chunk) return;
 
 	marchCubes.Empty();
 
@@ -31,13 +34,13 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(const AChunk * chunk){
 	gridSize = FVector(chunkGrid.Num(), chunkGrid.IsValidIndex(0) ? chunkGrid[0].Num() : 0, chunkGrid[0].IsValidIndex(0) ? chunkGrid[0][0].Num() : 0);
 
 	CreateMarchCubes(chunk);
-	UE_LOG(LogTemp, Warning, TEXT("x:%i, y:%i, z:%i"), marchCubes.Num(), marchCubes[0].Num(), marchCubes[0][0].Num());
+	//UE_LOG(LogTemp, Warning, TEXT("x:%i, y:%i, z:%i"), marchCubes.Num(), marchCubes[0].Num(), marchCubes[0][0].Num());
 
 
 	MarchingCubes(false);
 }
 
-void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
+void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid){
 
 	marchCubes.Empty();
 
@@ -53,7 +56,7 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, FIntVec
 	GenerateMesh(chunk);
 }
 
-void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid, FIntVector blockLocation) {
+void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid, FIntVector blockLocation) {
 	ClearMeshSection(0);
 
 	GenerateMesh(blockGrid);
@@ -73,7 +76,7 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 		for (size_t y = 0; y < gridSize.Y; y++) {
 			marchCubes[x][y].Init(FMarchCube(), gridSize.Z);
 			for (size_t z = 0; z < gridSize.Z; z++) {
-				marchCubes[x][y][z].corners.Init(0.0f, 8);
+				marchCubes[x][y][z].corners.Init(FBlockData(), 8);
 			}
 		}
 
@@ -83,23 +86,14 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 		for (size_t y = 0; y < gridSize.Y - 1; y++) {
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
 
-				marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z].value;
-				marchCubes[x][y][z].corners[1] = mainGrid[x + 1][y + 1][z].value;
-				marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z].value;
-				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z].value;
-				marchCubes[x][y][z].corners[4] = mainGrid[x + 1][y][z + 1].value;
-				marchCubes[x][y][z].corners[5] = mainGrid[x + 1][y + 1][z + 1].value;
-				marchCubes[x][y][z].corners[6] = mainGrid[x][y + 1][z + 1].value;
-				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1].value;
-
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x + 1][y][z].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x + 1][y + 1][z].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x][y + 1][z].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x][y][z].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x + 1][y][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x + 1][y + 1][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x][y + 1][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(mainGrid[x][y][z + 1].color);
+				marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z];
+				marchCubes[x][y][z].corners[1] = mainGrid[x + 1][y + 1][z];
+				marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z];
+				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+				marchCubes[x][y][z].corners[4] = mainGrid[x + 1][y][z + 1];
+				marchCubes[x][y][z].corners[5] = mainGrid[x + 1][y + 1][z + 1];
+				marchCubes[x][y][z].corners[6] = mainGrid[x][y + 1][z + 1];
+				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1];
 			}
 		}
 	}
@@ -113,6 +107,11 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 	AChunk* rightChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(0, 1, 0)); 
 	AChunk* forwardRightChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(1, 1, 0));
 
+	AChunk* upChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(0, 0, 1));
+	AChunk* upForwardChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(1, 0, 1));
+	AChunk* upRightChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(0, 1, 1));
+	AChunk* upForwardRightChunk = worldGenerator->GetChunkSafe(chunk->GetChunkLocation() + FIntVector(1, 1, 1));
+
 	
 	if (forwardChunk) {
 		
@@ -122,14 +121,14 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 
 		for (size_t y = 0; y < gridSize.Y - 1; y++) {
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
-				marchCubes[x][y][z].corners[0] = forwardGrid[0][y][z].value;
-				marchCubes[x][y][z].corners[1] = forwardGrid[0][y + 1][z].value;
-				marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z].value;
-				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z].value;
-				marchCubes[x][y][z].corners[4] = forwardGrid[0][y][z + 1].value;
-				marchCubes[x][y][z].corners[5] = forwardGrid[0][y + 1][z + 1].value;
-				marchCubes[x][y][z].corners[6] = mainGrid[x][y + 1][z + 1].value;
-				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1].value;
+				marchCubes[x][y][z].corners[0] = forwardGrid[0][y][z];
+				marchCubes[x][y][z].corners[1] = forwardGrid[0][y + 1][z];
+				marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z];
+				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+				marchCubes[x][y][z].corners[4] = forwardGrid[0][y][z + 1];
+				marchCubes[x][y][z].corners[5] = forwardGrid[0][y + 1][z + 1];
+				marchCubes[x][y][z].corners[6] = mainGrid[x][y + 1][z + 1];
+				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1];
 			}
 		}
 	}
@@ -142,14 +141,14 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 
 		for (size_t x = 0; x < gridSize.X - 1; x++) {
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
-				marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z].value;
-				marchCubes[x][y][z].corners[1] = rightGrid[x + 1][0][z].value;
-				marchCubes[x][y][z].corners[2] = rightGrid[x][0][z].value;
-				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z].value;
-				marchCubes[x][y][z].corners[4] = mainGrid[x + 1][y][z + 1].value;
-				marchCubes[x][y][z].corners[5] = rightGrid[x + 1][0][z + 1].value;
-				marchCubes[x][y][z].corners[6] = rightGrid[x][0][z + 1].value;
-				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1].value;
+				marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z];
+				marchCubes[x][y][z].corners[1] = rightGrid[x + 1][0][z];
+				marchCubes[x][y][z].corners[2] = rightGrid[x][0][z];
+				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+				marchCubes[x][y][z].corners[4] = mainGrid[x + 1][y][z + 1];
+				marchCubes[x][y][z].corners[5] = rightGrid[x + 1][0][z + 1];
+				marchCubes[x][y][z].corners[6] = rightGrid[x][0][z + 1];
+				marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1];
 			}
 
 		}
@@ -166,20 +165,99 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
 		
 
 		for (size_t z = 0; z < gridSize.Z - 1; z++) {
-			marchCubes[x][y][z].corners[0] = forwardGrid[0][y][z].value;
-			marchCubes[x][y][z].corners[1] = forwardRightGrid[0][0][z].value;
-			marchCubes[x][y][z].corners[2] = rightGrid[x][0][z].value;
-			marchCubes[x][y][z].corners[3] = mainGrid[x][y][z].value;
-			marchCubes[x][y][z].corners[4] = forwardGrid[0][y][z + 1].value;
-			marchCubes[x][y][z].corners[5] = forwardRightGrid[0][0][z + 1].value;
-			marchCubes[x][y][z].corners[6] = rightGrid[x][0][z + 1].value;
-			marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1].value;
+			marchCubes[x][y][z].corners[0] = forwardGrid[0][y][z];
+			marchCubes[x][y][z].corners[1] = forwardRightGrid[0][0][z];
+			marchCubes[x][y][z].corners[2] = rightGrid[x][0][z];
+			marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+			marchCubes[x][y][z].corners[4] = forwardGrid[0][y][z + 1];
+			marchCubes[x][y][z].corners[5] = forwardRightGrid[0][0][z + 1];
+			marchCubes[x][y][z].corners[6] = rightGrid[x][0][z + 1];
+			marchCubes[x][y][z].corners[7] = mainGrid[x][y][z + 1];
 		}
+	}
+
+	if (upChunk) {
+		size_t z = gridSize.Z - 1;
+		auto upGrid = *upChunk->GetGridData();
+
+		for (size_t x = 0; x < gridSize.X - 1; x++) {
+			for (size_t y = 0; y < gridSize.Y - 1; y++) {
+				marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z];
+				marchCubes[x][y][z].corners[1] = mainGrid[x + 1][y + 1][z];
+				marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z];
+				marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+				marchCubes[x][y][z].corners[4] = upGrid[x + 1][y][0];
+				marchCubes[x][y][z].corners[5] = upGrid[x + 1][y + 1][0];
+				marchCubes[x][y][z].corners[6] = upGrid[x][y + 1][0];
+				marchCubes[x][y][z].corners[7] = upGrid[x][y][0];
+			}
+		}
+
+	}
+
+	if (upForwardChunk && upChunk && forwardChunk) {
+		size_t x = gridSize.X - 1;
+		size_t z = gridSize.Z - 1;
+
+		auto forwardGrid = *forwardChunk->GetGridData();
+		auto upGrid = *upChunk->GetGridData();
+		auto upForwardGrid = *upForwardChunk->GetGridData();
+
+		for (size_t y = 0; y < gridSize.Y - 1; y++) {
+			marchCubes[x][y][z].corners[0] = forwardGrid[0][y][z];
+			marchCubes[x][y][z].corners[1] = forwardGrid[0][y + 1][z];
+			marchCubes[x][y][z].corners[2] = mainGrid[x][y + 1][z];
+			marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+			marchCubes[x][y][z].corners[4] = upForwardGrid[0][y][0];
+			marchCubes[x][y][z].corners[5] = upForwardGrid[0][y + 1][0];
+			marchCubes[x][y][z].corners[6] = upGrid[x][y + 1][0];
+			marchCubes[x][y][z].corners[7] = upGrid[x][y][0];
+		}
+
+
+	}
+
+	if (upRightChunk && rightChunk && upChunk) {
+		size_t y = gridSize.Y - 1;
+		size_t z = gridSize.Z - 1;
+
+		auto rightGrid = *rightChunk->GetGridData();
+		auto upGrid = *upChunk->GetGridData();
+		auto upRightGrid = *upRightChunk->GetGridData();
+
+		for (size_t x = 0; x < gridSize.X - 1; x++) {
+			marchCubes[x][y][z].corners[0] = mainGrid[x + 1][y][z];
+			marchCubes[x][y][z].corners[1] = rightGrid[x + 1][0][z];
+			marchCubes[x][y][z].corners[2] = rightGrid[x][0][z];
+			marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+			marchCubes[x][y][z].corners[4] = upGrid[x + 1][y][0];
+			marchCubes[x][y][z].corners[5] = upRightGrid[x + 1][0][0];
+			marchCubes[x][y][z].corners[6] = upRightGrid[x][0][0];
+			marchCubes[x][y][z].corners[7] = upGrid[x][y][0];
+		}
+
+	}
+
+	if (forwardChunk && rightChunk && upChunk && upForwardChunk && upRightChunk && forwardRightChunk && upForwardRightChunk) {
+		
+		size_t x = gridSize.X - 1;
+		size_t y = gridSize.Y - 1;
+		size_t z = gridSize.Z - 1;
+
+		marchCubes[x][y][z].corners[0] = (*forwardChunk)[0][y][z];
+		marchCubes[x][y][z].corners[1] = (*forwardRightChunk)[0][0][z];
+		marchCubes[x][y][z].corners[2] = (*rightChunk)[x][0][z];
+		marchCubes[x][y][z].corners[3] = mainGrid[x][y][z];
+		marchCubes[x][y][z].corners[4] = (*upForwardChunk)[0][y][0];
+		marchCubes[x][y][z].corners[5] = (*upForwardRightChunk)[0][0][0];
+		marchCubes[x][y][z].corners[6] = (*upRightChunk)[x][0][0];
+		marchCubes[x][y][z].corners[7] = (*upChunk)[x][y][0];
+
 	}
 
 }
 
-void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TArray<FBlockInfo>>>& blockGrid){
+void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TArray<FBlockData>>>& blockGrid){
 
 	marchCubes.Init(TArray<TArray<FMarchCube>>(), gridSize.X - 1);
 
@@ -192,23 +270,14 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TAr
 			for (size_t z = 0; z < gridSize.Z - 1; z++) {
 
 			
-				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z].value); 
-				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z + 1].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z + 1].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z + 1].value);
-				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z + 1].value);
-
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y][z].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y + 1][z].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y + 1][z].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y][z].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x + 1][y + 1][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y + 1][z + 1].color);
-				marchCubes[x][y][z].cornerColors.Add(blockGrid[x][y][z + 1].color);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z]); 
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y][z + 1]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x + 1][y + 1][z + 1]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y + 1][z + 1]);
+				marchCubes[x][y][z].corners.Add(blockGrid[x][y][z + 1]);
 
 			}
 		}
@@ -247,16 +316,7 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 				//TODO remove this
 				if (marchCubes[x][y].IsValidIndex(z) && marchCubes.IsValidIndex(x) && marchCubes[x].IsValidIndex(y)) {
 					cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
-				}
-				else {
-					UE_LOG(LogTemp, Warning, TEXT("zIndex: %i"), z);
-
-				}
-				
-				
-				if (z == 0) {
-					//DrawDebugBox(GetWorld(), BlockToWorldLocation(FVector(x, y, z) - borderSize) + FVector(50,50,50), FVector(50, 50, 50), FColor::Purple, false, 60, 0, 1);
-				}
+				}			
 				 
 				//Loop through all Vertecies in a Cube 
 				for (int32 i = triTable[cubeIndex].Num()-1; i >= 0; --i) {
@@ -267,12 +327,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 					FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z) + relEdgeCenter);
 
-						//if (bDrawDebug) {
-							if (z > 40 && z < 50) {
-								//DrawDebugBox(GetWorld(), vertex, FVector(2, 2, 2), FColor::Purple, false, 60, 0, 1); 
-							}
-							
-						//}  
 
 						int32 vertIndex = vertexArray.Add(vertex);
 						triangles.Add(vertIndex);
@@ -286,10 +340,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 						}
 
 					
-				}
-
-				if (bDrawDebug) {
-					//DrawDebugBox(GetWorld(), FVector(x, y, z)* blockSize, FVector(100, 100, 100), FColor::White, false, 30, 0, 1);
 				}
 			}
 		}
@@ -348,10 +398,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 	}
 
 	
-
-	//UE_LOG(LogTemp, Warning, TEXT("Marching Cubes: triangles:%i, Vertecies:%i"), triangles.Num(), vertexArray.Num());
-
-	//UKismetProceduralMeshLibrary::CalculateTangentsForMesh(vertexArray, triangles, UVs, normals, tangents);
 	CalculateNormalsAndTangents();
 
 	FOccluderVertexArray meshNormals;
@@ -369,15 +415,8 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 		}
 
 	}
-
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *GetComponentLocation().ToString());
-
-	//UE_LOG(LogTemp, Warning, TEXT("meshVertecies:%i, meshVertColors:%i"), meshVertexArray.Num(), vertColors.Num()); 
-
-	
 	 
 	CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), vertColors, meshTangents, true);
-
 	
 }
 

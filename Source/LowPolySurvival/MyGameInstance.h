@@ -13,6 +13,7 @@
 
 class UDataTable;
 class AWorldGenerator;
+class UDebugWidget;
 
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FWorldParams {
@@ -20,7 +21,9 @@ struct LOWPOLYSURVIVAL_API FWorldParams {
 	GENERATED_BODY()
 
 	static const float blockSize;
-	static const uint8 chunkSize = 16;
+	static const int32 chunkSize = 16;
+	static const int32 terrainBlockLevel = 20;
+	static const int32 terrainNoiseHeight = 20;
 	static const float deathZone;
 	static const float buildHeight;
 };
@@ -55,6 +58,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WorldGenerator")
 	TSubclassOf<AWorldGenerator> worldGenerator_BP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UDebugWidget> debugWidget_BP;
+	
 	AWorldGenerator* worldGenerator = nullptr;
 
 public:
@@ -73,13 +79,16 @@ public:
 
 	AWorldGenerator* GetWorldGenerator() const;
 	
+	TSubclassOf<UDebugWidget> GetDebugWidgetBP() const;
 };
 
-FVector WorldToBlockLocation(const FVector &worldLocation);
-FVector2D WorldToChunkLocation(const FVector &worldLocation);
+FIntVector WorldToBlockLocation(const FVector &worldLocation);
+FIntVector WorldToChunkLocation(const FVector &worldLocation);
 
 FVector BlockToWorldLocation(const FVector &blockLocation);
+FIntVector BlockToChunkLocation(const FIntVector &blockLocation);
+
 FVector ChunkToWorldLocation(const FIntVector &chunkLocation);
 
-FVector ChunkToBlockLocation(const FIntVector &chunkLocation);
+FIntVector ChunkToBlockLocation(const FIntVector &chunkLocation);
 TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation);

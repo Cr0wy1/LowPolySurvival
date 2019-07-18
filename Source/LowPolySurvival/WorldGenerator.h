@@ -11,6 +11,7 @@
 
 class APlayercharController;
 class AChunk;
+class AChunkColumn;
 class UMaterialInterface;
 
 
@@ -70,12 +71,14 @@ protected:
 	int32 checkedRadius = 2;
 	 
 	APlayercharController * playerController = nullptr;
-
-	FVector2D cPlayerChunkLoc = FVector2D(0.5f, 0.5f); 
+	 
+	FIntVector cPlayerChunkLoc = FIntVector(0.5f, 0.5f, 0.5f);
 	 
 	TArray<FIntVector> createdChunks;
 	TMap<FIntVector, AChunk*> loadedChunks;
 	TArray<FIntVector> checkedChunkLocs;
+
+	TMap<FIntVector, AChunkColumn*> loadedChunkColumns;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
@@ -100,11 +103,11 @@ public:
 	// Called every frame  
 	virtual void Tick(float DeltaTime) override; 
 
-	void CheckChunks(int32 centerX, int32 centerY) ;
+	void CheckChunks(FIntVector center) ;
 
 	void RemoveBlock(FIntVector blockLocation);
 
-	float BlockNoise(float blockX, float blockY) const;
+	float TerrainNoise(const FVector2D &loc) const;
 	 
 	const FNoiseParams GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;

@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
+#include "DebugWidget.h"
 
 const float FWorldParams::blockSize = 100.0f;
 const float FWorldParams::deathZone = 0.0f;
@@ -96,26 +97,32 @@ AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
 	return worldGenerator;
 }
 
-FVector WorldToBlockLocation(const FVector & worldLocation){
+TSubclassOf<UDebugWidget> UMyGameInstance::GetDebugWidgetBP() const
+{
+	return debugWidget_BP;
+}
+
+FIntVector WorldToBlockLocation(const FVector & worldLocation){
 
 	FVector result = worldLocation / FWorldParams::blockSize;
 	result.X = FMath::FloorToFloat(result.X);
 	result.Y = FMath::FloorToFloat(result.Y);
 	result.Z = FMath::FloorToFloat(result.Z);
 
-	return result;
+	return FIntVector(result);
 }  
 
-FVector2D WorldToChunkLocation(const FVector & worldLocation){ 
+FIntVector WorldToChunkLocation(const FVector & worldLocation){
 
-	FVector2D result = FVector2D(worldLocation / (FWorldParams::blockSize*FWorldParams::chunkSize) );
+	FVector result = FVector(worldLocation / (FWorldParams::blockSize*FWorldParams::chunkSize) );
 	result.X = FMath::FloorToFloat(result.X); 
 	result.Y = FMath::FloorToFloat(result.Y);
+	result.Z = FMath::FloorToFloat(result.Z);
 
 	//UE_LOG(LogTemp, Warning, TEXT("worldLocation: %s, ChunkLocation: %s"), *worldLocation.ToCompactString(), *result.ToString());
 
 
-	return result;
+	return FIntVector(result);
 }
 
 FVector BlockToWorldLocation(const FVector & blockLocation){
@@ -123,44 +130,86 @@ FVector BlockToWorldLocation(const FVector & blockLocation){
 	return blockLocation * FWorldParams::blockSize;
 }
 
+FIntVector BlockToChunkLocation(const FIntVector & blockLocation){
+
+	FIntVector result;
+	FVector floatLoc(blockLocation);
+
+	floatLoc /= FWorldParams::chunkSize;
+
+	result.X = FMath::FloorToInt(floatLoc.X);
+	result.Y = FMath::FloorToInt(floatLoc.Y);
+	result.Z = FMath::FloorToInt(floatLoc.Z);
+
+	return result;
+}
+
 FVector ChunkToWorldLocation(const FIntVector & chunkLocation){
 
 	return FVector(chunkLocation * FWorldParams::blockSize*FWorldParams::chunkSize);
 }
 
-FVector ChunkToBlockLocation(const FIntVector & chunkLocation){
+FIntVector ChunkToBlockLocation(const FIntVector & chunkLocation){
 
-	return FVector(chunkLocation * FWorldParams::chunkSize);
+	return FIntVector(chunkLocation * FWorldParams::chunkSize);
 }
 
 TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation) {
 
 	TArray<FIntVector> result;
 
-	FIntVector chunkLoc(FVector(blockLocation) / FWorldParams::chunkSize);
-	chunkLoc.X = FMath::FloorToFloat(chunkLoc.X);
-	chunkLoc.Y = FMath::FloorToFloat(chunkLoc.Y);
-	chunkLoc.Z = 0;
+	FIntVector chunkLoc = BlockToChunkLocation(blockLocation);
 
-	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z);
+	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z % FWorldParams::chunkSize);
+
+	chunkBlockLoc.X += chunkBlockLoc.X < 0 ? FWorldParams::chunkSize : 0;
+	chunkBlockLoc.Y += chunkBlockLoc.Y < 0 ? FWorldParams::chunkSize : 0;
+	chunkBlockLoc.Z += chunkBlockLoc.Z < 0 ? FWorldParams::chunkSize : 0;
 
 	result.Add(chunkLoc);
 	OUT_chunkBlockLocation.Add(chunkBlockLoc);
 
-	if (chunkBlockLoc.X == 0) {
-		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y, 0) );
+	bool bXAtEdge = chunkBlockLoc.X == 0;
+	bool bYAtEdge = chunkBlockLoc.Y == 0;
+	bool bZAtEdge = chunkBlockLoc.Z == 0;
+
+	if (bXAtEdge) {
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y, chunkLoc.Z) );
 		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize-1, chunkBlockLoc.Y, chunkBlockLoc.Z));
 	}
 
-	if (chunkBlockLoc.Y == 0) {
-		result.Add(FIntVector(chunkLoc.X, chunkLoc.Y - 1, 0));
+	if (bYAtEdge) {
+		result.Add(FIntVector(chunkLoc.X, chunkLoc.Y - 1, chunkLoc.Z));
 		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, FWorldParams::chunkSize-1, chunkBlockLoc.Z));
 	}
-	
-	if (result.Num() == 3) {
-		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y - 1, 0));
-		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize-1, FWorldParams::chunkSize-1, chunkBlockLoc.Z));
+
+	if (bZAtEdge) {
+		result.Add(FIntVector(chunkLoc.X, chunkLoc.Y, chunkLoc.Z - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, chunkBlockLoc.Y, FWorldParams::chunkSize - 1));
 	}
+
+	if (bXAtEdge && bYAtEdge) {
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y - 1, chunkLoc.Z));
+		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize - 1, FWorldParams::chunkSize - 1, chunkBlockLoc.Z));
+	}
+
+	if (bXAtEdge && bZAtEdge) {
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y, chunkLoc.Z - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize - 1, chunkBlockLoc.Y, FWorldParams::chunkSize - 1));
+	}
+
+	if (bYAtEdge && bZAtEdge) {
+		result.Add(FIntVector(chunkLoc.X, chunkLoc.Y - 1, chunkLoc.Z - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(chunkBlockLoc.X, FWorldParams::chunkSize - 1, FWorldParams::chunkSize - 1));
+	}
+
+	if (bXAtEdge && bYAtEdge && bZAtEdge) {
+		result.Add(FIntVector(chunkLoc.X - 1, chunkLoc.Y - 1, chunkLoc.Z - 1));
+		OUT_chunkBlockLocation.Add(FIntVector(FWorldParams::chunkSize - 1, FWorldParams::chunkSize - 1, FWorldParams::chunkSize - 1));
+	}
+
+	
+
 
 	return result;
 } 
