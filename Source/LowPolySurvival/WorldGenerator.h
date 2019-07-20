@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
 #include "SimplexNoise.h"
+#include "GameStructs.h"
 #include "WorldGenerator.generated.h"
 
 
@@ -14,15 +15,6 @@ class AChunk;
 class AChunkColumn;
 class UMaterialInterface;
 
-
-UENUM(BlueprintType)
-enum class EBiome : uint8 {
-	GRASS,
-	FOREST,
-	SAND,
-	HILLS,
-
-};
 
 
 USTRUCT(BlueprintType)
@@ -47,8 +39,7 @@ USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FGenerationParams {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float surfaceLevel = 0.2f;
+
 
 };
 
@@ -67,8 +58,8 @@ protected:
 	bool bDrawDebug = false;
 
 	
-
-	int32 checkedRadius = 2;
+	int32 checkedRadiusZ = 2;
+	int32 checkedRadiusXY = 4; 
 	 
 	APlayercharController * playerController = nullptr;
 	 
@@ -83,6 +74,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FNoiseParams noiseParams;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	FNoiseParams caveNoiseParams;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FGenerationParams generationParams;
@@ -105,9 +99,11 @@ public:
 
 	void CheckChunks(FIntVector center) ;
 
+	void PlaceBlock(FIntVector blockLocation, const FBlockData &blockData);
 	void RemoveBlock(FIntVector blockLocation);
 
 	float TerrainNoise(const FVector2D &loc) const;
+	float CaveNoise(const FVector &loc) const;
 	 
 	const FNoiseParams GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;
@@ -115,6 +111,7 @@ public:
 
 	//Check if chunk exist, return nullptr if doesn't
 	AChunk* GetChunkSafe(const FIntVector &chunkLoc) const;
+	int32 GetLoadedChunksNum() const;
 
 	bool IsChunkLoaded(const FIntVector &chunkLoc) const;
 

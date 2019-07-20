@@ -14,7 +14,7 @@
 #include "ChunkColumn.h"
 
 
-
+ 
 // Sets default values
 AChunk::AChunk()
 {
@@ -134,18 +134,53 @@ void AChunk::ApplyNoiseOnGrid(){
 
 	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
 
-	for (size_t x = 0; x < blockGrid.Num(); x++) {
-		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
+
+	for (int32 x = 0; x < gridDim.X; x++) {
+		for (int32 y = 0; y < gridDim.Y; y++) {
 
 			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
-			int32 maxZ = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
+			int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
+			int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
 
-			for (int32 z = 0; z < maxZ; z++) {
-				blockGrid[x][y][z].blockId = 1;
+			for (int32 z = 0; z < maxZInChunk; z++) {
+
+				int32 blockZ = blockLoc.Z + z;
+
+				if (blockZ == 0) {
+					blockGrid[x][y][z].blockId = 1;
+				}else if (blockZ < (maxZ - 2)) {
+					blockGrid[x][y][z].blockId = 2;
+				}
+				else{
+					blockGrid[x][y][z].blockId = 3;
+				}
+				
 			}
 
 
 		}
+	}
+	 
+	AddNoiseCaves();
+}
+
+void AChunk::AddNoiseCaves(){
+
+	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
+	float caveNoiseLevel = 0.2f;
+
+	for (int32 x = 0; x < gridDim.X; x++) {
+		for (int32 y = 0; y < gridDim.Y; y++) {
+			for (int32 z = 0; z < gridDim.Z; z++) {
+
+				float noise = worldGenerator->CaveNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
+
+				if (noise < caveNoiseLevel) { 
+					blockGrid[x][y][z].blockId = 0;
+				}
+			}
+		} 
 	}
 }
 
@@ -190,28 +225,16 @@ void AChunk::UpdateTerrainMesh(const FIntVector &blockLocation){
 	proceduralMesh->UpdateMesh(this, blockLocation);
 }
 
-void AChunk::RemoveBlock(int32 gridX, int32 gridY, int32 gridZ){
-
-	if (gridX > -1 && gridY > -1 && gridZ > -1 && gridX <= gridDim.X && gridY <= gridDim.Y && gridZ <= gridDim.Z) {
-
-		blockGrid[gridX][gridY][gridZ] = FBlockData();
-
-	}
-
-	proceduralMesh->UpdateMesh(this, FIntVector(gridX,gridY,gridZ));
-}
-
-void AChunk::RemoveBlock(FIntVector gridLoc){
-
+void AChunk::SetBlock(FIntVector gridLoc, const FBlockData &blockData){
 	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
 
-		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z] = FBlockData();
+		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z] = blockData;
 
 	}
-
 
 	proceduralMesh->UpdateMesh(this, gridLoc);
 }
+
 
 void AChunk::SetTerrainMaterial(UMaterialInterface * material){
 	proceduralMesh->SetMaterial(0, material);

@@ -384,6 +384,21 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 		currentInteractionBuilding = building;
 		building->Interact(this);
 	}
+
+	AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+
+	if (chunk) {
+		//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
+		FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint - (direction * 25));
+
+		gameInstance->GetWorldGenerator()->PlaceBlock(FIntVector(blockLoc), FBlockData(2));
+
+		DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
+		DrawDebugBox(GetWorld(), FVector(blockLoc) * 100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
+
+
+
+	}
 	
 }
 

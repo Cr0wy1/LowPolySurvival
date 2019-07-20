@@ -8,6 +8,7 @@
 
 
 
+class UMyGameInstance;
 class UDebugWidget;
 /**
  * 
@@ -19,6 +20,8 @@ class LOWPOLYSURVIVAL_API APlayercharController : public APlayerController
 	
 
 protected:
+
+	UMyGameInstance * gameInstance = nullptr;
 
 	UDebugWidget * debugWidget = nullptr;
 

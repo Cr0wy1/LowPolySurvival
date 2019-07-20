@@ -18,7 +18,7 @@ struct LOWPOLYSURVIVAL_API FDebugInfo {
 	GENERATED_BODY()
 
 	FVector playerLocation;
-	
+	int32 loadedChunks;
 };
 
 
@@ -40,6 +40,12 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* playerChunkLocText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* loadedChunksText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* loadedBlocksText;
 
 	void Update(const FDebugInfo &debugInfo);
 	

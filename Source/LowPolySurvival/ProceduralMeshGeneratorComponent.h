@@ -4,25 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "ProceduralMeshComponent.h"
+#include "GameStructs.h"
+#include "HAL/Runnable.h"
 #include "ProceduralMeshGeneratorComponent.generated.h"
 
 
 class UGridComponent;
 class AChunk;
-struct FBlockData;
 
 
 USTRUCT()
-struct LOWPOLYSURVIVAL_API FBlockData {
+struct LOWPOLYSURVIVAL_API FProcMeshData {
+
 	GENERATED_BODY()
 
-	int32 blockId = 0;
+	FOccluderVertexArray vertexArray;
+	TArray<int32> triangles;
+	TArray<FVector2D> UVs;
+	FOccluderVertexArray normals;
+	TArray<FProcMeshTangent> tangents;
+	TArray<FColor> vertColors;
 
-	float value = 0;
-
-	FColor color = FColor::Green;
+	bool bIsReady = false;
 };
-
 
 
 USTRUCT()
@@ -32,6 +36,21 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 
 	TArray<FBlockData, TInlineAllocator<8>> corners;
 	TArray<FColor, TInlineAllocator<8>> cornerColors;
+
+	TArray<TArray<uint8>> edgeCorners = {
+		{ 0,1 },
+		{ 2,1 },
+		{ 3,2 },
+		{ 3,0 },
+		{ 4,5 },
+		{ 6,5 },
+		{ 7,6 },
+		{ 7,4 },
+		{ 0,4 },
+		{ 1,5 },
+		{ 2,6 },
+		{ 3,7 },
+	};
 
 	uint8 GetCubeIndex(float surfaceLevel) const{
 		uint8 cubeIndex = 0;
@@ -43,15 +62,47 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 		return cubeIndex;
 	}
 
-	FColor GetColor() const{
-		TMap<FColor, int32> colorCount;
-
-		for (size_t i = 0; i < cornerColors.Num(); i++){
-
+	FLinearColor GetColorFromBlockId(int32 blockId) const {
+		
+		if (blockId == 1) {
+			return FColor::Black;
 		}
-		 
-		return FColor();
+		else if (blockId == 2) {
+			return FColor(139, 69, 19);
+		}
+		else if (blockId == 3) {
+			return FColor::Green;
+		}
+
+		return FColor::Purple;
 	}
+
+	FLinearColor GetEdgeColor(uint8 edgeIndex) const{
+
+		uint8 cornerIndex1 = edgeCorners[edgeIndex][0];
+		uint8 cornerIndex2 = edgeCorners[edgeIndex][1];
+
+		const FBlockData* corner1 = &corners[cornerIndex1];
+		const FBlockData* corner2 = &corners[cornerIndex2];
+
+		FLinearColor finalColor;
+
+		if (corner1->blockId != 0) {
+			finalColor = GetColorFromBlockId(corner1->blockId);
+
+			if (corner2->blockId != 0) {
+				FLinearColor color2 = GetColorFromBlockId(corner2->blockId);
+				finalColor = FLinearColor::LerpUsingHSV(finalColor, color2, 0.5f);
+			}
+		}
+		else {
+			finalColor = GetColorFromBlockId(corner2->blockId);
+		}
+		
+		return finalColor;
+	}
+
+
 };
 /**
  * 
@@ -63,6 +114,8 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 
 
 protected:
+
+	
 
 	FOccluderVertexArray vertexArray;
 	TArray<int32> triangles;
@@ -76,6 +129,8 @@ protected:
 	FOccluderVertexArray meshVertexArray;
 	TArray<int32> meshTriangles;
 	TArray<FVector2D> meshUV;
+
+	bool bIsMeshGenerated = false;
 
 	float blockSize = 100;
 
@@ -94,13 +149,25 @@ protected:
 
 	TArray<TArray<TArray<FMarchCube>>> marchCubes;
 
-	void CreateMarchCubes(const AChunk* chunk);
-	void CreateMarchCubes(const TArray<TArray<TArray<FBlockData>>>& blockGrid);
-	void MarchingCubes(bool bBorderNormalsOnly = true);
+	void BeginPlay();
 
-	void CalculateNormalsAndTangents();
+	
+	void CreateMarchCubes(const TArray<TArray<TArray<FBlockData>>>& blockGrid);
+	
+
+	void CreateMesh(bool bBorderNormalsOnly);
+
+	
+
+	
 
 public:
+
+	FProcMeshData procMeshData;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	TQueue<FProcMeshData> procQueue;
 
 	UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer);
 	
@@ -112,6 +179,12 @@ public:
 
 	void UpdateMesh(const AChunk* chunk, FIntVector blockLocation);
 	void UpdateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid, FIntVector blockLocation);
+
+	void MarchingCubes(bool bBorderNormalsOnly = true);
+	void CreateMarchCubes(const AChunk* chunk);
+	
+
+	static void CalculateNormalsAndTangents(FProcMeshData &procMeshData);
 
 protected:
 
@@ -390,18 +463,24 @@ protected:
 		FVector(-0.5,-0.5, 0.0),
 	};
 
-	TArray<TArray<uint8>> edgeCorners = {
-		{ 0,1 },
-		{ 2,1 },
-		{ 3,2 },
-		{ 3,0 },
-		{ 4,5 },
-		{ 6,5 },
-		{ 7,6 },
-		{ 7,4 },
-		{ 0,4 },
-		{ 1,5 },
-		{ 2,6 },
-		{ 3,7 },
-	};
+
+};
+
+class ProcMeshTask : public FNonAbandonableTask {
+
+	
+	UProceduralMeshGeneratorComponent* meshGenerator;
+	const AChunk * chunk;
+
+public:
+	ProcMeshTask(UProceduralMeshGeneratorComponent* _meshGenerator, const AChunk * _chunk);
+	~ProcMeshTask();
+
+	void DoWork();
+
+
+	FORCEINLINE TStatId GetStatId() const { 
+		RETURN_QUICK_DECLARE_CYCLE_STAT(ExampleAutoDeleteAsyncTask, STATGROUP_ThreadPoolAsyncTasks); 
+	}
+
 };

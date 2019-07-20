@@ -8,6 +8,7 @@
 #include "DrawDebugHelpers.h"
 #include "MyGameInstance.h"
 #include "ChunkColumn.h"
+#include "Queue.h"
 
  
 // Sets default values
@@ -29,7 +30,7 @@ void AWorldGenerator::BeginPlay()
 	//Random Seed
 	FMath::RandInit(0);
 
-
+	
 }
   
 
@@ -83,7 +84,7 @@ void AWorldGenerator::OnEnterChunk(){
 		FIntVector deltaRange = loadedChunk.Key - cPlayerChunkLoc;
 
 		//Check Terrainmesh < checkedRadius for mesh connection
-		if (deltaRange.X < checkedRadius && deltaRange.Y < checkedRadius && deltaRange.Z < checkedRadius) {
+		if (deltaRange.X < checkedRadiusXY && deltaRange.Y < checkedRadiusXY && deltaRange.Z < checkedRadiusZ) {
 			loadedChunk.Value->GenerateTerrainMesh();
 		}
 		
@@ -151,11 +152,12 @@ void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 
 void AWorldGenerator::CheckChunks(FIntVector center){
 
-	int32 radius = checkedRadius * 2 + 1;
+	int32 radiusXY = checkedRadiusXY * 2 + 1;
+	int32 radiusZ = checkedRadiusZ * 2 + 1;
 
 	int32 dz = 0;
 	int32 zDir = -1;
-	for (int32 z = 0; z < radius; ++z){
+	for (int32 z = 0; z < radiusZ; ++z){
 
 		dz += (z*zDir);
 		zDir *= -1;
@@ -164,7 +166,7 @@ void AWorldGenerator::CheckChunks(FIntVector center){
 		x = y = dx = 0;
 		dy = -1;
 		
-		int32 dim = radius;
+		int32 dim = radiusXY;
 		int32 maxI = dim * dim;
 		for (int32 i = 0; i < maxI; i++) {
 
@@ -187,21 +189,24 @@ void AWorldGenerator::CheckChunks(FIntVector center){
 	
 }
 
-void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
+void AWorldGenerator::PlaceBlock(FIntVector blockLocation, const FBlockData & blockData){
 
-	
 	//TODO maybe Refactor
 	TArray<FIntVector> chunkBlockLocs;
 	TArray<FIntVector> chunkLocs = BlockToChunkBlockLocation(blockLocation, chunkBlockLocs);
 
-	loadedChunks[chunkLocs[0]]->RemoveBlock(chunkBlockLocs[0]);
+	loadedChunks[chunkLocs[0]]->SetBlock(chunkBlockLocs[0], blockData);
 
-	for (size_t i = 1; i < chunkLocs.Num(); i++){
+	for (size_t i = 1; i < chunkLocs.Num(); i++) {
 		loadedChunks[chunkLocs[i]]->UpdateTerrainMesh(chunkBlockLocs[i]);
-		
+
 	}
 
-	 
+}
+
+void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
+
+	PlaceBlock(blockLocation, FBlockData());
 }
 
 
@@ -222,6 +227,13 @@ float AWorldGenerator::TerrainNoise(const FVector2D &loc) const{
 	return noise;
 }
 
+float AWorldGenerator::CaveNoise(const FVector & loc) const{
+
+	float noise = Noise3D(loc.X, loc.Y, loc.Z, caveNoiseParams);
+	
+	return noise;
+}
+
 const FNoiseParams AWorldGenerator::GetNoiseParams() const{
 	return noiseParams;
 }
@@ -237,6 +249,12 @@ AChunk * AWorldGenerator::GetChunk(const FIntVector & chunkLoc) const{
 AChunk * AWorldGenerator::GetChunkSafe(const FIntVector & chunkLoc) const{
 	AChunk *const* findChunk = loadedChunks.Find(chunkLoc);
 	return findChunk ? *findChunk : nullptr;
+}
+
+int32 AWorldGenerator::GetLoadedChunksNum() const
+{
+	
+	return loadedChunks.Num();
 }
 
 bool AWorldGenerator::IsChunkLoaded(const FIntVector & chunkLoc) const{

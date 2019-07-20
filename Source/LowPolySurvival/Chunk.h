@@ -16,11 +16,17 @@ struct FWorldInfo;
 struct FBlockData;
 
 
+
+
 UCLASS()
 class LOWPOLYSURVIVAL_API AChunk : public AActor
 {
 	GENERATED_BODY()
-	
+
+private:
+	//Development
+	bool bDrawDebug = false;
+
 public:	
 	// Sets default values for this actor's properties
 	AChunk();
@@ -50,11 +56,12 @@ protected:
 
 	void TopDownTrace();
 
-	//Development
-	bool bDrawDebug = true;
+
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();
+
+	void AddNoiseCaves();
 
 public:	
 
@@ -71,8 +78,7 @@ public:
 	void GenerateTerrainMesh();
 	void UpdateTerrainMesh(const FIntVector &blockLocation);
 
-	void RemoveBlock(int32 gridX, int32 gridY, int32 gridZ);
-	void RemoveBlock(FIntVector gridLoc);
+	void SetBlock(FIntVector gridLoc, const FBlockData &blockData);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 

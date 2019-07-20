@@ -11,6 +11,7 @@ USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FNoiseParams {
 	GENERATED_BODY()
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 octaves = 6;
 

@@ -3,12 +3,13 @@
 #include "PlayercharController.h"
 #include "DebugWidget.h"
 #include "MyGameInstance.h"
+#include "WorldGenerator.h"
 
 
 void APlayercharController::BeginPlay() {
 	Super::BeginPlay();
 
-	UMyGameInstance* gameInstance = GetGameInstance<UMyGameInstance>();
+	gameInstance = GetGameInstance<UMyGameInstance>();
 
 	if (gameInstance->GetDebugWidgetBP()) {
 		debugWidget = CreateWidget<UDebugWidget>(this, gameInstance->GetDebugWidgetBP());
@@ -49,6 +50,7 @@ void APlayercharController::UpdateDebugScreen(){
 
 	FDebugInfo debugInfo;
 	debugInfo.playerLocation = GetPawn()->GetActorLocation();
+	debugInfo.loadedChunks = gameInstance->GetWorldGenerator()->GetLoadedChunksNum();
 
 	if (debugWidget) {
 		debugWidget->Update(debugInfo);
