@@ -15,7 +15,7 @@ const float FWorldParams::buildHeight = 10000.0f;
 
 void UMyGameInstance::Init(){
 	Super::Init();
-
+	
 	if (!itemDataTable || !craftingDataTable || !dropsDataTable) {
 		UE_LOG(LogTemp, Error, TEXT("MyGameInstance: Missing DataTable"));
 	}

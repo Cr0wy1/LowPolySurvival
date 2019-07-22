@@ -10,6 +10,7 @@
 
 class UMyGameInstance;
 class UDebugWidget;
+class UEscapeMenuWidget;
 /**
  * 
  */
@@ -24,6 +25,7 @@ protected:
 	UMyGameInstance * gameInstance = nullptr;
 
 	UDebugWidget * debugWidget = nullptr;
+	UEscapeMenuWidget* escapeMenuWidget = nullptr;
 
 	virtual void BeginPlay() override;
 
@@ -31,6 +33,7 @@ protected:
 
 	virtual void SetupInputComponent() override;
 	void OnToggleDebugScreen();
+	void OnEscapeMenuPressed();
 	
 	
 public:

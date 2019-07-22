@@ -26,6 +26,15 @@ struct LOWPOLYSURVIVAL_API FProcMeshData {
 	TArray<FColor> vertColors;
 
 	bool bIsReady = false;
+
+	void Reset() {
+		vertexArray.Reset();
+		triangles.Reset();
+		UVs.Reset();
+		normals.Reset();
+		tangents.Reset();
+		vertColors.Reset();
+	}
 };
 
 
@@ -52,10 +61,10 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 		{ 3,7 },
 	};
 
-	uint8 GetCubeIndex(float surfaceLevel) const{
+	uint8 GetCubeIndex() const{
 		uint8 cubeIndex = 0;
 		for (size_t i = 0; i < 8; i++){
-			if (corners[i].blockId < surfaceLevel) {
+			if (corners[i].blockId < 1) {
 				cubeIndex |= 1 << i;
 			}
 		}
@@ -115,14 +124,6 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 
 protected:
 
-	
-
-	FOccluderVertexArray vertexArray;
-	TArray<int32> triangles;
-	TArray<FVector2D> UVs;
-	FOccluderVertexArray normals;
-	TArray<FProcMeshTangent> tangents;
-	TArray<FColor> vertColors;
 	TArray<int32> borderVertexIndecies;
 
 	//For calculate normals and tangents
@@ -136,9 +137,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 	FVector gridSize = { 7,7,7 };
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
-	float surfaceLevel = 0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marching Cube")
 		float offset = 0.1;
@@ -177,7 +175,7 @@ public:
 	void GenerateMesh(const AChunk* chunk);
 	void GenerateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid);
 
-	void UpdateMesh(const AChunk* chunk, FIntVector blockLocation);
+	void UpdateMesh(const AChunk* chunk, const FIntVector &chunkBlockLoc);
 	void UpdateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid, FIntVector blockLocation);
 
 	void MarchingCubes(bool bBorderNormalsOnly = true);
@@ -471,9 +469,10 @@ class ProcMeshTask : public FNonAbandonableTask {
 	
 	UProceduralMeshGeneratorComponent* meshGenerator;
 	const AChunk * chunk;
+	bool bUpdateOnly = false;
 
 public:
-	ProcMeshTask(UProceduralMeshGeneratorComponent* _meshGenerator, const AChunk * _chunk);
+	ProcMeshTask(UProceduralMeshGeneratorComponent* _meshGenerator, const AChunk * _chunk, bool _bUpdateOnly);
 	~ProcMeshTask();
 
 	void DoWork();

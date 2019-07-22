@@ -206,7 +206,7 @@ void AWorldGenerator::PlaceBlock(FIntVector blockLocation, const FBlockData & bl
 
 void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 
-	PlaceBlock(blockLocation, FBlockData());
+	PlaceBlock(blockLocation, FBlockData(0));
 }
 
 

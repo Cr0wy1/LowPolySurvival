@@ -38,9 +38,9 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(const AChunk * chunk){
 
 	if (!chunk) return;
 
-
-	marchCubes.Empty();
-
+	procMeshData.bIsReady = false;
+	bIsMeshGenerated = false;
+	 
 	auto chunkGrid = *chunk->GetGridData();
 	gridSize = FVector(chunkGrid.Num(), chunkGrid.IsValidIndex(0) ? chunkGrid[0].Num() : 0, chunkGrid[0].IsValidIndex(0) ? chunkGrid[0][0].Num() : 0);
 
@@ -61,10 +61,34 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(const TArray<TArray<TArray<
 	MarchingCubes();
 }
 
-void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, FIntVector blockLocation){
-	ClearMeshSection(0);
+void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const FIntVector &chunkBlockLoc){
+	
+	UE_LOG(LogTemp, Warning, TEXT("MarchCubesNum: %i"), marchCubes[0][0][0].corners.Num());
+	
 
-	GenerateMesh(chunk);
+	procMeshData.bIsReady = false;
+	bIsMeshGenerated = false;
+
+	int32 x = chunkBlockLoc.X;
+	int32 y = chunkBlockLoc.Y;
+	int32 z = chunkBlockLoc.Z;
+
+	FBlockData blockData = chunk->GetBlock(chunkBlockLoc);
+	
+
+
+	//marchCubes[x-1][y][z].corners[0] = blockData;
+	//marchCubes[x-1][y-1][z].corners[1] = blockData;
+	//marchCubes[x][y-1][z].corners[2] = blockData; 
+	//marchCubes[x][y][z].corners[3] = blockData;
+	//marchCubes[x-1][y][z-1].corners[4] = blockData;
+	//marchCubes[x-1][y-1][z-1].corners[5] = blockData;
+	//marchCubes[x][y-1][z-1].corners[6] = blockData;
+	//marchCubes[x][y][z-1].corners[7] = blockData;
+
+	(new FAutoDeleteAsyncTask<ProcMeshTask>(this, chunk))->StartBackgroundTask();
+
+	//GenerateMesh(chunk);
 }
 
 void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid, FIntVector blockLocation) {
@@ -76,6 +100,8 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const TArray<TArray<TArray<FB
 
 
 void UProceduralMeshGeneratorComponent::CreateMarchCubes(const AChunk * chunk){
+
+	marchCubes.Reset();
 
 	auto mainGrid = *chunk->GetGridData();
 
@@ -298,35 +324,26 @@ void UProceduralMeshGeneratorComponent::CreateMarchCubes(const TArray<TArray<TAr
 
 void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
+	procMeshData.Reset();
+
 	//TArray<FVector> uniqueVertex;
-	vertexArray.Empty();
-	triangles.Empty();
 	meshVertexArray.Empty();
 	meshTriangles.Empty();
 
-	normals.Empty();
-	tangents.Empty();
-	vertColors.Empty();
 	borderVertexIndecies.Empty();
 	 
-
 	int32 borderSize = bBorderNormalsOnly ? 1 : 0;
 	FVector cubeGridSize = FVector(marchCubes.Num(), marchCubes.IsValidIndex(0) ? marchCubes[0].Num() : 0, marchCubes[0].IsValidIndex(0) ? marchCubes[0][0].Num() : 0);
-
-	
 
 	//loop through cubeGrid without border
 	for (size_t x = borderSize; x < cubeGridSize.X - borderSize; x++) {
 		for (size_t y = borderSize; y < cubeGridSize.Y - borderSize; y++) {
-
-
-			
 			for (size_t z = 0; z < cubeGridSize.Z; z++) {
 				uint8 cubeIndex = 0;
 
 				//TODO remove this
 				if (marchCubes[x][y].IsValidIndex(z) && marchCubes.IsValidIndex(x) && marchCubes[x].IsValidIndex(y)) {
-					cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
+					cubeIndex = marchCubes[x][y][z].GetCubeIndex();
 				}			
 				 
 				//Loop through all Vertecies in a Cube 
@@ -350,8 +367,6 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 				}
 			}
 		}
-
-		
 	}
 
 	
@@ -368,7 +383,7 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 						uint8 cubeIndex = 0;
 						if (marchCubes[x][y].IsValidIndex(z)) {
-							cubeIndex = marchCubes[x][y][z].GetCubeIndex(surfaceLevel);
+							cubeIndex = marchCubes[x][y][z].GetCubeIndex();
 						}
 						else {
 							UE_LOG(LogTemp, Warning, TEXT("zIndex: %i"), z);
@@ -384,13 +399,13 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 
 							FVector vertex = BlockToWorldLocation(FVector(x - borderSize, y - borderSize, z)  + relEdgeCenter);
 
-							uint32 vertIndex = vertexArray.Add(vertex);
-							triangles.Add(vertIndex);
+							uint32 vertIndex = procMeshData.vertexArray.Add(vertex);
+							procMeshData.triangles.Add(vertIndex);
 
 							if (meshVertexArray.Contains(vertex)) {
 								meshVertexArray.Add(vertex);
 								
-								vertColors.Add(FColor::White);
+								procMeshData.vertColors.Add(FColor::White);
 							}
 							else {
 								borderVertexIndecies.Add(vertIndex);
@@ -415,11 +430,11 @@ void UProceduralMeshGeneratorComponent::CreateMesh(bool bBorderNormalsOnly){
 		FOccluderVertexArray meshNormals;
 		TArray<FProcMeshTangent> meshTangents;
 
-		for (size_t i = 0; i < vertexArray.Num(); i++) {
+		for (size_t i = 0; i < procMeshData.vertexArray.Num(); i++) {
 
 			if (!borderVertexIndecies.Contains(i)) {
-				meshNormals.Add(normals[i]);
-				meshTangents.Add(tangents[i]);
+				meshNormals.Add(procMeshData.normals[i]);
+				meshTangents.Add(procMeshData.tangents[i]);
 
 
 				//Draw Normals
@@ -428,12 +443,15 @@ void UProceduralMeshGeneratorComponent::CreateMesh(bool bBorderNormalsOnly){
 
 		}
 
-		CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), vertColors, meshTangents, true);
+		ClearMeshSection(0);
+		CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), procMeshData.vertColors, meshTangents, true);
 	}
 	else {
+		ClearMeshSection(0);
 		CreateMeshSection(0, procMeshData.vertexArray, procMeshData.triangles, procMeshData.normals, TArray<FVector2D>(), procMeshData.vertColors, procMeshData.tangents, true);
 	}
 
+	bIsMeshGenerated = true;
 }
 
 
@@ -622,7 +640,7 @@ void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTic
 
 	if (procMeshData.bIsReady && !bIsMeshGenerated) {
 		CreateMesh(false);
-		bIsMeshGenerated = true;
+		
 	}
 }
 
@@ -630,9 +648,10 @@ void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTic
 
 //##########################################################
 //################### ProcMeshTask #########################
-ProcMeshTask::ProcMeshTask(UProceduralMeshGeneratorComponent* _meshGenerator, const AChunk * _chunk){
+ProcMeshTask::ProcMeshTask(UProceduralMeshGeneratorComponent* _meshGenerator, const AChunk * _chunk, bool _bUpdateOnly = false){
 	meshGenerator = _meshGenerator;
 	chunk = _chunk;
+	bUpdateOnly = _bUpdateOnly;
 }
 
 ProcMeshTask::~ProcMeshTask(){
@@ -640,7 +659,10 @@ ProcMeshTask::~ProcMeshTask(){
 }
 
 void ProcMeshTask::DoWork(){
-	meshGenerator->CreateMarchCubes(chunk);
+	if (!bUpdateOnly) {
+		meshGenerator->CreateMarchCubes(chunk);
+	}
+	
 	meshGenerator->MarchingCubes(false);
 	meshGenerator->procMeshData.bIsReady = true;
 	//UE_LOG(LogTemp, Warning, TEXT("ProcMeshTask: DoWork!"));

@@ -4,6 +4,7 @@
 #include "DebugWidget.h"
 #include "MyGameInstance.h"
 #include "WorldGenerator.h"
+#include "EscapeMenuWidget.h"
 
 
 void APlayercharController::BeginPlay() {
@@ -23,6 +24,9 @@ void APlayercharController::SetupInputComponent() {
 	Super::SetupInputComponent();
 
 	InputComponent->BindAction("ToggleDebugScreen", IE_Pressed, this, &APlayercharController::OnToggleDebugScreen);
+	InputComponent->BindAction("EscapeMenu", IE_Pressed, this, &APlayercharController::OnEscapeMenuPressed);
+
+	
 
 }
 
@@ -37,6 +41,14 @@ void APlayercharController::OnToggleDebugScreen(){
 
 	UE_LOG(LogTemp, Warning, TEXT("DebugScreenShown: %i"), bIsDebugScreenShown);
 
+}
+
+void APlayercharController::OnEscapeMenuPressed(){
+	if (escapeMenuWidget) {
+		escapeMenuWidget->OpenUI();
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("EscapeMenu"), bIsDebugScreenShown);
 }
 
 void APlayercharController::CenterMouse() {

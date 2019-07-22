@@ -76,16 +76,20 @@ public:
 	void Unload();
 
 	void GenerateTerrainMesh();
-	void UpdateTerrainMesh(const FIntVector &blockLocation);
+	void UpdateTerrainMesh(const FIntVector &chunkBlockLoc);
 
 	void SetBlock(FIntVector gridLoc, const FBlockData &blockData);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 
+	const FBlockData& GetBlock(const FIntVector &chunkBlockLoc) const;
 	const TArray<TArray<TArray<FBlockData>>>* GetGridData() const;
 	const AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
 
 	TArray<TArray<FBlockData>>& operator[](int32 index);
 	const TArray<TArray<FBlockData>>& operator[](int32 index) const;
+
+	FBlockData& operator[](const FIntVector &chunkBlockLoc);
+	const FBlockData& operator[](const FIntVector &chunkBlockLoc) const;
 };

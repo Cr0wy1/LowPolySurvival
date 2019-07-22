@@ -9,7 +9,7 @@ USimplexNoise::USimplexNoise() {
 }
 
 USimplexNoise::USimplexNoise(const FObjectInitializer& ObjectInitializer) {
-
+	
 }
 
 

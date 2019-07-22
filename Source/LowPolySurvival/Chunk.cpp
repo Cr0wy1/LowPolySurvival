@@ -221,8 +221,8 @@ void AChunk::GenerateTerrainMesh(){
 	
 }
 
-void AChunk::UpdateTerrainMesh(const FIntVector &blockLocation){
-	proceduralMesh->UpdateMesh(this, blockLocation);
+void AChunk::UpdateTerrainMesh(const FIntVector &chunkBlockLoc){
+	proceduralMesh->UpdateMesh(this, chunkBlockLoc);
 }
 
 void AChunk::SetBlock(FIntVector gridLoc, const FBlockData &blockData){
@@ -238,6 +238,11 @@ void AChunk::SetBlock(FIntVector gridLoc, const FBlockData &blockData){
 
 void AChunk::SetTerrainMaterial(UMaterialInterface * material){
 	proceduralMesh->SetMaterial(0, material);
+}
+
+const FBlockData& AChunk::GetBlock(const FIntVector &chunkBlockLoc) const
+{
+	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
 }
 
 const TArray<TArray<TArray<FBlockData>>>* AChunk::GetGridData() const{
@@ -258,5 +263,13 @@ TArray<TArray<FBlockData>>& AChunk::operator[](int32 index){
 
 const TArray<TArray<FBlockData>>& AChunk::operator[](int32 index) const{
 	return blockGrid[index];
+}
+
+FBlockData& AChunk::operator[](const FIntVector & chunkBlockLoc){
+	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
+}
+
+const FBlockData& AChunk::operator[](const FIntVector & chunkBlockLoc) const{
+	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
 }
 
