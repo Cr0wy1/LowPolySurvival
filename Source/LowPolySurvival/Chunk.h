@@ -14,6 +14,7 @@ class AWorldGenerator;
 class AChunkColumn;
 struct FWorldInfo;
 struct FBlockData;
+struct FBlock;
 
 
 
@@ -42,7 +43,7 @@ protected:
 	AChunkColumn* chunkColumn = nullptr;
 
 	FIntVector gridDim;
-	TArray<TArray<TArray<FBlockData>>> blockGrid;
+	TArray<TArray<TArray<FBlock>>> blockGrid;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Procedural Mesh")
 	UProceduralMeshGeneratorComponent* proceduralMesh;
@@ -54,14 +55,17 @@ protected:
 
 	void InitBlockGrid();
 
-	void TopDownTrace();
+	void TopDownTrace(const FIntVector &blockLoc);
 
 
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();
-
 	void AddNoiseCaves();
+	void AddNoiseOres();
+
+	UFUNCTION()
+	void OnGeneratedMesh();
 
 public:	
 
@@ -78,18 +82,21 @@ public:
 	void GenerateTerrainMesh();
 	void UpdateTerrainMesh(const FIntVector &chunkBlockLoc);
 
+	void HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer);
 	void SetBlock(FIntVector gridLoc, const FBlockData &blockData);
+	void SetBlockUnsafe(FIntVector gridLoc, const FBlockData &blockData);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 
-	const FBlockData& GetBlock(const FIntVector &chunkBlockLoc) const;
-	const TArray<TArray<TArray<FBlockData>>>* GetGridData() const;
+	const FBlock& GetBlock(const FIntVector &chunkBlockLoc) const;
+	const FBlock& GetBlock(const FVector &worldLoc) const;
+	const TArray<TArray<TArray<FBlock>>>* GetGridData() const;
 	const AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
 
-	TArray<TArray<FBlockData>>& operator[](int32 index);
-	const TArray<TArray<FBlockData>>& operator[](int32 index) const;
+	TArray<TArray<FBlock>>& operator[](int32 index);
+	const TArray<TArray<FBlock>>& operator[](int32 index) const;
 
-	FBlockData& operator[](const FIntVector &chunkBlockLoc);
-	const FBlockData& operator[](const FIntVector &chunkBlockLoc) const;
+	FBlock& operator[](const FIntVector &chunkBlockLoc);
+	const FBlock& operator[](const FIntVector &chunkBlockLoc) const;
 };

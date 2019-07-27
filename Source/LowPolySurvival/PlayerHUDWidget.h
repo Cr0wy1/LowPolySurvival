@@ -17,6 +17,7 @@ class UTextBlock;
 class UPanelWidget;
 struct FAttributes;
 struct FBuildingInfo;
+struct FBlock;
 /**
  * 
  */
@@ -60,6 +61,7 @@ public:
 	void UpdateArmor();
 
 	void UpdateTargetIndicator(const FBuildingInfo &targetInfo);
+	void UpdateTargetIndicator(const FBlock &targetInfo);
 	void ShowTargetIndicator();
 	void HideTargetIndicator();
 

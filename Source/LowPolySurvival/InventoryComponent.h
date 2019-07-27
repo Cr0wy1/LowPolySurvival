@@ -62,7 +62,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	
+	bool AddNewStack(FItemStack itemstack);
 	bool AddStack(FItemStack &itemstack);
 	bool AddStack(int32 slotIndex, FItemStack &itemstack, int32 amount = -1);
 

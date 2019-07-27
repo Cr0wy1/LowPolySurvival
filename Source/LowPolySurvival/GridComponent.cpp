@@ -35,11 +35,11 @@ void UGridComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 }
 
 void UGridComponent::InitGrid(){
-	grid.Init(TArray<TArray<FBlockData>>(), gridSize.X);
+	grid.Init(TArray<TArray<float>>(), gridSize.X);
 	for (size_t x = 0; x < gridSize.X; x++) {
-		grid[x].Init(TArray<FBlockData>(), gridSize.Y);
+		grid[x].Init(TArray<float>(), gridSize.Y);
 		for (size_t y = 0; y < gridSize.Y; y++) {
-			grid[x][y].Init(FBlockData(), gridSize.Z);
+			grid[x][y].Init(float(), gridSize.Z);
 		}
 	}
 
@@ -50,7 +50,7 @@ void UGridComponent::RandomizeGrid() {
 		for (size_t y = 0; y < gridSize.Y; y++) {
 			float rand = (float)(FMath::Rand() % 100) / 100.0f;
 			for (size_t z = 0; z < gridSize.Z; z++) {
-				grid[x][y][z].value = rand;
+				grid[x][y][z] = rand;
 
 			}
 		}
@@ -66,7 +66,7 @@ void UGridComponent::ApplySimplexNoise2D(){
 			uint16 noiseHeight = noise * gridSize.Z;
 
 			for (size_t z = 0; z < noiseHeight; z++) {
-				grid[x][y][z].value = noise;
+				grid[x][y][z] = noise;
 
 			}
 		}
@@ -85,7 +85,7 @@ void UGridComponent::ApplySimplexNoise3D(){
 
 			float noise = Noise3D(x, y, z, noiseParams)  * ((float)z / mid.Z) * (1-distance/mid.X);
 
-			grid[x][y][z].value = noise;
+			grid[x][y][z] = noise;
 
 			}
 		}
@@ -109,7 +109,7 @@ void UGridComponent::ApplyDiamondSquare(){
 				uint16 midX = x + (squareSize / 2.0f)-1;
 				uint16 midY = y + (squareSize / 2.0f)-1;
 
-				float cornersValue = grid[x][y][0].value + grid[cornerX][y][0].value + grid[x][cornerY][0].value + grid[cornerX][cornerY][0].value;
+				float cornersValue = grid[x][y][0] + grid[cornerX][y][0] + grid[x][cornerY][0] + grid[cornerX][cornerY][0];
 
 				
 			
@@ -119,7 +119,7 @@ void UGridComponent::ApplyDiamondSquare(){
 	}
 }
 
-const TArray<TArray<TArray<FBlockData>>>* UGridComponent::GetGridPointer() const
+const TArray<TArray<TArray<float>>>* UGridComponent::GetGridPointer() const
 {
 	return &grid;
 }

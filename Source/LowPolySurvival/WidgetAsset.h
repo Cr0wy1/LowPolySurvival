@@ -25,5 +25,6 @@ public:
 	TSubclassOf<UDebugWidget> debugWidget_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UDebugWidget> escapeMenuWidget_BP;
+	TSubclassOf<UEscapeMenuWidget> escapeMenuWidget_BP;
 };
+ 

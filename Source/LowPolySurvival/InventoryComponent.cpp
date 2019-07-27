@@ -56,6 +56,11 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 }
 
 
+bool UInventoryComponent::AddNewStack(FItemStack itemstack){
+
+	return AddStack(itemstack);
+}
+
 bool UInventoryComponent::AddStack(FItemStack &itemstack) {
 	
 

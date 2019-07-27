@@ -11,6 +11,7 @@
 #include "Buildings.h"
 #include "TextBlock.h"
 #include "PanelWidget.h"
+#include "GameStructs.h"
 
 void UPlayerHUDWidget::Init(FAttributes * attributes, UInventoryComponent* _equipInventoryComp){
 	playerAttributes = attributes;
@@ -56,6 +57,14 @@ void UPlayerHUDWidget::UpdateArmor(){
 void UPlayerHUDWidget::UpdateTargetIndicator(const FBuildingInfo &targetInfo){
 	damageIndicatorProgress->SetPercent((float)targetInfo.currentDurability / (float)targetInfo.itemInfo->durability);
 	nameIndicatorText->SetText(FText::FromName(targetInfo.itemInfo->name));
+}
+
+void UPlayerHUDWidget::UpdateTargetIndicator(const FBlock & targetInfo){
+	if (targetInfo.IsValid()) {
+		damageIndicatorProgress->SetPercent((float)targetInfo.durability / (float)targetInfo.resource->hardness);
+		nameIndicatorText->SetText(FText::FromName(targetInfo.resource->name));
+	}
+
 }
 
 void UPlayerHUDWidget::ShowTargetIndicator(){

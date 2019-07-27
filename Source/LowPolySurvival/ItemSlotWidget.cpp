@@ -64,6 +64,7 @@ void UItemSlotWidget::OnUnhovered() {
 }
 
 void UItemSlotWidget::OnSelected(){
+
 	if (slotSelectedIcon) {
 		rootButton->WidgetStyle.Normal.SetResourceObject(slotSelectedIcon);
 		rootButton->WidgetStyle.Normal.TintColor = FSlateColor(FColor::White);

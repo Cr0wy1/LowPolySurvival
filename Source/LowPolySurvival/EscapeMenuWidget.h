@@ -14,4 +14,8 @@ class LOWPOLYSURVIVAL_API UEscapeMenuWidget : public UUIWidget
 {
 	GENERATED_BODY()
 	
+
+public:
+
+	FReply NativeOnPreviewKeyDown(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent) override;
 };

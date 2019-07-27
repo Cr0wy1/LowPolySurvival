@@ -175,120 +175,41 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	GENERATED_BODY()
 
 	FItemInfo* itemInfo = nullptr;
+	FResource* resourceInfo = nullptr;
 	int32 amount = 0;
 
-	FItemStack(){}
+	FItemStack();
 
-	FItemStack(FItemInfo* _itemInfo, int32 _amount = 1) : itemInfo(_itemInfo), amount(_amount){
+	FItemStack(FItemInfo* _itemInfo, int32 _amount = 1);
 
-	}
+	bool isEmpty() const;
 
-	bool isEmpty() const{
-		return (amount <= 0);
-	}
+	bool CompareIds(FItemStack &otherStack) const;
 
-	bool CompareIds(FItemStack &otherStack) const{
-		return itemInfo == otherStack.itemInfo;
-	}
+	void Clear();
 
-	void Clear() {
-		itemInfo = nullptr;
-		amount = 0;
-	}
+	bool Fill(FItemStack &otherStack);
 
-	bool Fill(FItemStack &otherStack) {
+	void Swap(FItemStack &otherStack);
 
-		if (CompareIds(otherStack)) {
-
-			int32 tempAmount = amount + otherStack.amount;
-
-			if (tempAmount > itemInfo->stacksize) {
-				amount = itemInfo->stacksize;
-				otherStack.amount = tempAmount - itemInfo->stacksize;
-
-				return false;
-			}
-			else {
-				amount = tempAmount;
-				otherStack.Clear();
-
-				return true;
-			}
-
-		}
-
-		return false;
-	}
-
-	void Swap(FItemStack &otherStack) {
-		FItemStack tempStack;
-		tempStack = *this;
-		*this = otherStack;
-		otherStack = tempStack;
-	}
-
-	FString ToString() const{
-		FString strId = itemInfo ? FString::FromInt(itemInfo->itemid) : "nullptr";
-		FString str = "ItemStack(id:" + strId + ", amount:" + FString::FromInt(amount) + ")";
-		return str;
-	}
+	FString ToString() const;
 
 	//return how many Items removed
-	int32 Remove(int32 itemsAmount = 1) {
-		
-		amount -= itemsAmount;
+	int32 Remove(int32 itemsAmount = 1);
 
-		if (amount < 1) {
-			itemsAmount += amount;
-			Clear();
-		}
+	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1);
 
-		return itemsAmount;
-	}
+	void PullHalf(FItemStack &otherStack);
 
-	void PullTo(FItemStack &otherStack, int32 itemsAmount = 1) {
-		//if (GetItemId() == otherStack.GetItemId()) {
-		if (otherStack.isEmpty() || otherStack.amount < otherStack.itemInfo->stacksize) {
+	FItemStack& Set(FItemStack &otherStack);
 
-			if (itemsAmount > amount) {
-				itemsAmount = amount;
-			}
-			amount -= itemsAmount;
-			otherStack.amount += itemsAmount;
-			otherStack.itemInfo = itemInfo;
+	FItemStack& Set(FItemInfo* _itemInfo, int32 _amount = 1);
 
-			if (amount < 1) {
-				Clear();
-			}
-		}
-	}
+	int32 GetItemId() const;
 
-	void PullHalf(FItemStack &otherStack) {
-		int32 half = FMath::CeilToInt((float)amount / 2.0f);
-		PullTo(otherStack, half);
-	}
+	bool IsValid() const;
 
-	FItemStack& Set(FItemStack &otherStack) {
-		itemInfo = otherStack.itemInfo;
-		amount = otherStack.amount;
-		return *this;
-	}
-
-	FItemStack& Set(FItemInfo* _itemInfo, int32 _amount = 1) {
-		itemInfo = _itemInfo;
-		amount = _amount;
-		return *this;
-	}
-
-	int32 GetItemId() const {
-		return itemInfo ? itemInfo->itemid : 0;
-	}
-
-	bool IsValid() const {
-		return itemInfo && amount > 0;
-	}
-
-	
+	static FItemStack FromId(AActor* owner, int32 id, int32 amount = 1);
 
 };
 

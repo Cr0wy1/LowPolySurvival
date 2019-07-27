@@ -33,7 +33,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
 	FVector gridSize;
 
-	TArray<TArray<TArray<FBlockData>>> grid;
+	TArray<TArray<TArray<float>>> grid;
 
 public:	
 	// Called every frame
@@ -54,5 +54,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ApplyDiamondSquare();
 
-	const TArray<TArray<TArray<FBlockData>>>* GetGridPointer() const;
+	const TArray<TArray<TArray<float>>>* GetGridPointer() const;
 };

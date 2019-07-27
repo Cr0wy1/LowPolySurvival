@@ -138,9 +138,9 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	
 }
 
-void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack){
+void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack, bool bIsNew){
 
-	inventoryComp->AddStack(itemstack);
+	bIsNew ? inventoryComp->AddNewStack(itemstack) : inventoryComp->AddStack(itemstack);
 
 }
 
@@ -173,6 +173,12 @@ void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 		ABuildings* targetBuilding = Cast<ABuildings>(cCrosshairTraceResult.GetActor());
 		if (targetBuilding) {
 			playerHUDWidget->UpdateTargetIndicator(targetBuilding->info);
+			playerHUDWidget->ShowTargetIndicator();
+		}
+		else if (Cast<AChunk>(cCrosshairTraceResult.GetActor())) {
+			AChunk* chunk = Cast<AChunk>(cCrosshairTraceResult.GetActor());
+
+			playerHUDWidget->UpdateTargetIndicator(chunk->GetBlock(cCrosshairTraceResult.ImpactPoint));
 			playerHUDWidget->ShowTargetIndicator();
 		}
 		else {
@@ -284,7 +290,13 @@ void ALowPolySurvivalCharacter::OnHit(){
 			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
 			FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction * 25));
 
-			gameInstance->GetWorldGenerator()->RemoveBlock(FIntVector(blockLoc));
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc), 100, this);
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0,0,1), 100, this);
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 1, 0), 100, this);
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(1, 0, 0), 100, this);
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 0, -1), 100, this);
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, -1, 0), 100, this);  
+			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(-1, 0, 0), 100, this);
 			
 			DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
 			DrawDebugBox(GetWorld(), FVector(blockLoc)*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
@@ -470,13 +482,16 @@ void ALowPolySurvivalCharacter::OnUpdateHandStack(){
 
 	placementComp->DeactivatePlacement();
 
-	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
-		if (rightHandStack->itemInfo->bCanPlace) {
-			placementComp->ActivatePlacement(rightHandStack->itemInfo);
+	if (rightHandStack && rightHandStack->IsValid()) {
+		if (rightHandStack->itemInfo->buildingTemplate_BP) {
+			if (rightHandStack->itemInfo->bCanPlace) {
+				placementComp->ActivatePlacement(rightHandStack->itemInfo);
+			}
 		}
+
 	}
 
-	UpdateMeshRightHand();
+	UpdateMeshRightHand(); 
 }
 
 bool ALowPolySurvivalCharacter::GetIsInHitAnimation() const{
@@ -498,19 +513,21 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 	meshRightHand->SetVisibility(false);
 	
-	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->buildingTemplate_BP) {
+	if (rightHandStack && rightHandStack->IsValid() && rightHandStack->itemInfo->bCanHold) {
 
-		ABuildings* itemBuilding = rightHandStack->itemInfo->buildingTemplate_BP->GetDefaultObject<ABuildings>();
-
-		if (rightHandStack->itemInfo->bCanHold) {
+		if (rightHandStack->itemInfo->buildingTemplate_BP) {
+			ABuildings* itemBuilding = rightHandStack->itemInfo->buildingTemplate_BP->GetDefaultObject<ABuildings>();
 			armActor->SetInHandMesh(itemBuilding->GetStaticMesh());
+		}
+		else if (rightHandStack->itemInfo->mesh) {
+			armActor->SetInHandMesh(rightHandStack->itemInfo->mesh);
 		}
 		else {
 			armActor->RemoveInHandMesh();
 		}
 
-	}
-	else {
+		
+	}else {
 		//UE_LOG(LogTemp, Warning, TEXT("UpdateMeshRightHand: itemBuidling not found!"));
 		armActor->RemoveInHandMesh();
 	}

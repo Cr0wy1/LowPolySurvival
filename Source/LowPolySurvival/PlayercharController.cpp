@@ -5,16 +5,23 @@
 #include "MyGameInstance.h"
 #include "WorldGenerator.h"
 #include "EscapeMenuWidget.h"
+#include "WidgetAsset.h" 
 
 
 void APlayercharController::BeginPlay() {
 	Super::BeginPlay();
 
 	gameInstance = GetGameInstance<UMyGameInstance>();
+	UWidgetAsset* widgetAsset_A = gameInstance->GetWidgetAsset();
 
-	if (gameInstance->GetDebugWidgetBP()) {
-		debugWidget = CreateWidget<UDebugWidget>(this, gameInstance->GetDebugWidgetBP());
+	if (widgetAsset_A->debugWidget_BP) {
+		debugWidget = CreateWidget<UDebugWidget>(this, widgetAsset_A->debugWidget_BP);
 		debugWidget->AddToPlayerScreen();
+	}
+
+	if (widgetAsset_A->escapeMenuWidget_BP) {
+		escapeMenuWidget = CreateWidget<UEscapeMenuWidget>(this, widgetAsset_A->escapeMenuWidget_BP);
+		escapeMenuWidget->AddToPlayerScreen();
 	}
 
 }
@@ -25,8 +32,6 @@ void APlayercharController::SetupInputComponent() {
 
 	InputComponent->BindAction("ToggleDebugScreen", IE_Pressed, this, &APlayercharController::OnToggleDebugScreen);
 	InputComponent->BindAction("EscapeMenu", IE_Pressed, this, &APlayercharController::OnEscapeMenuPressed);
-
-	
 
 }
 

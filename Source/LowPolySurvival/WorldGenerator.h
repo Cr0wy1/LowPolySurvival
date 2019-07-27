@@ -16,34 +16,6 @@ class AChunkColumn;
 class UMaterialInterface;
 
 
-
-USTRUCT(BlueprintType)
-struct LOWPOLYSURVIVAL_API FWorldGenInfo : public FTableRowBase {
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 id = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AActor> Plant_BP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EBiome biome = EBiome::GRASS;
-};
-
-
-
-
-
-USTRUCT(BlueprintType)
-struct LOWPOLYSURVIVAL_API FGenerationParams {
-	GENERATED_BODY()
-
-
-
-};
-
-
 UCLASS()
 class LOWPOLYSURVIVAL_API AWorldGenerator : public AActor
 {
@@ -59,7 +31,7 @@ protected:
 
 	
 	int32 checkedRadiusZ = 2;
-	int32 checkedRadiusXY = 4; 
+	int32 checkedRadiusXY = 2; 
 	 
 	APlayercharController * playerController = nullptr;
 	 
@@ -77,6 +49,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FNoiseParams caveNoiseParams;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	FNoiseParams oreNoiseParams;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FGenerationParams generationParams;
@@ -100,10 +75,12 @@ public:
 	void CheckChunks(FIntVector center) ;
 
 	void PlaceBlock(FIntVector blockLocation, const FBlockData &blockData);
+	void HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
 	void RemoveBlock(FIntVector blockLocation);
 
 	float TerrainNoise(const FVector2D &loc) const;
 	float CaveNoise(const FVector &loc) const;
+	float OreNoise(const FVector &loc) const;
 	 
 	const FNoiseParams GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;

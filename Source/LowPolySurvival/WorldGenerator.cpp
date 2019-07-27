@@ -162,6 +162,11 @@ void AWorldGenerator::CheckChunks(FIntVector center){
 		dz += (z*zDir);
 		zDir *= -1;
 
+		//Continue loop if Z under deathZone, chunks not getting generated under deathZone
+		if (center.Z + dz < FWorldParams::deathZone) {
+			continue;
+		}
+
 		int32 x, y, dx, dy;
 		x = y = dx = 0;
 		dy = -1;
@@ -204,6 +209,13 @@ void AWorldGenerator::PlaceBlock(FIntVector blockLocation, const FBlockData & bl
 
 }
 
+void AWorldGenerator::HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer){
+	FIntVector chunkBlockLoc;
+	FIntVector chunkLoc = BlockToChunkBlockLocation(blockLocation, chunkBlockLoc);
+
+	loadedChunks[chunkLoc]->HitBlock(chunkBlockLoc, damageAmount, causer);
+}
+
 void AWorldGenerator::RemoveBlock(FIntVector blockLocation){
 
 	PlaceBlock(blockLocation, FBlockData(0));
@@ -231,6 +243,12 @@ float AWorldGenerator::CaveNoise(const FVector & loc) const{
 
 	float noise = Noise3D(loc.X, loc.Y, loc.Z, caveNoiseParams);
 	
+	return noise;
+}
+
+float AWorldGenerator::OreNoise(const FVector & loc) const{
+	float noise = Noise3D(loc.X * 2, loc.Y * 2, loc.Z * 2, oreNoiseParams);
+
 	return noise;
 }
 

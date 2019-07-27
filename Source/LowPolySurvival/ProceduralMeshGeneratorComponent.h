@@ -9,6 +9,9 @@
 #include "ProceduralMeshGeneratorComponent.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGeneratedMesh);
+
+
 class UGridComponent;
 class AChunk;
 
@@ -97,15 +100,15 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 		FLinearColor finalColor;
 
 		if (corner1->blockId != 0) {
-			finalColor = GetColorFromBlockId(corner1->blockId);
+			finalColor = corner1->color;
 
 			if (corner2->blockId != 0) {
-				FLinearColor color2 = GetColorFromBlockId(corner2->blockId);
+				FLinearColor color2 = corner2->color;
 				finalColor = FLinearColor::LerpUsingHSV(finalColor, color2, 0.5f);
 			}
 		}
 		else {
-			finalColor = GetColorFromBlockId(corner2->blockId);
+			finalColor = corner2->color;
 		}
 		
 		return finalColor;
@@ -161,6 +164,8 @@ protected:
 
 public:
 
+	FOnGeneratedMesh onGeneratedMesh;
+
 	FProcMeshData procMeshData;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -168,9 +173,7 @@ public:
 	TQueue<FProcMeshData> procQueue;
 
 	UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer);
-	
-	UFUNCTION(BlueprintCallable, Category = "MeshGeneration")
-	void GenerateMesh(const UGridComponent* gridComp);
+
 
 	void GenerateMesh(const AChunk* chunk);
 	void GenerateMesh(const TArray<TArray<TArray<FBlockData>>>& blockGrid);

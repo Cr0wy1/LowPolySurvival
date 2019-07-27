@@ -183,7 +183,7 @@ public:
 
 	bool CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction);
 
-	void AddItemStackToInventory(FItemStack &itemstack);
+	void AddItemStackToInventory(FItemStack &itemstack, bool bIsNew = false);
 
 	void OpenInventory(ALogistic* logistic);
 

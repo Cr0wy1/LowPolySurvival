@@ -13,7 +13,7 @@
 
 class UDataTable;
 class AWorldGenerator;
-class UDebugWidget;
+class UWidgetAsset;
 
 
 
@@ -57,11 +57,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable * worldGenDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
+	UDataTable * resourceDataTable;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WorldGenerator")
 	TSubclassOf<AWorldGenerator> worldGenerator_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UDebugWidget> debugWidget_BP;
+	UWidgetAsset* widgetAsset_A;
 	
 	AWorldGenerator* worldGenerator = nullptr;
 
@@ -78,10 +81,11 @@ public:
 	UDataTable* GetCraftingTable() const;
 	UDataTable* GetIslandTable() const;
 	UDataTable* GetWorldGenTable() const;
+	UDataTable* GetResourceTable() const;
 
 	AWorldGenerator* GetWorldGenerator() const;
+	UWidgetAsset* GetWidgetAsset() const;
 	
-	TSubclassOf<UDebugWidget> GetDebugWidgetBP() const;
 };
 
 FIntVector WorldToBlockLocation(const FVector &worldLocation);
@@ -93,4 +97,6 @@ FIntVector BlockToChunkLocation(const FIntVector &blockLocation);
 FVector ChunkToWorldLocation(const FIntVector &chunkLocation);
 
 FIntVector ChunkToBlockLocation(const FIntVector &chunkLocation);
+
+FIntVector BlockToChunkBlockLocation(const FIntVector &blockLocation, FIntVector &OUT_chunkBlockLocation);
 TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation);

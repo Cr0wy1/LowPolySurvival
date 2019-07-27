@@ -1,18 +1,22 @@
-,itemid,name,stacksize,type,typeindex,texture,mesh,buildingTemplate_BP,dropType,durability,damage,armor,bCanHold,bCanPlace
-0,0,Missing Id,0,BLOCK,0,error,error,PartTemplate_BP_C,NONE,99999,0,0,0,0
-1,1,Pickaxe,1,TOOL,1,Pickaxe,pickaxe01,Pickaxe_BP_C,SELF,50,1,0,1,0
-2,2,Log,16,BLOCK,0,log,log_01,Log_BP_C,SELF,10,0,0,0,1
-3,3,Leather Helm,1,ARMOR,1,helm_leather,helm_leather,LeatherHelm_BP_C,SELF,80,0,3,1,1
-4,4,Leather Chest,1,ARMOR,2,chest_leather,chest_leather,LeatherChest_BP_C,SELF,100,0,6,1,1
-5,5,Leather Pants,1,ARMOR,3,pants_leather,pants_leather,LeatherPants_BP_C,SELF,70,0,5,1,1
-6,6,Leather Boots,1,ARMOR,4,boots_leather,boots_leather,LeatherBoots_BP_C,SELF,50,0,2,1,1
-7,7,Chest,4,BLOCK,0,chest,chest_body01,Chest_BP_C,SELF,200,0,0,0,1
-8,8,Grass,60,BLOCK,1,grass,grass_01,Grass_BP_C,NONE,1,0,0,0,1
-9,9,Blow Flower,60,BLOCK,2,blow_flower,blowFlower,BlowFlower_BP_C,SELF,1,0,0,1,1
-10,10,Axe,1,TOOL,2,Axe,axe,Axe_BP_C,SELF,50,1,0,1,0
-11,11,Floor Frame,20,BLOCK,0,FloorFrame01,FloorFrame01,FloorFrame01_BP_C,SELF,100,0,0,0,1
-12,12,Wood Part,20,BLOCK,0,part_wood,part_wood,PartTemplate_BP_C,SELF,100,0,0,0,1
-13,13,Stone Part,20,BLOCK,0,part_stonebricks,part_stonebricks,PartTemplate_BP_C,SELF,300,0,0,0,1
-14,14,Spruce Tree,1,BLOCK,0,part_wood,SpruceTree001,SpruceTree_BP_C,FROMTABLE,500,0,0,0,1
-15,15,Campfire,1,BLOCK,0,campfire,campfire,Campfire_BP_C,SELF,100,0,0,0,1
-16,16,Torch,16,BLOCK,0,torch,torch,Torch_BP_C,SELF,10,0,0,1,1
+---,itemid,name,stacksize,type,typeindex,texture,mesh,buildingTemplate_BP,dropType,durability,damage,armor,bCanHold,bCanPlace
+0,"0","Missing Id","0","BLOCK","0","Texture2D'/Game/Items/Textures/error.error'","StaticMesh'/Game/Meshes/error.error'","BlueprintGeneratedClass'/Game/Buildings/PartTemplate_BP.PartTemplate_BP_C'","NONE","99999","0","0","False","False"
+1,"1","Pickaxe","1","TOOL","1","Texture2D'/Game/Items/Textures/Pickaxe.Pickaxe'","StaticMesh'/Game/Meshes/Tools/pickaxe01.pickaxe01'","BlueprintGeneratedClass'/Game/Items/Pickaxe_BP.Pickaxe_BP_C'","SELF","50","1","0","True","False"
+2,"2","Log","16","BLOCK","0","Texture2D'/Game/Items/Textures/log.log'","StaticMesh'/Game/Meshes/Log/log_01.log_01'","BlueprintGeneratedClass'/Game/Buildings/Log_BP.Log_BP_C'","SELF","10","0","0","False","True"
+3,"3","Leather Helm","1","ARMOR","1","Texture2D'/Game/Items/Textures/helm_leather.helm_leather'","StaticMesh'/Game/Meshes/Armor/helm_leather.helm_leather'","None","SELF","80","0","3","True","True"
+4,"4","Leather Chest","1","ARMOR","2","Texture2D'/Game/Items/Textures/chest_leather.chest_leather'","StaticMesh'/Game/Meshes/Armor/chest_leather.chest_leather'","None","SELF","100","0","6","True","True"
+5,"5","Leather Pants","1","ARMOR","3","Texture2D'/Game/Items/Textures/pants_leather.pants_leather'","StaticMesh'/Game/Meshes/Armor/pants_leather.pants_leather'","None","SELF","70","0","5","True","True"
+6,"6","Leather Boots","1","ARMOR","4","Texture2D'/Game/Items/Textures/boots_leather.boots_leather'","StaticMesh'/Game/Meshes/Armor/boots_leather.boots_leather'","None","SELF","50","0","2","True","True"
+7,"7","Chest","4","BLOCK","0","Texture2D'/Game/Items/Textures/chest.chest'","StaticMesh'/Game/Meshes/Chest/chest_body01.chest_body01'","BlueprintGeneratedClass'/Game/Buildings/Chest_BP.Chest_BP_C'","SELF","200","0","0","False","True"
+8,"8","Grass","60","BLOCK","1","Texture2D'/Game/Items/Textures/grass.grass'","StaticMesh'/Game/Meshes/Gras/grass_01.grass_01'","BlueprintGeneratedClass'/Game/Buildings/Grass_BP.Grass_BP_C'","NONE","1","0","0","False","True"
+9,"9","Blow Flower","60","BLOCK","2","Texture2D'/Game/Items/Textures/blow_flower.blow_flower'","StaticMesh'/Game/Meshes/Flowers/blowFlower.blowFlower'","BlueprintGeneratedClass'/Game/Buildings/Flower_BP.Flower_BP_C'","SELF","1","0","0","True","True"
+10,"10","Axe","1","TOOL","2","Texture2D'/Game/Items/Textures/Axe.Axe'","StaticMesh'/Game/Meshes/Tools/axe.axe'","BlueprintGeneratedClass'/Game/Items/Axe_BP.Axe_BP_C'","SELF","50","50","0","True","False"
+11,"11","Floor Frame","20","BLOCK","0","Texture2D'/Game/Items/Textures/FloorFrame01.FloorFrame01'","StaticMesh'/Game/Meshes/Frames/FloorFrame/FloorFrame01.FloorFrame01'","BlueprintGeneratedClass'/Game/Buildings/FloorFrame01_BP.FloorFrame01_BP_C'","SELF","100","0","0","False","True"
+12,"12","Wood Part","20","BLOCK","0","Texture2D'/Game/Items/Textures/part_wood.part_wood'","StaticMesh'/Game/Meshes/Blocks/part_wood.part_wood'","BlueprintGeneratedClass'/Game/Buildings/PartTemplate_BP.PartTemplate_BP_C'","SELF","100","0","0","False","True"
+13,"13","Stone Part","20","BLOCK","0","Texture2D'/Game/Items/Textures/part_stonebricks.part_stonebricks'","StaticMesh'/Game/Meshes/Blocks/part_stonebricks.part_stonebricks'","BlueprintGeneratedClass'/Game/Buildings/PartTemplate_BP.PartTemplate_BP_C'","SELF","300","0","0","False","True"
+14,"14","Spruce Tree","1","BLOCK","0","Texture2D'/Game/Items/Textures/part_wood.part_wood'","StaticMesh'/Game/Meshes/Trees/spruceTree001.spruceTree001'","BlueprintGeneratedClass'/Game/Buildings/SpruceTree_BP.SpruceTree_BP_C'","FROMTABLE","500","0","0","False","True"
+15,"15","Campfire","1","BLOCK","0","Texture2D'/Game/Items/Textures/campfire.campfire'","StaticMesh'/Game/Meshes/Stations/campfire.campfire'","BlueprintGeneratedClass'/Game/Buildings/Campfire_BP.Campfire_BP_C'","SELF","50","0","0","False","True"
+16,"16","Torch","16","BLOCK","0","Texture2D'/Game/Items/Textures/torch.torch'","StaticMesh'/Game/Meshes/Tools/torch.torch'","BlueprintGeneratedClass'/Game/Buildings/Torch_BP.Torch_BP_C'","SELF","10","0","0","True","True"
+17,"17","Anvil","1","BLOCK","0","Texture2D'/Game/Items/Textures/anvil.anvil'","StaticMesh'/Game/Meshes/Stations/anvil.anvil'","BlueprintGeneratedClass'/Game/Buildings/Anvil_BP.Anvil_BP_C'","SELF","1000","0","0","False","True"
+18,"18","Sacra Flower","60","BLOCK","0","Texture2D'/Game/Items/Textures/sacraflower.sacraflower'","StaticMesh'/Game/Meshes/Flowers/flower01.flower01'","BlueprintGeneratedClass'/Game/Buildings/Flower_BP.Flower_BP_C'","SELF","1","0","0","True","True"
+19,"19","Door Wooden","4","BLOCK","0","Texture2D'/Game/Items/Textures/door.door'","StaticMesh'/Game/Meshes/Door/door_wood.door_wood'","BlueprintGeneratedClass'/Game/Buildings/Door_BP.Door_BP_C'","SELF","100","0","0","False","True"
+20,20,Mineral,100,BLOCK,0,MineralStone,MineralStone,,SELF,10,0,0,1,1

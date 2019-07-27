@@ -7,11 +7,13 @@
 #include "Engine/World.h"
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
-#include "DebugWidget.h"
+#include "WidgetAsset.h"
 
 const float FWorldParams::blockSize = 100.0f;
 const float FWorldParams::deathZone = 0.0f;
 const float FWorldParams::buildHeight = 10000.0f;
+
+
 
 void UMyGameInstance::Init(){
 	Super::Init();
@@ -91,16 +93,22 @@ UDataTable * UMyGameInstance::GetWorldGenTable() const
 	return worldGenDataTable;
 }
 
+UDataTable * UMyGameInstance::GetResourceTable() const
+{
+	return resourceDataTable;
+}
+
 
 AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
 
 	return worldGenerator;
 }
 
-TSubclassOf<UDebugWidget> UMyGameInstance::GetDebugWidgetBP() const
+UWidgetAsset * UMyGameInstance::GetWidgetAsset() const
 {
-	return debugWidget_BP;
+	return widgetAsset_A;
 }
+
 
 FIntVector WorldToBlockLocation(const FVector & worldLocation){
 
@@ -152,6 +160,21 @@ FVector ChunkToWorldLocation(const FIntVector & chunkLocation){
 FIntVector ChunkToBlockLocation(const FIntVector & chunkLocation){
 
 	return FIntVector(chunkLocation * FWorldParams::chunkSize);
+}
+
+FIntVector BlockToChunkBlockLocation(const FIntVector & blockLocation, FIntVector &OUT_chunkBlockLocation){
+
+	FIntVector chunkLoc = BlockToChunkLocation(blockLocation);
+
+	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z % FWorldParams::chunkSize);
+
+	chunkBlockLoc.X += chunkBlockLoc.X < 0 ? FWorldParams::chunkSize : 0;
+	chunkBlockLoc.Y += chunkBlockLoc.Y < 0 ? FWorldParams::chunkSize : 0;
+	chunkBlockLoc.Z += chunkBlockLoc.Z < 0 ? FWorldParams::chunkSize : 0;
+
+	OUT_chunkBlockLocation = chunkBlockLoc;
+
+	return chunkLoc;
 }
 
 TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TArray<FIntVector> &OUT_chunkBlockLocation) {
