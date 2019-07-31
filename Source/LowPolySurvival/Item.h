@@ -10,6 +10,8 @@
 class ABuildings;
 class UTexture2D;
 class UStaticMeshComponent;
+struct FSlateBrush;
+struct FResource;
 
 
 UENUM(BlueprintType)
@@ -95,8 +97,8 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 typeindex;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture2D* texture;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Brush, meta = (AllowPrivateAccess = "true", DisplayThumbnail = "true", DisplayName = "Image", AllowedClasses = "Texture,MaterialInterface,SlateTextureAtlasInterface", DisallowedClasses = "MediaTexture"))
+	UObject* texture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* mesh;
@@ -174,7 +176,9 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	GENERATED_BODY()
 
+	
 	FItemInfo* itemInfo = nullptr;
+
 	FResource* resourceInfo = nullptr;
 	int32 amount = 0;
 
@@ -209,9 +213,12 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	bool IsValid() const;
 
+	
 	static FItemStack FromId(AActor* owner, int32 id, int32 amount = 1);
 
 };
+
+
 
 
 USTRUCT(BlueprintType)
@@ -262,8 +269,17 @@ protected:
 	FItemInfo itemInfo;
 
 
-public:	
+public:
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	static FItemStack CreateItemStackFromId(AActor* owner, int32 id, int32 amount = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	static FItemStack CreateCustomItemStack(AActor* owner, int32 id, int32 amount, UTexture2D* texture);
 	
 	FItemInfo GetItemInfo()const;
+
 	
 };
+
+

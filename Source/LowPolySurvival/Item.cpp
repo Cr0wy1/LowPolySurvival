@@ -5,6 +5,7 @@
 #include "Buildings.h"
 #include "MyGameInstance.h"
 #include "GameStructs.h"
+#include "SlateBrush.h"
 
 
 FItemStack::FItemStack() {
@@ -145,8 +146,29 @@ UItem::UItem(){
 
 
 
+FItemStack UItem::CreateCustomItemStack(AActor * owner, int32 id, int32 amount, UTexture2D * texture){
+
+	FItemStack stack = UItem::CreateItemStackFromId(owner, id, amount);
+
+	stack.itemInfo->texture = texture;
+
+	return stack;
+}
+
 FItemInfo UItem::GetItemInfo() const{
 
 	return itemInfo;
 }
 
+FItemStack UItem::CreateItemStackFromId(AActor * owner, int32 id, int32 amount){
+	FItemStack stack;
+
+	if (owner) {
+		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
+		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemInfo>(*FString::FromInt(id), FString());
+		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(1), FString());
+		stack.amount = amount;
+	}
+
+	return stack;
+}

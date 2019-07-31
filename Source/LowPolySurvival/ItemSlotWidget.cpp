@@ -55,6 +55,14 @@ bool  UItemSlotWidget::Initialize() {
 
 void UItemSlotWidget::OnHovered(){
 	itemStackWidget->SetRenderScale(FVector2D(1.2f, 1.2f));
+	
+	if (itemStackWidget->GetItemStack()) {
+		if (itemStackWidget->GetItemStack()->itemInfo) {
+			FName itemName = itemStackWidget->GetItemStack()->itemInfo->name;
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *itemName.ToString());
+
+		}
+	}
 
 }
 
@@ -66,6 +74,7 @@ void UItemSlotWidget::OnUnhovered() {
 void UItemSlotWidget::OnSelected(){
 
 	if (slotSelectedIcon) {
+		
 		rootButton->WidgetStyle.Normal.SetResourceObject(slotSelectedIcon);
 		rootButton->WidgetStyle.Normal.TintColor = FSlateColor(FColor::White);
 		

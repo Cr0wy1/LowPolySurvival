@@ -48,3 +48,6 @@ public:
 	
 	
 };
+
+UTexture2D* CreateProcTexture(UTexture2D* texture);
+void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);

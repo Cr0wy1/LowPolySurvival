@@ -90,7 +90,7 @@ void AChunk::TopDownTrace(const FIntVector &blockLoc){
 	worldGenTable->GetAllRows(FString(), worldGenInfos);
 
 	if (hitResult.Actor.IsValid()) {
-		UE_LOG(LogTemp, Warning, TEXT("TopDownTrace: Actor: %s"), *(*hitResult.Actor).GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("TopDownTrace: Actor: %s"), *(*hitResult.Actor).GetName());
 
 
 		for (FWorldGenInfo* worldGenInfo : worldGenInfos) {

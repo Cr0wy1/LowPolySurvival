@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Item.h"
 #include "LowPolySurvivalCharacter.generated.h"
 
 class ABuildings;
@@ -23,7 +24,6 @@ class UPlacementComponent;
 class UWidgetInteractionComponent;
 class UPlacementMenuWidget;
 class UMyGameInstance;
-struct FItemStack;
 
 
 
@@ -183,10 +183,12 @@ public:
 
 	bool CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction);
 
-	void AddItemStackToInventory(FItemStack &itemstack, bool bIsNew = false);
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void AddItemStackToInventory(UPARAM(ref) FItemStack &itemstack, bool bIsNew = false);
 
 	void OpenInventory(ALogistic* logistic);
 
+	UFUNCTION(BlueprintCallable, Category = "Character")
 	void ApplyDamage(int32 amount, AActor * causer = nullptr);
 
 	APlayerController* GetPlayerController() const;

@@ -138,7 +138,7 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	
 }
 
-void ALowPolySurvivalCharacter::AddItemStackToInventory(FItemStack &itemstack, bool bIsNew){
+void ALowPolySurvivalCharacter::AddItemStackToInventory(UPARAM(ref) FItemStack &itemstack, bool bIsNew){
 
 	bIsNew ? inventoryComp->AddNewStack(itemstack) : inventoryComp->AddStack(itemstack);
 
