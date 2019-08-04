@@ -54,7 +54,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
+	void Create();
 
 	void InitBlockGrid();
 
@@ -82,7 +82,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void Create(FIntVector _chunkLoc);
+	
 	void Load(FIntVector _chunkLoc);
 	void Unload();
 

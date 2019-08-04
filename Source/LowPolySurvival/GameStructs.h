@@ -32,11 +32,11 @@ USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBlockData {
 	GENERATED_BODY()
 
-	int32 blockId = 0;
-
+	//int32 blockId = 0;
+	bool bIsSolid = false;
 	FColor color = FColor::Green;
 
-	FBlockData(int32 _blockId = 0) : blockId(_blockId) {}
+	//FBlockData(int32 _blockId = 0) : blockId(_blockId) {}
 	
 };
 
@@ -109,5 +109,7 @@ struct LOWPOLYSURVIVAL_API FResource : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FLinearColor color = FLinearColor(100, 0, 100, 0);
+
+	static FResource* FromId(AActor* owner, int32 resourceId);
 };
 

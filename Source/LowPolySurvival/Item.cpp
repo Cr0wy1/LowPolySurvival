@@ -12,7 +12,7 @@ FItemStack::FItemStack() {
 
 }
 
-FItemStack::FItemStack(FItemInfo* _itemInfo, int32 _amount) : itemInfo(_itemInfo), amount(_amount) {
+FItemStack::FItemStack(FItemData* _itemInfo, int32 _amount) : itemInfo(_itemInfo), amount(_amount) {
 	
 }
 
@@ -107,7 +107,7 @@ FItemStack& FItemStack::Set(FItemStack &otherStack) {
 	return *this;
 }
 
-FItemStack& FItemStack::Set(FItemInfo* _itemInfo, int32 _amount) {
+FItemStack& FItemStack::Set(FItemData* _itemInfo, int32 _amount) {
 	itemInfo = _itemInfo;
 	amount = _amount;
 	return *this;
@@ -136,7 +136,7 @@ FItemStack FItemStack::FromId(AActor* owner, int32 id, int32 resourceId, int32 a
 
 	if (owner) { 
 		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
-		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemInfo>(*FString::FromInt(id), FString());
+		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemData>(*FString::FromInt(id), FString());
 		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(resourceId), FString());
 		stack.amount = amount;
 	}
@@ -164,7 +164,7 @@ FItemStack UItem::CreateCustomItemStack(AActor * owner, int32 id, int32 amount, 
 	return stack;
 }
 
-FItemInfo UItem::GetItemInfo() const{
+FItemData UItem::GetItemInfo() const{
 
 	return itemInfo;
 }
@@ -174,7 +174,7 @@ FItemStack UItem::CreateItemStackFromId(AActor * owner, int32 id, int32 amount){
 
 	if (owner) {
 		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
-		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemInfo>(*FString::FromInt(id), FString());
+		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemData>(*FString::FromInt(id), FString());
 		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(1), FString());
 		stack.amount = amount;
 	}

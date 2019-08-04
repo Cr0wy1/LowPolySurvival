@@ -1,7 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameStructs.h"
+#include "MyGameInstance.h"
+#include "GameFramework/Actor.h"
 
+
+//FBlock
 bool FBlock::ApplyDamage(int32 damageAmount){
 	durability -= damageAmount;
 
@@ -17,4 +21,15 @@ void FBlock::SetResource(FResource * _resource){
 
 bool FBlock::IsValid() const{
 	return resource;
+}
+
+//FResource
+FResource * FResource::FromId(AActor * owner, int32 resourceId){
+		
+	if (owner) { 
+		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
+		return gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(resourceId), FString());
+	} 
+
+	return nullptr;
 }

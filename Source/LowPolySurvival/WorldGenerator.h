@@ -31,14 +31,13 @@ protected:
 
 	FString worldName = "world";
 	
-	int32 checkedRadiusZ = 2;
-	int32 checkedRadiusXY = 2; 
+	int32 checkedRadiusZ = 1;
+	int32 checkedRadiusXY = 1; 
 	 
 	APlayercharController * playerController = nullptr;
 	 
 	FIntVector cPlayerChunkLoc = FIntVector(0.5f, 0.5f, 0.5f);
 	 
-	TArray<FIntVector> createdChunks;
 	TMap<FIntVector, AChunk*> loadedChunks;
 	TArray<FIntVector> checkedChunkLocs;
 

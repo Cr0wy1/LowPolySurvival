@@ -123,7 +123,7 @@ void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 
 	if (!findChunkCol) {
 		
-		UChunkColumn* newChunkColumn = NewObject<UChunkColumn>();//GetWorld()->SpawnActor<UChunkColumn>(AChunkColumn::StaticClass(), ChunkToWorldLocation(chunkColLoc), FRotator::ZeroRotator);
+		UChunkColumn* newChunkColumn = NewObject<UChunkColumn>();
 		newChunkColumn->Init(this);
 		newChunkColumn->Create(chunkColLoc);
 
@@ -139,13 +139,9 @@ void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 	
 	loadedChunks.Add(chunkLoc, newChunk);
 
-	if (createdChunks.Contains(chunkLoc)) {
-		newChunk->Load(chunkLoc);
-	}
-	else {
-		createdChunks.Add(chunkLoc);
-		newChunk->Create(chunkLoc);
-	}
+	
+	newChunk->Load(chunkLoc);
+
 
 	newChunk->SetTerrainMaterial(terrainMaterial);
 

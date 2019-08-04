@@ -54,18 +54,21 @@ void AChunk::Tick(float DeltaTime)
 
 }
 
-void AChunk::Create(FIntVector _chunkLoc) {
-	chunkLoc = _chunkLoc;
-
+void AChunk::Create() {
+	
 	InitBlockGrid();
-	LoadFromFile();
+
+	ApplyNoiseOnGrid();
+	AddNoiseCaves();
+	AddNoiseOres();
 }
 
 void AChunk::Load(FIntVector _chunkLoc) {
 	chunkLoc = _chunkLoc;
 
-	//TODO remove this
-	Create(_chunkLoc);
+	if (!LoadFromFile()) {
+		Create();
+	}
 	
 }
 
@@ -104,11 +107,6 @@ void AChunk::InitBlockGrid(){
 			blockGrid[x][y].Init(FBlock(), gridDim.Z);
 		}
 	}
-
-	ApplyNoiseOnGrid();
-	AddNoiseCaves();
-	AddNoiseOres();
-
 }
 
 void AChunk::TopDownTrace(const FIntVector &blockLoc){
@@ -286,7 +284,7 @@ void AChunk::OnGeneratedMesh(){
 				if (maxZInChunk < FWorldParams::chunkSize) {
 					float rand = FMath::FRand();
 					if (rand > 0.9) {
-						TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + maxZInChunk));
+						//TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + maxZInChunk));
 					}
 
 				}
@@ -302,20 +300,16 @@ void AChunk::SaveToFile(){
 	saveRegion->SetGrid(blockGrid);
 	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
 	UGameplayStatics::SaveGameToSlot(saveRegion, slotName, 0);
-	UE_LOG(LogTemp, Warning, TEXT("SaveRegion Num: %i"), saveRegion->grid[0][0].Num());
-
 }
 
 bool AChunk::LoadFromFile(){
 	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
 	USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::LoadGameFromSlot(slotName, 0));
 	if (saveRegion) {
-		UE_LOG(LogTemp, Warning, TEXT("loadRegion Num: %i"), saveRegion->grid.yDims.Num());
+		saveRegion->GetGrid(this, blockGrid);
 		return true;
 	}
 	
-
-	//blockGrid = saveRegion->grid;
 	return false;
 }
 

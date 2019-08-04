@@ -24,7 +24,7 @@ void UItemStackWidget::Init(FItemStack *_itemStack){
 	RefreshStack();
 }
 
-void UItemStackWidget::Init(FItemInfo *itemInfo, int32 amount){
+void UItemStackWidget::Init(FItemData *itemInfo, int32 amount){
 	itemStack = new FItemStack(itemInfo, amount);
 	RefreshStack();
 }

@@ -10,7 +10,7 @@
 class UImage;
 class UTextBlock;
 struct FItemStack;
-struct FItemInfo;
+struct FItemData;
 /**
  * 
  */
@@ -39,7 +39,7 @@ public:
 	UTextBlock* amountText;
 
 	void Init(FItemStack* _itemStack);
-	void Init(FItemInfo* itemInfo, int32 amount = 1);
+	void Init(FItemData* itemInfo, int32 amount = 1);
 	void RefreshStack();
 
 	void SetItemStack(FItemStack &_itemStack);

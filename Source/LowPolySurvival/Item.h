@@ -78,7 +78,7 @@ struct LOWPOLYSURVIVAL_API FMetaItemInfo : public FTableRowBase {
 
 
 USTRUCT(BlueprintType)
-struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
+struct LOWPOLYSURVIVAL_API FItemData : public FTableRowBase{
 
 	GENERATED_BODY()
 
@@ -124,7 +124,7 @@ struct LOWPOLYSURVIVAL_API FItemInfo : public FTableRowBase{
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanPlace;
 
-	bool operator==(FItemInfo &other) {
+	bool operator==(FItemData &other) {
 		return itemid == other.itemid;
 	}
 };
@@ -140,7 +140,7 @@ struct LOWPOLYSURVIVAL_API FCraftPart {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 amount = 1;
 
-	FItemInfo* itemInfo = nullptr;
+	FItemData* itemInfo = nullptr;
 };
 
 
@@ -177,14 +177,14 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	GENERATED_BODY()
 
 	
-	FItemInfo* itemInfo = nullptr;
+	FItemData* itemInfo = nullptr;
 
 	FResource* resourceInfo = nullptr;
 	int32 amount = 0;
 
 	FItemStack();
 
-	FItemStack(FItemInfo* _itemInfo, int32 _amount = 1);
+	FItemStack(FItemData* _itemInfo, int32 _amount = 1);
 
 	bool isEmpty() const;
 
@@ -207,7 +207,7 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 
 	FItemStack& Set(FItemStack &otherStack);
 
-	FItemStack& Set(FItemInfo* _itemInfo, int32 _amount = 1);
+	FItemStack& Set(FItemData* _itemInfo, int32 _amount = 1);
 
 	int32 GetItemId() const;
 
@@ -234,7 +234,7 @@ struct LOWPOLYSURVIVAL_API FDropInfo{
 		UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int32 amount;
 
-		FItemInfo* itemInfo;
+		FItemData* itemInfo;
 };
 
 
@@ -268,7 +268,7 @@ protected:
 
 	//Properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	FItemInfo itemInfo;
+	FItemData itemInfo;
 
 
 public:
@@ -279,7 +279,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	static FItemStack CreateCustomItemStack(AActor* owner, int32 id, int32 amount, UTexture2D* texture);
 	
-	FItemInfo GetItemInfo()const;
+	FItemData GetItemInfo()const;
 
 	
 };

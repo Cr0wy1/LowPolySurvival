@@ -14,7 +14,7 @@ class ABuildings;
 class UItem;
 class ALowPolySurvivalCharacter;
 struct FItemDrops;
-struct FItemInfo;
+struct FItemData;
 class UDataTable;
 
 
@@ -30,7 +30,7 @@ struct LOWPOLYSURVIVAL_API FBuildingInfo {
 	int32 currentDurability;
 
 
-	FItemInfo* itemInfo = nullptr;
+	FItemData* itemInfo = nullptr;
 
 };
 
@@ -91,7 +91,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void ConstructFromItem(FItemInfo* itemInfo);
+	void ConstructFromItem(FItemData* itemInfo);
 	virtual void ApplyDamage(int32 amount, ALowPolySurvivalCharacter* causer);
 	virtual void Interact(ALowPolySurvivalCharacter* interactor);
 

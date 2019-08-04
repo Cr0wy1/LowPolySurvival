@@ -201,7 +201,7 @@ void UInventoryComponent::BroadcastOnInventoryUpdate(){
 }
 
 
-int32 UInventoryComponent::CountItems(FItemInfo * itemInfo) const {
+int32 UInventoryComponent::CountItems(FItemData * itemInfo) const {
 	if (itemAmount.Contains(itemInfo)) {
 		return itemAmount[itemInfo];
 	}

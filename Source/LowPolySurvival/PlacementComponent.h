@@ -12,7 +12,7 @@ class AConstruction;
 class ALowPolySurvivalCharacter;
 class UMaterialInstance;
 class APlaceWidget;
-struct FItemInfo;
+struct FItemData;
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -69,7 +69,7 @@ public:
 	void Init(ALowPolySurvivalCharacter* _character);
 
 		
-	void ActivatePlacement(FItemInfo* itemInfo);
+	void ActivatePlacement(FItemData* itemInfo);
 	void DeactivatePlacement();
 
 	//return true if Building is Placed

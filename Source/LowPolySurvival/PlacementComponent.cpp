@@ -103,7 +103,7 @@ void UPlacementComponent::Init(ALowPolySurvivalCharacter * _character){
 	
 }
 
-void UPlacementComponent::ActivatePlacement(FItemInfo* itemInfo){
+void UPlacementComponent::ActivatePlacement(FItemData* itemInfo){
 	currentBuildingTemplate_BP = itemInfo->buildingTemplate_BP;
 
 	FHitResult hitResult;

@@ -43,7 +43,7 @@ void ABuildings::BeginPlay(){
 	UMyGameInstance *gameInstance = Cast<UMyGameInstance>(GetGameInstance());
 	itemDataTable = gameInstance->GetItemTable();
 	
-	info.itemInfo = itemDataTable->FindRow<FItemInfo>(info.itemId, FString(""));
+	info.itemInfo = itemDataTable->FindRow<FItemData>(info.itemId, FString(""));
 	ConstructFromItem(info.itemInfo);
 	
 }
@@ -96,7 +96,7 @@ void ABuildings::Tick(float DeltaTime)
 
 
 
-void ABuildings::ConstructFromItem(FItemInfo * itemInfo){
+void ABuildings::ConstructFromItem(FItemData * itemInfo){
 	info.itemInfo = itemInfo;
 	info.currentDurability = info.itemInfo->durability;
 

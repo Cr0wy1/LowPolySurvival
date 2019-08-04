@@ -44,7 +44,7 @@ protected:
 	TArray<FItemStack> stackSlots;
 	TArray<int32> lastUpdatedSlots;
 
-	TMap<FItemInfo*, int32> itemAmount;
+	TMap<FItemData*, int32> itemAmount;
 
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -78,7 +78,7 @@ public:
 
 	void BroadcastOnInventoryUpdate();
 
-	int32 CountItems(FItemInfo * itemInfo) const;
+	int32 CountItems(FItemData * itemInfo) const;
 	int32 CountItems(int32 itemId) const;
 
 	bool HasEmptySlot() const;

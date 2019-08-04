@@ -43,11 +43,11 @@ void UMyGameInstance::InitDataTables(){
 	for (FCraftingInfo* craftingInfo : craftingInfos) {
 
 		for (FCraftPart& neededPart : craftingInfo->needed) {
-			neededPart.itemInfo = itemDataTable->FindRow<FItemInfo>(FName(*FString::FromInt(neededPart.id)), FString());
+			neededPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(neededPart.id)), FString());
 		}
 
 		for (FCraftPart& resultPart : craftingInfo->result) {
-			resultPart.itemInfo = itemDataTable->FindRow<FItemInfo>(FName(*FString::FromInt(resultPart.id)), FString());
+			resultPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(resultPart.id)), FString());
 		}
 
 	}
@@ -58,7 +58,7 @@ void UMyGameInstance::InitDataTables(){
 
 	for (FItemDrops* itemDrop : itemDrops) {
 		for (FDropInfo& dropInfo : itemDrop->itemId) {
-			dropInfo.itemInfo = itemDataTable->FindRow<FItemInfo>(dropInfo.itemId, FString());
+			dropInfo.itemInfo = itemDataTable->FindRow<FItemData>(dropInfo.itemId, FString());
 		}
 	}
 
