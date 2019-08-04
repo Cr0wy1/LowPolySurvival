@@ -11,7 +11,7 @@
 class UMyGameInstance;
 class UProceduralMeshGeneratorComponent;
 class AWorldGenerator;
-class AChunkColumn;
+class UChunkColumn;
 struct FWorldInfo;
 struct FBlockData;
 struct FBlock;
@@ -32,18 +32,21 @@ public:
 	// Sets default values for this actor's properties
 	AChunk();
 
-	void Init(AWorldGenerator* _worldGenerator, AChunkColumn* _chunkColumn);
+	void Init(AWorldGenerator* _worldGenerator, UChunkColumn* _chunkColumn);
 
 protected:
 
+	bool bIsFullCreated = false;
 	bool bIsTerrainGenerated = false;
 
 	UMyGameInstance * gameInstance = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
-	AChunkColumn* chunkColumn = nullptr;
+	UChunkColumn* chunkColumn = nullptr;
 
 	FIntVector gridDim;
 	TArray<TArray<TArray<FBlock>>> blockGrid;
+
+	TArray<AActor*> loadedActors;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Procedural Mesh")
 	UProceduralMeshGeneratorComponent* proceduralMesh;
@@ -66,6 +69,10 @@ protected:
 
 	UFUNCTION()
 	void OnGeneratedMesh();
+
+	//Save Load
+	void SaveToFile();
+	bool LoadFromFile();
 
 public:	
 

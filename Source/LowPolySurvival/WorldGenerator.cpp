@@ -119,10 +119,11 @@ void AWorldGenerator::LoadChunk(FIntVector chunkLoc){
 	chunkColLoc.Z = 0;
 	auto findChunkCol = loadedChunkColumns.Find(chunkColLoc);
 
-	AChunkColumn* responseChunkColumn;
+	UChunkColumn* responseChunkColumn;
 
 	if (!findChunkCol) {
-		AChunkColumn* newChunkColumn = GetWorld()->SpawnActor<AChunkColumn>(AChunkColumn::StaticClass(), ChunkToWorldLocation(chunkColLoc), FRotator::ZeroRotator);
+		
+		UChunkColumn* newChunkColumn = NewObject<UChunkColumn>();//GetWorld()->SpawnActor<UChunkColumn>(AChunkColumn::StaticClass(), ChunkToWorldLocation(chunkColLoc), FRotator::ZeroRotator);
 		newChunkColumn->Init(this);
 		newChunkColumn->Create(chunkColLoc);
 
@@ -273,6 +274,10 @@ int32 AWorldGenerator::GetLoadedChunksNum() const
 {
 	
 	return loadedChunks.Num();
+}
+
+FString AWorldGenerator::GetWorldName() const{
+	return worldName;
 }
 
 bool AWorldGenerator::IsChunkLoaded(const FIntVector & chunkLoc) const{

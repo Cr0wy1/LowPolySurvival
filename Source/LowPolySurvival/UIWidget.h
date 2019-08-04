@@ -23,7 +23,9 @@ public:
 
 	virtual bool Initialize() override;
 
+	UFUNCTION(BlueprintCallable, Category = "UIWidget")
 	void CloseUI();
+
 	void OpenUI();
 
 	bool IsUIOpen() const;

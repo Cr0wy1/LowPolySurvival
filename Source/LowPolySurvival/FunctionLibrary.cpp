@@ -3,6 +3,10 @@
 
 #include "FunctionLibrary.h"
 #include "Engine/Texture2D.h"
+#include "Kismet/KismetRenderingLibrary.h" //DrawMaterialToCanvas
+#include "Engine/Canvas.h"
+#include "Engine.h"
+
 
 UTexture2D* UFunctionLibrary::CreateTextureFromTextures(const TArray<UTexture2D*> textures) {
 
@@ -19,25 +23,34 @@ UTexture2D* UFunctionLibrary::CreateTextureFromTextures(const TArray<UTexture2D*
 
 	FUpdateTextureRegion2D * mUpdateTextureRegion = new FUpdateTextureRegion2D(0, 0, 0, 0, w, h);
 
-	UTexture2D* dynamicTexture = UTexture2D::CreateTransient(w, h);
+	UTexture2D* dynamicTexture = UTexture2D::CreateTransient(w, h, EPixelFormat::PF_B8G8R8A8);
+	dynamicTexture->AlphaCoverageThresholds = textures[0]->AlphaCoverageThresholds;
 	dynamicTexture->MipGenSettings = textures[0]->MipGenSettings;
 	dynamicTexture->CompressionSettings = TextureCompressionSettings::TC_VectorDisplacementmap;
-	dynamicTexture->SRGB = 1;
+	dynamicTexture->SRGB = true;
 	dynamicTexture->AddToRoot();
-	dynamicTexture->UpdateResource();
 
 	//First initial mDynamicColors
 	FTexture2DMipMap& readMipFirst = textures[0]->PlatformData->Mips[0];
-	readMipFirst.BulkData.GetCopy((void**)&mTextureColors);
-	FMemory::Memcpy(mDynamicColors, mTextureColors, mDataSize);
+
+	void* Data = readMipFirst.BulkData.Lock(LOCK_READ_WRITE);
+	//readMipFirst.BulkData.GetCopy((void**)&mTextureColors);
+	FMemory::Memcpy(mDynamicColors, Data, mDataSize);
+	readMipFirst.BulkData.Unlock();
+
+	dynamicTexture->UpdateResource();
+	
 
 	int32 texturesNum = textures.Num();
-	for (size_t i = 1; i < texturesNum; i++){
+	for (size_t t = 1; t < texturesNum; t++){
 
-		FTexture2DMipMap& readMip = textures[i]->PlatformData->Mips[0];
-		readMip.BulkData.GetCopy((void**)&mTextureColors);
+		FTexture2DMipMap& readMip = textures[t]->PlatformData->Mips[0];
+		void* Data = readMip.BulkData.Lock(LOCK_READ_WRITE);
+		//readMip.BulkData.GetCopy((void**)&mTextureColors);
+		FMemory::Memcpy(mTextureColors, Data, mDataSize);
+		readMip.BulkData.Unlock();
 
-		//UE_LOG(LogTemp, Warning, TEXT("colors: %s"), *FColor(mDynamicColors[0], mDynamicColors[1], mDynamicColors[2], mDynamicColors[3]).ToString());
+		dynamicTexture->UpdateResource();
 
 		int32 pixelAmount = mDataSize / 4;
 		for (int32 i = 0; i < pixelAmount; ++i)
@@ -46,6 +59,9 @@ UTexture2D* UFunctionLibrary::CreateTextureFromTextures(const TArray<UTexture2D*
 			int32 green = i * 4 + 1;
 			int32 red = i * 4 + 2;
 			int32 alpha = i * 4 + 3;
+
+			
+
 
 			if (mTextureColors[alpha] > uint8(0)) { 
 				//float b = (float)mDynamicColors[blue] / 255;
@@ -72,15 +88,16 @@ UTexture2D* UFunctionLibrary::CreateTextureFromTextures(const TArray<UTexture2D*
 
 	}
 
+	//dynamicTexture->UpdateResource();
+
 	FMemory::Free(mTextureColors);
 	
 	dynamicTexture->UpdateTextureRegions(0, 1, mUpdateTextureRegion, mDataSqrtSize, (uint32)4, mDynamicColors, [](uint8* SrcData, const FUpdateTextureRegion2D* Regions) { delete Regions; FMemory::Free(SrcData); });
-	//UpdateTextureRegions(dynamicTexture, 0, 1, mUpdateTextureRegion, mDataSqrtSize, (uint32)4, mDynamicColors, true);
 
 	return dynamicTexture;
 }
 
-UTexture2D * UFunctionLibrary::CreateColoredTexture(UTexture2D * texture, const FLinearColor &color){
+UTexture2D * UFunctionLibrary::CreateColoredTexture(const UTexture2D * texture, const FLinearColor &color){
 
 	if (!texture) return nullptr;
 
@@ -90,22 +107,30 @@ UTexture2D * UFunctionLibrary::CreateColoredTexture(UTexture2D * texture, const 
 	int32 mDataSize = w * h * 4;
 	int32 mDataSqrtSize = w * 4;
 
-	uint8* mTextureColors = new uint8[mDataSize];
+	//uint8* mTextureColors = new uint8[mDataSize];
 	uint8* mDynamicColors = new uint8[mDataSize];
 
 	FUpdateTextureRegion2D * mUpdateTextureRegion = new FUpdateTextureRegion2D(0, 0, 0, 0, w, h);
 
-	UTexture2D* dynamicTexture = UTexture2D::CreateTransient(w, h);
-	//dynamicTexture->MipGenSettings = texture->MipGenSettings;
+	UTexture2D* dynamicTexture = UTexture2D::CreateTransient(w, h, EPixelFormat::PF_B8G8R8A8);
+	dynamicTexture->AlphaCoverageThresholds = texture->AlphaCoverageThresholds;
+	dynamicTexture->MipGenSettings = texture->MipGenSettings;
 	dynamicTexture->CompressionSettings = TextureCompressionSettings::TC_VectorDisplacementmap;
-	dynamicTexture->SRGB = 1;
+	dynamicTexture->SRGB = true;
 	dynamicTexture->AddToRoot();
-	dynamicTexture->UpdateResource();
+	
 
-	//First initial mDynamicColors
+	//First initial mDynamicColors 
 	FTexture2DMipMap& readMipFirst = texture->PlatformData->Mips[0];
-	readMipFirst.BulkData.GetCopy((void**)&mTextureColors);
-	FMemory::Memcpy(mDynamicColors, mTextureColors, mDataSize);
+	
+	//readMipFirst.BulkData.GetCopy((void**)&mTextureColors);
+
+	void* Data = readMipFirst.BulkData.Lock(LOCK_READ_WRITE);
+	
+	FMemory::Memcpy(mDynamicColors, Data, mDataSize);
+	readMipFirst.BulkData.Unlock();
+
+	dynamicTexture->UpdateResource();
 
 	int32 pixelAmount = mDataSize / 4;
 	for (int32 i = 0; i < pixelAmount; ++i) {
@@ -114,28 +139,36 @@ UTexture2D * UFunctionLibrary::CreateColoredTexture(UTexture2D * texture, const 
 		int32 red = i * 4 + 2;
 		int32 alpha = i * 4 + 3;
 
-		float b = (float)mTextureColors[blue] / 255.f;
-		float g = (float)mTextureColors[green] / 255.f;
-		float r = (float)mTextureColors[red] / 255.f;
-		float a = (float)mTextureColors[alpha] / 255.f;
+		float b = (float)mDynamicColors[blue] / 255.f;
+		float g = (float)mDynamicColors[green] / 255.f;
+		float r = (float)mDynamicColors[red] / 255.f;
+		float a = (float)mDynamicColors[alpha] / 255.f;
 
-		//mDynamicColors[blue] = (uint8)(b * color.B * 255.f);
-		//mDynamicColors[green] = (uint8)(g * color.G * 255.f);
-		//mDynamicColors[red] = (uint8)(r * color.R * 255.f);
-
-		//mDynamicColors[alpha] = mTextureColors[alpha];
-
-		//mDynamicColors[blue] = 255;
-		//mDynamicColors[green] = 255;
-		//mDynamicColors[red] = rand() % 255;
-
-		//mDynamicColors[alpha] = 255;
+		mDynamicColors[blue] = (uint8)(b * color.B * 255.f);
+		mDynamicColors[green] = (uint8)(g * color.G * 255.f); 
+		mDynamicColors[red] = (uint8)(r * color.R * 255.f);
 	
-	}
-
-	FMemory::Free(mTextureColors);
-
-	dynamicTexture->UpdateTextureRegions(0, 1, mUpdateTextureRegion, mDataSqrtSize, (uint32)4, mDynamicColors, [](uint8* SrcData, const FUpdateTextureRegion2D* Regions) { delete Regions; FMemory::Free(SrcData); });
+	} 
+	
+	
+	//FMemory::Free(mTextureColors);
+	
+	dynamicTexture->UpdateTextureRegions(0, 1, mUpdateTextureRegion, mDataSqrtSize, (uint32)4, mDynamicColors, [](uint8* SrcData, const FUpdateTextureRegion2D* Regions) { delete Regions; delete[] SrcData; });
 	
 	return dynamicTexture;
 }
+
+UWorld * UFunctionLibrary::GetActiveWorld(UObject * worldContextObject){
+
+	return GEngine->GetWorldFromContextObject(worldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+}
+
+void UFunctionLibrary::CanvasTest() {
+	UObject* WorldContextObject = nullptr;
+	
+	//FCanvas canvas()
+	
+
+	//UKismetRenderingLibrary::DrawMaterialToRenderTarget
+}
+

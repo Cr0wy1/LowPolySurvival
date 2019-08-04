@@ -13,6 +13,8 @@
 #include "ChunkColumn.h"
 #include "LowPolySurvivalCharacter.h"
 #include "Item.h"
+#include "SaveRegion.h"
+#include "Kismet/GameplayStatics.h"
 
  
 // Sets default values
@@ -40,9 +42,53 @@ void AChunk::BeginPlay(){
 	gameInstance = GetGameInstance<UMyGameInstance>();
 }
 
-void AChunk::Init(AWorldGenerator * _worldGenerator, AChunkColumn* _chunkColumn){
+void AChunk::Init(AWorldGenerator * _worldGenerator, UChunkColumn* _chunkColumn){
 	worldGenerator = _worldGenerator;
 	chunkColumn = _chunkColumn;
+}
+
+// Called every frame
+void AChunk::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+void AChunk::Create(FIntVector _chunkLoc) {
+	chunkLoc = _chunkLoc;
+
+	InitBlockGrid();
+	LoadFromFile();
+}
+
+void AChunk::Load(FIntVector _chunkLoc) {
+	chunkLoc = _chunkLoc;
+
+	//TODO remove this
+	Create(_chunkLoc);
+	
+}
+
+void AChunk::Unload() {
+
+	SaveToFile();
+
+	for (AActor* actor : loadedActors) {
+		actor->Destroy();
+	}
+
+	Destroy();
+}
+
+void AChunk::GenerateTerrainMesh() {
+
+	if (!bIsTerrainGenerated) {
+		proceduralMesh->GenerateMesh(this);
+		bIsTerrainGenerated = true;
+	}
+
+
+
 }
 
 void AChunk::InitBlockGrid(){
@@ -96,7 +142,7 @@ void AChunk::TopDownTrace(const FIntVector &blockLoc){
 		for (FWorldGenInfo* worldGenInfo : worldGenInfos) {
 			if (worldGenInfo->biome == EBiome::GRASS && worldGenInfo->type == EVegetationType::TREE) {
 				ABuildings* building = GetWorld()->SpawnActor<ABuildings>(worldGenInfo->Plant_BP, hitResult.ImpactPoint, FRotator::ZeroRotator);
-
+				loadedActors.Add(building);
 			}
 		}
 	}
@@ -222,67 +268,59 @@ void AChunk::AddNoiseOres(){
 void AChunk::OnGeneratedMesh(){
 	//UE_LOG(LogTemp, Warning, TEXT("OnGeneratedMesh"));
 
-	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
+	if (!bIsFullCreated) {
+		auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 
-	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
+		FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
 
-	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
+		int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
 
-	for (int32 x = 0; x < gridDim.X; x++) {
-		for (int32 y = 0; y < gridDim.Y; y++) {
-		
-			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
-			int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
+		for (int32 x = 0; x < gridDim.X; x++) {
+			for (int32 y = 0; y < gridDim.Y; y++) {
 
-			
-			//Plant Vegetetion
-			if (maxZInChunk < FWorldParams::chunkSize) {
-				float rand = FMath::FRand();
-				if (rand > 0.9) {
-					TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + maxZInChunk));
+				int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
+				int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
+
+
+				//Plant Vegetetion
+				if (maxZInChunk < FWorldParams::chunkSize) {
+					float rand = FMath::FRand();
+					if (rand > 0.9) {
+						TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + maxZInChunk));
+					}
+
 				}
-				
 			}
 		}
 	}
+
+	bIsFullCreated = true;
 }
 
-
-// Called every frame
-void AChunk::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+void AChunk::SaveToFile(){
+	USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::CreateSaveGameObject(USaveRegion::StaticClass()));
+	saveRegion->SetGrid(blockGrid);
+	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
+	UGameplayStatics::SaveGameToSlot(saveRegion, slotName, 0);
+	UE_LOG(LogTemp, Warning, TEXT("SaveRegion Num: %i"), saveRegion->grid[0][0].Num());
 
 }
 
-void AChunk::Create(FIntVector _chunkLoc){
-	chunkLoc = _chunkLoc;
-
-	InitBlockGrid();
-	
-}
-
-void AChunk::Load(FIntVector _chunkLoc){
-	chunkLoc = _chunkLoc;
-
-	//TODO remove this
-	Create(_chunkLoc);
-}
-
-void AChunk::Unload(){
-	Destroy();
-}
-
-void AChunk::GenerateTerrainMesh(){
-
-	if (!bIsTerrainGenerated) {
-		proceduralMesh->GenerateMesh(this);
-		bIsTerrainGenerated = true;
+bool AChunk::LoadFromFile(){
+	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
+	USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::LoadGameFromSlot(slotName, 0));
+	if (saveRegion) {
+		UE_LOG(LogTemp, Warning, TEXT("loadRegion Num: %i"), saveRegion->grid.yDims.Num());
+		return true;
 	}
 	
 
-
+	//blockGrid = saveRegion->grid;
+	return false;
 }
+
+
+
 
 void AChunk::UpdateTerrainMesh(const FIntVector &chunkBlockLoc){
 	proceduralMesh->UpdateMesh(this, chunkBlockLoc);
@@ -291,10 +329,11 @@ void AChunk::UpdateTerrainMesh(const FIntVector &chunkBlockLoc){
 void AChunk::HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer){
 	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
 
-		if (blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].ApplyDamage(damageAmount)) {
+		FBlock* hittedBlock = &blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z];
+		if (hittedBlock->ApplyDamage(damageAmount)) {
 			ALowPolySurvivalCharacter* player = Cast<ALowPolySurvivalCharacter>(causer);
-			if (player) {
-				FItemStack itemStack = FItemStack::FromId(this, 20, 5);
+			if (player && hittedBlock->resource) {
+				FItemStack itemStack = FItemStack::FromId(this, 20, hittedBlock->resource->id, 5);
 				player->AddItemStackToInventory(itemStack, true);
 			}
 			SetBlockUnsafe(gridLoc, FBlockData());

@@ -121,14 +121,23 @@ bool FItemStack::IsValid() const {
 	return itemInfo && amount > 0;
 }
 
-FItemStack FItemStack::FromId(AActor* owner, int32 id, int32 amount){
+bool FItemStack::operator==(FItemStack & otherStack) const{
+	return itemInfo == otherStack.itemInfo && resourceInfo == otherStack.resourceInfo;
+}
+
+bool FItemStack::operator!=(FItemStack & otherStack) const
+{
+	return !(*this == otherStack);
+}
+
+FItemStack FItemStack::FromId(AActor* owner, int32 id, int32 resourceId, int32 amount){
 
 	FItemStack stack;
 
-	if (owner) {
+	if (owner) { 
 		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
 		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemInfo>(*FString::FromInt(id), FString());
-		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(1), FString());
+		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(resourceId), FString());
 		stack.amount = amount;
 	}
 

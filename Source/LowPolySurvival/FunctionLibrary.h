@@ -7,7 +7,7 @@
 #include "FunctionLibrary.generated.h"
 
 
-
+class UWorld;
 class UTexture2D;
 /**
  * 
@@ -24,5 +24,9 @@ public:
 	static UTexture2D* CreateTextureFromTextures(const TArray<UTexture2D*> textures);
 
 	UFUNCTION(BlueprintCallable, Category = "Procedural")
-	static UTexture2D* CreateColoredTexture(UTexture2D* texture, const FLinearColor &color);
+	static UTexture2D* CreateColoredTexture(const UTexture2D* texture, const FLinearColor &color);
+
+	static UWorld* GetActiveWorld(UObject* worldContextObject);
+
+	static void CanvasTest(); 
 };

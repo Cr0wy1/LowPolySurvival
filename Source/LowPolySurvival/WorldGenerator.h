@@ -12,7 +12,7 @@
 
 class APlayercharController;
 class AChunk;
-class AChunkColumn;
+class UChunkColumn;
 class UMaterialInterface;
 
 
@@ -29,6 +29,7 @@ protected:
 
 	bool bDrawDebug = false;
 
+	FString worldName = "world";
 	
 	int32 checkedRadiusZ = 2;
 	int32 checkedRadiusXY = 2; 
@@ -41,7 +42,7 @@ protected:
 	TMap<FIntVector, AChunk*> loadedChunks;
 	TArray<FIntVector> checkedChunkLocs;
 
-	TMap<FIntVector, AChunkColumn*> loadedChunkColumns;
+	TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
@@ -89,6 +90,8 @@ public:
 	//Check if chunk exist, return nullptr if doesn't
 	AChunk* GetChunkSafe(const FIntVector &chunkLoc) const;
 	int32 GetLoadedChunksNum() const;
+
+	FString GetWorldName() const;
 
 	bool IsChunkLoaded(const FIntVector &chunkLoc) const;
 

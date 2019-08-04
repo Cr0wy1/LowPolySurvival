@@ -6,33 +6,16 @@
 #include "WorldGenerator.h"
 
 // Sets default values
-AChunkColumn::AChunkColumn()
-{
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	
-	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
-	RootComponent = SceneComponent;
+UChunkColumn::UChunkColumn(){
+
 }
 
-void AChunkColumn::Init(AWorldGenerator * _worldGenerator){
+void UChunkColumn::Init(AWorldGenerator * _worldGenerator){
 	worldGenerator = _worldGenerator;
 }
 
-// Called when the game starts or when spawned
-void AChunkColumn::BeginPlay(){
-	Super::BeginPlay();
-	
-}
 
-// Called every frame
-void AChunkColumn::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-void AChunkColumn::InitTerrainNoiseMap(){
+void UChunkColumn::InitTerrainNoiseMap(){
 
 	size_t size = FWorldParams::chunkSize;
 	
@@ -50,14 +33,14 @@ void AChunkColumn::InitTerrainNoiseMap(){
 
 }
 
-void AChunkColumn::Create(FIntVector _chunkColLoc) {
+void UChunkColumn::Create(FIntVector _chunkColLoc) {
 	chunkColLoc = _chunkColLoc;
 	chunkColLoc.Z = 0;
 
 	InitTerrainNoiseMap();
 }
 
-const TArray<TArray<float>>* AChunkColumn::GetTerrainNoiseMap() const{
+const TArray<TArray<float>>* UChunkColumn::GetTerrainNoiseMap() const{
 	return &terrainNoiseMap;
 }
 
