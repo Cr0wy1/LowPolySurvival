@@ -15,6 +15,7 @@
 #include "Item.h"
 #include "SaveRegion.h"
 #include "Kismet/GameplayStatics.h"
+#include "Async.h"
 
  
 // Sets default values
@@ -40,6 +41,7 @@ void AChunk::BeginPlay(){
 	Super::BeginPlay();
 	
 	gameInstance = GetGameInstance<UMyGameInstance>();
+	
 }
 
 void AChunk::Init(AWorldGenerator * _worldGenerator, UChunkColumn* _chunkColumn){
@@ -54,14 +56,37 @@ void AChunk::Tick(float DeltaTime)
 
 }
 
+AChunk * AChunk::Construct(AWorldGenerator * worldGenerator, FIntVector chunkLoc){
+
+	FIntVector chunkColLoc = chunkLoc;
+	chunkColLoc.Z = 0;
+	auto findChunkCol = FWorldLoader::loadedChunkColumns.Find(chunkColLoc);
+
+	UChunkColumn* responseChunkColumn = findChunkCol ? *findChunkCol : UChunkColumn::Construct(worldGenerator, chunkColLoc);
+
+
+	AChunk* newChunk = worldGenerator->GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
+	newChunk->Init(worldGenerator, responseChunkColumn);
+
+	FWorldLoader::loadedChunks.Add(chunkLoc, newChunk);
+
+
+	newChunk->Load(chunkLoc);
+
+	return newChunk;
+}
+
 void AChunk::Create() {
 	
 	InitBlockGrid();
 
 	ApplyNoiseOnGrid();
 	AddNoiseCaves();
-	AddNoiseOres();
-}
+	//AddNoiseOres(); 
+	//AddWater();
+
+	bNeedsSaving = true;
+} 
 
 void AChunk::Load(FIntVector _chunkLoc) {
 	chunkLoc = _chunkLoc;
@@ -69,12 +94,13 @@ void AChunk::Load(FIntVector _chunkLoc) {
 	if (!LoadFromFile()) {
 		Create();
 	}
-	
+	bIsTaskFinished = true;
+	//(new FAutoDeleteAsyncTask<ChunkTask>(this, false))->StartBackgroundTask();
 }
 
 void AChunk::Unload() {
 
-	SaveToFile();
+	//(new FAutoDeleteAsyncTask<ChunkTask>(this, true))->StartBackgroundTask();
 
 	for (AActor* actor : loadedActors) {
 		actor->Destroy();
@@ -85,13 +111,13 @@ void AChunk::Unload() {
 
 void AChunk::GenerateTerrainMesh() {
 
-	if (!bIsTerrainGenerated) {
-		proceduralMesh->GenerateMesh(this);
+	if (!bIsTerrainGenerated && bIsTaskFinished) {
+		proceduralMesh->GenerateMesh(this); 
 		bIsTerrainGenerated = true;
 	}
-
-
-
+	else {
+		bShouldGenerateMesh = true;
+	}
 }
 
 void AChunk::InitBlockGrid(){
@@ -153,7 +179,7 @@ void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
 			int32 randZ = FMath::Rand() % blockAmount;
 			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
 				if (z < (zLine + randZ)) {
-					blockGrid[x][y][z].data.blockId = 1;
+					blockGrid[x][y][z].data.bIsSolid = true;
 				}
 			}
 		}
@@ -167,8 +193,16 @@ void AChunk::ApplyNoiseOnGrid(){
 	FResource* grassR = resourceTable->FindRow<FResource>("2", FString());
 	FResource* stoneR = resourceTable->FindRow<FResource>("3", FString());
 	FResource* earthcoreR = resourceTable->FindRow<FResource>("4", FString());
+	FResource* sandR = resourceTable->FindRow<FResource>("9", FString());
+	FResource* snowR = resourceTable->FindRow<FResource>("10", FString());
+	
+	FBiomeData* cBiome;
+	FResource* biomeR = grassR;
+	
 
 	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
+	auto heatNoiseMap = *chunkColumn->GetHeatNoiseMap();
+	auto rainNoiseMap = *chunkColumn->GetRainNoiseMap();
 
 	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
 
@@ -176,6 +210,14 @@ void AChunk::ApplyNoiseOnGrid(){
 
 	for (int32 x = 0; x < gridDim.X; x++) {
 		for (int32 y = 0; y < gridDim.Y; y++) {
+
+			cBiome = worldGenerator->GetBiome(heatNoiseMap[x][y], rainNoiseMap[x][y]);
+			
+
+			//float biomeNoise = worldGenerator->BiomeNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
+			biomeR = cBiome->baseBlockResource;
+
+			
 
 			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
 			int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
@@ -195,8 +237,11 @@ void AChunk::ApplyNoiseOnGrid(){
 					blockGrid[x][y][z].SetResource(dirtR);
 
 				}else{
-					blockGrid[x][y][z].SetResource(grassR);
-
+					blockGrid[x][y][z].SetResource(biomeR);
+					if (cBiome->overrideResourceColor) {
+						blockGrid[x][y][z].SetBiomeColor(cBiome->biomeColor);
+					}
+					
 				}
 				
 			}
@@ -208,9 +253,11 @@ void AChunk::ApplyNoiseOnGrid(){
 
 void AChunk::AddNoiseCaves(){
 
+	FResource* airR = FResource::FromId(this, 0);
+
 	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
 	float caveNoiseLevel = 0.2f;
-
+	 
 	//Check if is earthcore level to ensure not digging holes at this
 	int32 zInit = chunkLoc.Z < 1 ? 1 : 0;
 	
@@ -221,7 +268,8 @@ void AChunk::AddNoiseCaves(){
 				float noise = worldGenerator->CaveNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
 
 				if (noise < caveNoiseLevel) { 
-					blockGrid[x][y][z].data.blockId = 0;
+					blockGrid[x][y][z].SetResource(airR);
+					
 				}
 			}
 
@@ -263,10 +311,32 @@ void AChunk::AddNoiseOres(){
 	}
 }
 
+void AChunk::AddWater(){
+	UDataTable* resourceTable = gameInstance->GetResourceTable();
+	FResource* waterR = resourceTable->FindRow<FResource>("8", FString());
+
+	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
+
+	for (int32 x = 0; x < gridDim.X; x++) {
+		for (int32 y = 0; y < gridDim.Y; y++) {
+			for (int32 z = 0; z < gridDim.Z; z++) {
+
+				if (blockLoc.Z + z <= 20) {
+					blockGrid[x][y][z].SetResource(waterR);
+				}
+				
+
+			}
+
+		}
+	}
+}
+
 void AChunk::OnGeneratedMesh(){
 	//UE_LOG(LogTemp, Warning, TEXT("OnGeneratedMesh"));
 
 	if (!bIsFullCreated) {
+
 		auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 
 		FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
@@ -293,24 +363,134 @@ void AChunk::OnGeneratedMesh(){
 	}
 
 	bIsFullCreated = true;
+
+	if (bNeedsFluidUpdate) {
+		FluidUpdate();
+		UpdateTerrainMesh(chunkLoc);
+	}
+}
+
+void AChunk::FluidUpdate(){
+	bNeedsFluidUpdate = false;
+	FBlock* block = nullptr;
+	AChunk* targetChunk = nullptr;
+	for (int32 x = 0; x < gridDim.X; x++) {
+		for (int32 y = 0; y < gridDim.Y; y++) {
+			for (int32 z = 0; z < gridDim.Z; z++) {
+				
+				if (blockGrid[x][y][z].resource && blockGrid[x][y][z].resource->type == EResourceType::FLUID) {
+					block = GetBlockIncludeNearby(FIntVector(x, y, z - 1));
+					if (block && block->IsAir()) {
+						block->SetResource(blockGrid[x][y][z].resource);
+						blockGrid[x][y][z].SetResource(FResource::FromId(this, 0));
+						bNeedsFluidUpdate = true;
+					}
+					//if (z > 0 && blockGrid[x][y][z - 1].IsAir() ) {
+					//	blockGrid[x][y][z - 1].SetResource(blockGrid[x][y][z].resource);
+					//	blockGrid[x][y][z].SetResource(FResource::FromId(this, 0));
+					//	bNeedsFluidUpdate = true;
+					//}
+					else {
+
+						TArray<FBlock*> blocksToSplitOn;
+						TArray<AChunk*> targetChunks;
+
+						block = GetBlockIncludeNearby(FIntVector(x-1, y, z), targetChunk);
+						targetChunks.Add(targetChunk);
+						if (block && block->IsAir()) {
+							blocksToSplitOn.Add(block);
+						}
+
+						block = GetBlockIncludeNearby(FIntVector(x + 1, y, z), targetChunk);
+						targetChunks.Add(targetChunk);
+						if (block && block->IsAir()) {
+							blocksToSplitOn.Add(block);
+						}
+
+						block = GetBlockIncludeNearby(FIntVector(x, y-1, z), targetChunk);
+						targetChunks.Add(targetChunk);
+						if (block && block->IsAir()) {
+							blocksToSplitOn.Add(block);
+						}
+
+						block = GetBlockIncludeNearby(FIntVector(x, y+1, z), targetChunk);
+						targetChunks.Add(targetChunk);
+						if (block && block->IsAir()) {
+							blocksToSplitOn.Add(block);
+						}
+
+						if (blocksToSplitOn.Num() > 0 ) {
+
+							int32 splitDurability = blockGrid[x][y][z].durability / blocksToSplitOn.Num();
+
+							if (splitDurability > 0) {
+								blockGrid[x][y][z].durability = splitDurability;
+
+								for (FBlock* block : blocksToSplitOn) {
+									block->SetResource(blockGrid[x][y][z].resource);
+									block->durability = splitDurability;
+								}
+
+								for (AChunk* chunk : targetChunks) {
+									if (chunk) {
+										chunk->bNeedsFluidUpdate = true;
+										chunk->UpdateTerrainMesh(FIntVector(0, 0, 0));
+									}
+								
+								}
+
+								//blockGrid[x][y][z].SetResource(FResource::FromId(this, 0));
+
+								bNeedsFluidUpdate = true;
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+		}
+	}
 }
 
 void AChunk::SaveToFile(){
-	USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::CreateSaveGameObject(USaveRegion::StaticClass()));
-	saveRegion->SetGrid(blockGrid);
-	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
-	UGameplayStatics::SaveGameToSlot(saveRegion, slotName, 0);
+	if (bNeedsSaving) {
+		USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::CreateSaveGameObject(USaveRegion::StaticClass()));
+		saveRegion->SetGrid(blockGrid);
+		FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
+		UGameplayStatics::SaveGameToSlot(saveRegion, slotName, 0);
+
+		bNeedsSaving = false;
+	}
 }
 
 bool AChunk::LoadFromFile(){
 	FString slotName = worldGenerator->GetWorldName() + "/chunks/" + FString::FromInt(chunkLoc.X) + "." + FString::FromInt(chunkLoc.Y) + "." + FString::FromInt(chunkLoc.Z);
-	USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::LoadGameFromSlot(slotName, 0));
-	if (saveRegion) {
-		saveRegion->GetGrid(this, blockGrid);
-		return true;
-	}
 	
+	if (UGameplayStatics::DoesSaveGameExist(slotName, 0)) {
+		USaveRegion* saveRegion = Cast<USaveRegion>(UGameplayStatics::LoadGameFromSlot(slotName, 0));
+		if (saveRegion) {
+			saveRegion->GetGrid(this, blockGrid);
+
+			gridDim = FIntVector(blockGrid.Num(), blockGrid[0].Num(), blockGrid[0][0].Num());
+
+			return true;
+		}
+	}
+
 	return false;
+}
+
+void AChunk::OnEndTask(AChunk* chunk){
+
+	chunk->bIsTaskFinished = true;
+
+	//if (chunk && chunk->bShouldGenerateMesh) {
+
+		chunk->GenerateTerrainMesh();
+	//}
 }
 
 
@@ -318,37 +498,44 @@ bool AChunk::LoadFromFile(){
 
 void AChunk::UpdateTerrainMesh(const FIntVector &chunkBlockLoc){
 	proceduralMesh->UpdateMesh(this, chunkBlockLoc);
-}
+} 
 
 void AChunk::HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer){
 	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
 
-		FBlock* hittedBlock = &blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z];
+		FBlock* hittedBlock = &blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z]; 
+
+		UE_LOG(LogTemp, Warning, TEXT("Chunk hittedBlock: %s"), *hittedBlock->ToString());
+
+
 		if (hittedBlock->ApplyDamage(damageAmount)) {
 			ALowPolySurvivalCharacter* player = Cast<ALowPolySurvivalCharacter>(causer);
 			if (player && hittedBlock->resource) {
 				FItemStack itemStack = FItemStack::FromId(this, 20, hittedBlock->resource->id, 5);
 				player->AddItemStackToInventory(itemStack, true);
 			}
-			SetBlockUnsafe(gridLoc, FBlockData());
+			SetBlockUnsafe(gridLoc, FResource::FromId(this, 0));
 		}
 
 	}
 }
 
-void AChunk::SetBlock(FIntVector gridLoc, const FBlockData &blockData){
+void AChunk::SetBlock(FIntVector gridLoc, const FResource* resource){
 	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
 
-		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].data = blockData;
+		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].SetResource(resource);
 
+		
 	}
-
+	FluidUpdate();
+	bNeedsSaving = true;
 	proceduralMesh->UpdateMesh(this, gridLoc);
 }
 
-void AChunk::SetBlockUnsafe(FIntVector gridLoc, const FBlockData & blockData){
-	blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].data = blockData;
-
+void AChunk::SetBlockUnsafe(FIntVector gridLoc, const FResource* resource){
+	blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].SetResource(resource);
+	FluidUpdate();
+	bNeedsSaving = true;
 	proceduralMesh->UpdateMesh(this, gridLoc);
 }
 
@@ -369,6 +556,43 @@ const FBlock & AChunk::GetBlock(const FVector & worldLoc) const
 	BlockToChunkBlockLocation(blockLoc, chunkBlockLoc);
 	
 	return GetBlock(chunkBlockLoc);
+}
+
+FBlock* AChunk::GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targetChunk) const{
+
+	FIntVector relativeChunk = FIntVector(0, 0, 0);
+
+	if (chunkBlockLoc.Z < 0) {
+		chunkBlockLoc.Z = FWorldParams::chunkSize - 1;
+		relativeChunk.Z = -1;
+	}else if(chunkBlockLoc.Z > FWorldParams::chunkSize-1){
+		chunkBlockLoc.Z = 0;
+		relativeChunk.Z = 1;
+	}
+
+	if (chunkBlockLoc.X < 0) {
+		chunkBlockLoc.X = FWorldParams::chunkSize - 1;
+		relativeChunk.X = -1;
+	}else if (chunkBlockLoc.X > FWorldParams::chunkSize - 1) {
+		chunkBlockLoc.X = 0;
+		relativeChunk.X = 1;
+	}
+
+	if (chunkBlockLoc.Y < 0) {
+		chunkBlockLoc.Y = FWorldParams::chunkSize - 1;
+		relativeChunk.Y = -1;
+	}else if (chunkBlockLoc.Y > FWorldParams::chunkSize - 1) {
+		chunkBlockLoc.Y = 0;
+		relativeChunk.Y = 1;
+	}
+
+	OUT_targetChunk = worldGenerator->GetChunkSafe(chunkLoc + relativeChunk);
+	if (OUT_targetChunk) {
+		
+		return &(*OUT_targetChunk)[chunkBlockLoc];
+	}
+
+	return nullptr;
 }
 
 const TArray<TArray<TArray<FBlock>>>* AChunk::GetGridData() const{
@@ -399,3 +623,34 @@ const FBlock& AChunk::operator[](const FIntVector & chunkBlockLoc) const{
 	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
 }
 
+
+//ChunkTaks
+ChunkTask::ChunkTask(AChunk * _chunk, bool _bSaveInsteadOfLoad){
+	chunk = _chunk;
+	bSaveInsteadOfLoad = _bSaveInsteadOfLoad;
+}
+
+ChunkTask::~ChunkTask(){
+}
+
+void ChunkTask::DoWork(){
+	chunk->bIsTaskFinished = false;
+
+	if (bSaveInsteadOfLoad) {
+		chunk->SaveToFile();
+	}
+	else {
+		if (!chunk->LoadFromFile()) {
+			chunk->Create();
+		}
+
+		//chunk->GenerateTerrainMesh();
+		//chunk->proceduralMesh->GenerateMesh(chunk);
+		AChunk::OnEndTask(chunk);
+	}
+	
+
+
+	chunk->bIsTaskFinished = true;
+}
+ 

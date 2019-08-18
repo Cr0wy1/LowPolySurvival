@@ -16,6 +16,7 @@ bool UHUDWidget::Initialize(){
 
 void UHUDWidget::NativeConstruct() {
 	
+	Super::NativeConstruct();
 
 	playerController = GetOwningPlayer();
 

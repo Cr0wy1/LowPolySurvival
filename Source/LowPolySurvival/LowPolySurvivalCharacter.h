@@ -24,6 +24,7 @@ class UPlacementComponent;
 class UWidgetInteractionComponent;
 class UPlacementMenuWidget;
 class UMyGameInstance;
+class UCharacterMovementComponent;
 
 
 
@@ -42,6 +43,8 @@ public:
 protected:
 
 	bool bIsInHit = false;
+
+	UCharacterMovementComponent* movementComp = nullptr;
 
 	UMyGameInstance* gameInstance = nullptr;
 
@@ -77,6 +80,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UPlacementMenuWidget> placementMenu_BP;
+
+	//Movement
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float walkSpeed = 600.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float runSpeed = 1000.0f;
 
 	//COMPONENTS
 	/** Pawn mesh: 1st person view (arms; seen only by self) */

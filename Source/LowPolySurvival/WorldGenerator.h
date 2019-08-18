@@ -14,38 +14,63 @@ class APlayercharController;
 class AChunk;
 class UChunkColumn;
 class UMaterialInterface;
+class UMyGameInstance;
+
+
+USTRUCT()
+struct LOWPOLYSURVIVAL_API FWorldLoader {
+	GENERATED_BODY()
+
+	static TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
+	static TMap<FIntVector, AChunk*> loadedChunks;
+
+};
+
 
 
 UCLASS()
 class LOWPOLYSURVIVAL_API AWorldGenerator : public AActor
 {
 	GENERATED_BODY()
+
+
+
 	
 public:	
 	// Sets default values for this actor's properties
 	AWorldGenerator();
 
+
+
 protected:
+
 
 	bool bDrawDebug = false;
 
 	FString worldName = "world";
 	
-	int32 checkedRadiusZ = 1;
-	int32 checkedRadiusXY = 1; 
-	 
+
+	UMyGameInstance* gameInstance = nullptr;
 	APlayercharController * playerController = nullptr;
 	 
 	FIntVector cPlayerChunkLoc = FIntVector(0.5f, 0.5f, 0.5f);
 	 
-	TMap<FIntVector, AChunk*> loadedChunks;
+	//TMap<FIntVector, AChunk*> loadedChunks;
 	TArray<FIntVector> checkedChunkLocs;
 
-	TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
-
+	//TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
-	FNoiseParams noiseParams;
+	int32 checkedRadiusZ = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	int32 checkedRadiusXY = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	FNoiseParams biomeNoiseParams;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
+	TArray<FNoiseParams> noiseParams;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FNoiseParams caveNoiseParams;
@@ -74,17 +99,25 @@ public:
 
 	void CheckChunks(FIntVector center) ;
 
-	void PlaceBlock(FIntVector blockLocation, const FBlockData &blockData);
+	void PlaceBlock(FIntVector blockLocation, const FResource* resource);
 	void HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
 	void RemoveBlock(FIntVector blockLocation);
 
+	float BiomeNoise(const FVector2D &loc) const;
 	float TerrainNoise(const FVector2D &loc) const;
 	float CaveNoise(const FVector &loc) const;
 	float OreNoise(const FVector &loc) const;
+
+	float HeatNoise(const FVector2D &loc) const;
+	float RainNoise(const FVector2D &loc) const;
 	 
-	const FNoiseParams GetNoiseParams() const;
+	const TArray<FNoiseParams> GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;
-	AChunk* GetChunk(const FIntVector &chunkLoc) const;
+
+	FBiomeData* GetBiome(float heatNoise, float rainNoise) const;
+	FBiomeData* GetBiome(const FBlockLoc &blockLoc) const;
+    AChunk* GetChunk(const FChunkLoc &chunkLoc) const;
+	AChunk* GetChunkFromBlock(const FBlockLoc &blockLoc) const;
 
 	//Check if chunk exist, return nullptr if doesn't
 	AChunk* GetChunkSafe(const FIntVector &chunkLoc) const;

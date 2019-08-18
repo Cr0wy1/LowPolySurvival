@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameStructs.h"
+#include "HAL/Runnable.h"
 #include "Chunk.generated.h"
 
 
@@ -24,11 +26,15 @@ class LOWPOLYSURVIVAL_API AChunk : public AActor
 {
 	GENERATED_BODY()
 
+	friend class ChunkTask;
+
 private:
 	//Development
 	bool bDrawDebug = false;
 
 public:	
+
+	bool bNeedsFluidUpdate = false;
 	// Sets default values for this actor's properties
 	AChunk();
 
@@ -36,12 +42,20 @@ public:
 
 protected:
 
+
+	bool bIsTaskFinished = false;
+	bool bShouldGenerateMesh = false;
+	
+	bool bNeedsSaving = false;
+
 	bool bIsFullCreated = false;
 	bool bIsTerrainGenerated = false;
 
 	UMyGameInstance * gameInstance = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
-	UChunkColumn* chunkColumn = nullptr;
+
+	UPROPERTY()
+	UChunkColumn* chunkColumn;
 
 	FIntVector gridDim;
 	TArray<TArray<TArray<FBlock>>> blockGrid;
@@ -66,13 +80,18 @@ protected:
 	void ApplyNoiseOnGrid();
 	void AddNoiseCaves();
 	void AddNoiseOres();
+	void AddWater();
 
 	UFUNCTION()
 	void OnGeneratedMesh();
 
+	void FluidUpdate();
+
 	//Save Load
 	void SaveToFile();
 	bool LoadFromFile();
+
+	
 
 public:	
 
@@ -82,6 +101,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	static AChunk* Construct(AWorldGenerator* _worldGenerator, FIntVector _chunkLoc);
 	
 	void Load(FIntVector _chunkLoc);
 	void Unload();
@@ -90,13 +110,16 @@ public:
 	void UpdateTerrainMesh(const FIntVector &chunkBlockLoc);
 
 	void HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer);
-	void SetBlock(FIntVector gridLoc, const FBlockData &blockData);
-	void SetBlockUnsafe(FIntVector gridLoc, const FBlockData &blockData);
+	void SetBlock(FIntVector gridLoc, const FResource* resource);
+	void SetBlockUnsafe(FIntVector gridLoc, const FResource* resource);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 
 	const FBlock& GetBlock(const FIntVector &chunkBlockLoc) const;
 	const FBlock& GetBlock(const FVector &worldLoc) const;
+	FBlock* GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targetChunk = nullptr) const;
+
+
 	const TArray<TArray<TArray<FBlock>>>* GetGridData() const;
 	const AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
@@ -106,4 +129,27 @@ public:
 
 	FBlock& operator[](const FIntVector &chunkBlockLoc);
 	const FBlock& operator[](const FIntVector &chunkBlockLoc) const;
+
+	static void OnEndTask(AChunk* chunk);
+};
+
+
+class ChunkTask : public FNonAbandonableTask {
+
+	AChunk * chunk;
+
+	//true = save, false = load
+	bool bSaveInsteadOfLoad;
+
+public:
+	ChunkTask(AChunk * _chunk, bool _bSaveInsteadOfLoad);
+	~ChunkTask();
+
+	void DoWork();
+
+
+	FORCEINLINE TStatId GetStatId() const {
+		RETURN_QUICK_DECLARE_CYCLE_STAT(ExampleAutoDeleteAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
 };

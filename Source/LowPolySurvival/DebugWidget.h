@@ -18,6 +18,10 @@ struct LOWPOLYSURVIVAL_API FDebugInfo {
 	GENERATED_BODY()
 
 	FVector playerLocation;
+	FVector playerVelocity;
+	FRotator playerLookDirection;
+	FName biomeName;
+
 	int32 loadedChunks;
 };
 
@@ -47,6 +51,17 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* loadedBlocksText;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* playerLookDirText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* playerVelText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* biomeText;
+
 	void Update(const FDebugInfo &debugInfo);
 	
+
+	FString GetCompassFromRotation(const float yaw) const;
 };

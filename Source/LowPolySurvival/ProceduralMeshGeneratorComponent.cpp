@@ -76,17 +76,6 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const F
 	int32 z = chunkBlockLoc.Z;
 
 	FBlockData blockData = chunk->GetBlock(chunkBlockLoc).data;
-	
-
-
-	//marchCubes[x-1][y][z].corners[0] = blockData;
-	//marchCubes[x-1][y-1][z].corners[1] = blockData;
-	//marchCubes[x][y-1][z].corners[2] = blockData; 
-	//marchCubes[x][y][z].corners[3] = blockData;
-	//marchCubes[x-1][y][z-1].corners[4] = blockData;
-	//marchCubes[x-1][y-1][z-1].corners[5] = blockData;
-	//marchCubes[x][y-1][z-1].corners[6] = blockData;
-	//marchCubes[x][y][z-1].corners[7] = blockData;
 
 	(new FAutoDeleteAsyncTask<ProcMeshTask>(this, chunk))->StartBackgroundTask();
 
@@ -360,7 +349,9 @@ void UProceduralMeshGeneratorComponent::MarchingCubes(bool bBorderNormalsOnly){
 					int32 vertIndex = procMeshData.vertexArray.Add(vertex);
 					procMeshData.triangles.Add(vertIndex);
 						 
-					meshTriangles.Add(meshVertexArray.Add(vertex));
+					int32 iVert = meshVertexArray.Add(vertex);
+					meshTriangles.Add(iVert);
+					//meshUV.Add(FVector2D(0.1, 0.1));
 						
 					
 					procMeshData.vertColors.Add( marchCubes[x][y][z].GetEdgeColor(edgeIndex).ToFColor(true) );
@@ -483,7 +474,7 @@ void UProceduralMeshGeneratorComponent::CalculateNormalsAndTangents(FProcMeshDat
 	 
 	//TODO Makse it optional
 	//return;
-	float normalsMultiplyer = 0.2f;
+	float normalsMultiplyer = 0.0f;
 	
 	if (procMeshData.vertexArray.Num() == 0)
 	{ 

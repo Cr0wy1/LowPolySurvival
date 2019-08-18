@@ -67,7 +67,7 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 	uint8 GetCubeIndex() const{
 		uint8 cubeIndex = 0;
 		for (size_t i = 0; i < 8; i++){
-			if (corners[i].blockId < 1) {
+			if (!corners[i].bIsSolid) {
 				cubeIndex |= 1 << i;
 			}
 		}
@@ -99,10 +99,10 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 
 		FLinearColor finalColor;
 
-		if (corner1->blockId != 0) {
+		if (corner1->bIsSolid) {
 			finalColor = corner1->color;
 
-			if (corner2->blockId != 0) {
+			if (corner2->bIsSolid) {
 				FLinearColor color2 = corner2->color;
 				finalColor = FLinearColor::LerpUsingHSV(finalColor, color2, 0.5f);
 			}
@@ -124,6 +124,7 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 {
 	GENERATED_BODY()
 
+	friend class ProcMeshTask;
 
 protected:
 

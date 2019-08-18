@@ -34,32 +34,47 @@ void UMyGameInstance::Init(){
 }
 
 void UMyGameInstance::InitDataTables(){
-	if (!itemDataTable || !craftingDataTable) return;
 
+	if (itemDataTable && craftingDataTable) {
+		TArray<FCraftingInfo*> craftingInfos;
+		craftingDataTable->GetAllRows(FString(), craftingInfos);
 
-	TArray<FCraftingInfo*> craftingInfos;
-	craftingDataTable->GetAllRows(FString(), craftingInfos);
+		for (FCraftingInfo* craftingInfo : craftingInfos) {
 
-	for (FCraftingInfo* craftingInfo : craftingInfos) {
+			for (FCraftPart& neededPart : craftingInfo->needed) {
+				neededPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(neededPart.id)), FString());
+			}
 
-		for (FCraftPart& neededPart : craftingInfo->needed) {
-			neededPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(neededPart.id)), FString());
+			for (FCraftPart& resultPart : craftingInfo->result) {
+				resultPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(resultPart.id)), FString());
+			}
+
 		}
-
-		for (FCraftPart& resultPart : craftingInfo->result) {
-			resultPart.itemInfo = itemDataTable->FindRow<FItemData>(FName(*FString::FromInt(resultPart.id)), FString());
-		}
-
 	}
 
-	if (!dropsDataTable) return;
-	TArray<FItemDrops*> itemDrops;
-	dropsDataTable->GetAllRows(FString(), itemDrops);
+	if (itemDataTable && dropsDataTable) {
+		TArray<FItemDrops*> itemDrops;
+		dropsDataTable->GetAllRows(FString(), itemDrops);
 
-	for (FItemDrops* itemDrop : itemDrops) {
-		for (FDropInfo& dropInfo : itemDrop->itemId) {
-			dropInfo.itemInfo = itemDataTable->FindRow<FItemData>(dropInfo.itemId, FString());
+		for (FItemDrops* itemDrop : itemDrops) {
+			for (FDropInfo& dropInfo : itemDrop->itemId) {
+				dropInfo.itemInfo = itemDataTable->FindRow<FItemData>(dropInfo.itemId, FString());
+			}
 		}
+	}
+
+	if (biomeDataTable && resourceDataTable) {
+		TArray<FBiomeData*> biomes;
+		biomeDataTable->GetAllRows(FString(), biomes);
+
+		for (FBiomeData* biomeData : biomes) {
+			biomeData->baseBlockResource = resourceDataTable->FindRow<FResource>(biomeData->baseBlockResourceId, FString());
+			if (!biomeData->baseBlockResource) {
+				biomeData->baseBlockResource = resourceDataTable->FindRow<FResource>("0", FString());
+			}
+		}
+
+		FBiomeData::InitStaticMembers(this);
 	}
 
 }
@@ -69,33 +84,31 @@ void UMyGameInstance::CreateWorld(FName worldName){
 }
 
 UDataTable * UMyGameInstance::GetItemTable() const{
-
 	return itemDataTable;
 }
 
 UDataTable * UMyGameInstance::GetDropsTable() const{
-
 	return dropsDataTable;
 }
 
-UDataTable * UMyGameInstance::GetCraftingTable() const
-{
+UDataTable * UMyGameInstance::GetCraftingTable() const{
 	return craftingDataTable;
 }
 
-UDataTable * UMyGameInstance::GetIslandTable() const
-{
+UDataTable * UMyGameInstance::GetIslandTable() const{
 	return islandDataTable;
 }
 
-UDataTable * UMyGameInstance::GetWorldGenTable() const
-{
+UDataTable * UMyGameInstance::GetWorldGenTable() const{
 	return worldGenDataTable;
 }
 
-UDataTable * UMyGameInstance::GetResourceTable() const
-{
+UDataTable * UMyGameInstance::GetResourceTable() const{
 	return resourceDataTable;
+}
+
+UDataTable * UMyGameInstance::GetBiomeTable() const{
+	return biomeDataTable;
 }
 
 
@@ -140,14 +153,14 @@ FVector BlockToWorldLocation(const FVector & blockLocation){
 
 FIntVector BlockToChunkLocation(const FIntVector & blockLocation){
 
-	FIntVector result;
-	FVector floatLoc(blockLocation);
+	FIntVector result(blockLocation.X >> 4, blockLocation.Y >> 4, blockLocation.Z >> 4);
+	//FVector floatLoc(blockLocation);
 
-	floatLoc /= FWorldParams::chunkSize;
+	//floatLoc /= FWorldParams::chunkSize;
 
-	result.X = FMath::FloorToInt(floatLoc.X);
-	result.Y = FMath::FloorToInt(floatLoc.Y);
-	result.Z = FMath::FloorToInt(floatLoc.Z);
+	//result.X = FMath::FloorToInt(floatLoc.X);
+	//result.Y = FMath::FloorToInt(floatLoc.Y);
+	//result.Z = FMath::FloorToInt(floatLoc.Z);
 
 	return result;
 }
@@ -159,7 +172,7 @@ FVector ChunkToWorldLocation(const FIntVector & chunkLocation){
 
 FIntVector ChunkToBlockLocation(const FIntVector & chunkLocation){
 
-	return FIntVector(chunkLocation * FWorldParams::chunkSize);
+	return chunkLocation * FWorldParams::chunkSize;
 }
 
 FIntVector BlockToChunkBlockLocation(const FIntVector & blockLocation, FIntVector &OUT_chunkBlockLocation){

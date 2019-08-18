@@ -24,6 +24,7 @@
 #include "Chunk.h"
 #include "MyGameInstance.h"
 #include "WorldGenerator.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -92,6 +93,11 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 
 	widgetInteractionComp = CreateDefaultSubobject<UWidgetInteractionComponent>("Widget Interaction");
 	widgetInteractionComp->SetupAttachment(FirstPersonCameraComponent);
+
+	//Movement
+	movementComp = GetCharacterMovement();
+	movementComp->JumpZVelocity = 860.0f;
+	movementComp->GravityScale = 3.0f;
 }
 
 
@@ -371,10 +377,16 @@ void ALowPolySurvivalCharacter::OnAltReleased(){
 }
 
 void ALowPolySurvivalCharacter::OnShiftPressed(){
+
+	movementComp->MaxWalkSpeed = runSpeed;
+
 	bIsHoldingShift = true;
 }
 
 void ALowPolySurvivalCharacter::OnShiftReleased(){
+
+	movementComp->MaxWalkSpeed = walkSpeed;
+
 	bIsHoldingShift = false;
 }
 
@@ -403,7 +415,7 @@ void ALowPolySurvivalCharacter::OnInteraction(){
 		//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
 		FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint - (direction * 25));
 
-		gameInstance->GetWorldGenerator()->PlaceBlock(FIntVector(blockLoc), FBlockData(2));
+		gameInstance->GetWorldGenerator()->PlaceBlock(FIntVector(blockLoc), FResource::FromId(this, 8) );
 
 		DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
 		DrawDebugBox(GetWorld(), FVector(blockLoc) * 100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
@@ -535,19 +547,19 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 }
 
 
-void ALowPolySurvivalCharacter::MoveForward(float Value)
-{
-	if (Value != 0.0f)
-	{
+void ALowPolySurvivalCharacter::MoveForward(float Value){
+
+	if (Value != 0.0f){
+
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
 }
 
-void ALowPolySurvivalCharacter::MoveRight(float Value)
-{
-	if (Value != 0.0f)
-	{
+void ALowPolySurvivalCharacter::MoveRight(float Value){
+
+	if (Value != 0.0f){
+
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
 	}

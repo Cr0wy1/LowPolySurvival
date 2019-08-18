@@ -16,7 +16,7 @@ void USaveRegion::SetGrid(const TArray<TArray<TArray<FBlock>>> blockGrid){
 		for (size_t y = 0; y < dim.Y; y++) {
 			grid[x][y].Init(FSaveBlock(), dim.Z);
 			for (size_t z = 0; z < dim.Z; z++) {
-				grid[x][y][z].itemId = blockGrid[x][y][z].data.blockId;
+				//grid[x][y][z].itemId = blockGrid[x][y][z].data.blockId;
 				if (blockGrid[x][y][z].resource) {
 					grid[x][y][z].resourceId = blockGrid[x][y][z].resource->id;
 				}

@@ -6,6 +6,14 @@
 #include "GameStructs.generated.h"
 
 
+
+class UMyGameInstance;
+
+
+
+using FBlockLoc = FIntVector;
+using FChunkLoc = FIntVector;
+
 UENUM(BlueprintType)
 enum class EVegetationType : uint8 {
 	NONE,
@@ -26,6 +34,14 @@ enum class EBiome : uint8 {
 };
 
 
+UENUM(BlueprintType)
+enum class EResourceType : uint8 {
+	SOLID,
+	FLUID,
+	GAS,
+};
+
+
 struct FBlock;
  
 USTRUCT(BlueprintType)
@@ -37,7 +53,10 @@ struct LOWPOLYSURVIVAL_API FBlockData {
 	FColor color = FColor::Green;
 
 	//FBlockData(int32 _blockId = 0) : blockId(_blockId) {}
+
 	
+	
+	FString ToString() const;
 };
 
 USTRUCT(BlueprintType)
@@ -48,16 +67,19 @@ struct LOWPOLYSURVIVAL_API FBlock {
 
 	int32 durability;
 
-	FResource* resource = nullptr;
-
-	FBlock(int32 blockId = 0) {
-		data.blockId = blockId;
-	}
+	const FResource* resource = nullptr;
 
 	//Return true if durability <= 0 (Block is destroyed)
 	bool ApplyDamage(int32 damageAmount);
-	void SetResource(FResource* _resource);
+	void SetResource(const FResource* _resource);
+	void SetBiomeColor(const FLinearColor& biomeColor);
+
 	bool IsValid() const;
+	bool IsAir() const;
+
+	static FBlock FromId(AActor* owner, int32 resourceId);
+
+	FString ToString() const;
 };
 
 
@@ -110,6 +132,57 @@ struct LOWPOLYSURVIVAL_API FResource : public FTableRowBase {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FLinearColor color = FLinearColor(100, 0, 100, 0);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EResourceType type = EResourceType::SOLID;
+
 	static FResource* FromId(AActor* owner, int32 resourceId);
+
+	FString ToString() const;
 };
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FBiomeData : public FTableRowBase {
+	GENERATED_BODY()
+
+	struct DATA {
+		static FBiomeData* GRAS;
+		static FBiomeData* DESERT;
+		static FBiomeData* TUNDRA;
+		static FBiomeData* GRASDESERT;
+		static FBiomeData* SAVANNA;
+		static FBiomeData* WOODS;
+		static FBiomeData* TAIGA;
+		static FBiomeData* SEASONALFOREST;
+		static FBiomeData* FOREST;
+		static FBiomeData* RAINFOREST;
+		static FBiomeData* SWAMP;
+	};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 id = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName baseBlockResourceId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float noiseScaleXY = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float heightScale = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool overrideResourceColor = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor biomeColor = FLinearColor(1,1,1,1);
+
+	FResource* baseBlockResource = nullptr;
+
+	static void InitStaticMembers(UMyGameInstance* gameInstance);
+};
+
 

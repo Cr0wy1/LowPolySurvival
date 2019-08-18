@@ -67,7 +67,16 @@ void APlayercharController::UpdateDebugScreen(){
 
 	FDebugInfo debugInfo;
 	debugInfo.playerLocation = GetPawn()->GetActorLocation();
+	debugInfo.playerVelocity = GetPawn()->GetVelocity();
+	debugInfo.playerLookDirection = GetControlRotation();
 	debugInfo.loadedChunks = gameInstance->GetWorldGenerator()->GetLoadedChunksNum();
+
+	FBiomeData* biomeData = gameInstance->GetWorldGenerator()->GetBiome(WorldToBlockLocation(debugInfo.playerLocation));
+
+	if (biomeData) {
+		debugInfo.biomeName = biomeData->name; 
+	}
+	
 
 	if (debugWidget) {
 		debugWidget->Update(debugInfo);

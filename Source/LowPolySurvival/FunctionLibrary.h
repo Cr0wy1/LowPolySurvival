@@ -29,4 +29,6 @@ public:
 	static UWorld* GetActiveWorld(UObject* worldContextObject);
 
 	static void CanvasTest(); 
+
+	static int32 GetObjReferenceCount(UObject* Obj, TArray<UObject*>* OutReferredToObjects = nullptr);
 };
