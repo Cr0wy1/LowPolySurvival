@@ -75,7 +75,7 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const F
 	int32 y = chunkBlockLoc.Y;
 	int32 z = chunkBlockLoc.Z;
 
-	FBlockData blockData = chunk->GetBlock(chunkBlockLoc).data;
+	FBlockData blockData = chunk->GetBlock(chunkBlockLoc)->data;
 
 	(new FAutoDeleteAsyncTask<ProcMeshTask>(this, chunk))->StartBackgroundTask();
 

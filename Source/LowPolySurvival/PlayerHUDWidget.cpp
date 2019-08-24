@@ -59,10 +59,10 @@ void UPlayerHUDWidget::UpdateTargetIndicator(const FBuildingInfo &targetInfo){
 	nameIndicatorText->SetText(FText::FromName(targetInfo.itemInfo->name));
 }
 
-void UPlayerHUDWidget::UpdateTargetIndicator(const FBlock & targetInfo){
-	if (targetInfo.IsValid()) {
-		damageIndicatorProgress->SetPercent((float)targetInfo.durability / (float)targetInfo.resource->hardness);
-		nameIndicatorText->SetText(FText::FromName(targetInfo.resource->name));
+void UPlayerHUDWidget::UpdateTargetIndicator(const FBlock* targetInfo){
+	if (targetInfo && targetInfo->IsValid()) {
+		damageIndicatorProgress->SetPercent((float)targetInfo->durability / (float)targetInfo->resource->hardness);
+		nameIndicatorText->SetText(FText::FromName(targetInfo->resource->name));
 	}
 
 }

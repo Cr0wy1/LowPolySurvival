@@ -514,26 +514,26 @@ void AChunk::HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer){
 				FItemStack itemStack = FItemStack::FromId(this, 20, hittedBlock->resource->id, 5);
 				player->AddItemStackToInventory(itemStack, true);
 			}
-			SetBlockUnsafe(gridLoc, FResource::FromId(this, 0));
+			SetBlockUnsafe(gridLoc, FBlock::FromId(this, 0));
 		}
 
 	}
 }
 
-void AChunk::SetBlock(FIntVector gridLoc, const FResource* resource){
+bool AChunk::SetBlock(FIntVector gridLoc, const FBlock& block){
 	if (gridLoc.X > -1 && gridLoc.Y > -1 && gridLoc.Z > -1 && gridLoc.X <= gridDim.X && gridLoc.Y <= gridDim.Y && gridLoc.Z <= gridDim.Z) {
 
-		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].SetResource(resource);
+		blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z] = block;
+		SetBlockUnsafe(gridLoc, block);
 
-		
+		return true;
 	}
-	FluidUpdate();
-	bNeedsSaving = true;
-	proceduralMesh->UpdateMesh(this, gridLoc);
+
+	return false;
 }
 
-void AChunk::SetBlockUnsafe(FIntVector gridLoc, const FResource* resource){
-	blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z].SetResource(resource);
+void AChunk::SetBlockUnsafe(FIntVector gridLoc, const FBlock& block){
+	blockGrid[gridLoc.X][gridLoc.Y][gridLoc.Z] = block;
 	FluidUpdate();
 	bNeedsSaving = true;
 	proceduralMesh->UpdateMesh(this, gridLoc);
@@ -544,12 +544,12 @@ void AChunk::SetTerrainMaterial(UMaterialInterface * material){
 	proceduralMesh->SetMaterial(0, material);
 }
 
-const FBlock& AChunk::GetBlock(const FIntVector &chunkBlockLoc) const
+const FBlock* AChunk::GetBlock(const FIntVector &chunkBlockLoc) const
 {
-	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
+	return &blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
 }
 
-const FBlock & AChunk::GetBlock(const FVector & worldLoc) const
+const FBlock* AChunk::GetBlock(const FVector & worldLoc) const
 {
 	FIntVector blockLoc = WorldToBlockLocation(worldLoc);
 	FIntVector chunkBlockLoc;

@@ -110,13 +110,13 @@ public:
 	void UpdateTerrainMesh(const FIntVector &chunkBlockLoc);
 
 	void HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer);
-	void SetBlock(FIntVector gridLoc, const FResource* resource);
-	void SetBlockUnsafe(FIntVector gridLoc, const FResource* resource);
+	bool SetBlock(FIntVector gridLoc, const FBlock& block);
+	void SetBlockUnsafe(FIntVector gridLoc, const FBlock& block);
 
 	void SetTerrainMaterial(UMaterialInterface* material);
 
-	const FBlock& GetBlock(const FIntVector &chunkBlockLoc) const;
-	const FBlock& GetBlock(const FVector &worldLoc) const;
+	const FBlock* GetBlock(const FIntVector &chunkBlockLoc) const;
+	const FBlock* GetBlock(const FVector &worldLoc) const;
 	FBlock* GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targetChunk = nullptr) const;
 
 

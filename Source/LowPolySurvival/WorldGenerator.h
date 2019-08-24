@@ -99,7 +99,6 @@ public:
 
 	void CheckChunks(FIntVector center) ;
 
-	void PlaceBlock(FIntVector blockLocation, const FResource* resource);
 	void HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
 	void RemoveBlock(FIntVector blockLocation);
 
@@ -113,6 +112,9 @@ public:
 	 
 	const TArray<FNoiseParams> GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;
+
+	bool SetBlock(const FBlockLoc &blockLoc, const FBlock &block);
+	const FBlock* GetBlock(const FBlockLoc &blockLoc);
 
 	FBiomeData* GetBiome(float heatNoise, float rainNoise) const;
 	FBiomeData* GetBiome(const FBlockLoc &blockLoc) const;

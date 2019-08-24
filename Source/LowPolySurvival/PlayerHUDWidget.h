@@ -61,7 +61,7 @@ public:
 	void UpdateArmor();
 
 	void UpdateTargetIndicator(const FBuildingInfo &targetInfo);
-	void UpdateTargetIndicator(const FBlock &targetInfo);
+	void UpdateTargetIndicator(const FBlock* targetInfo);
 	void ShowTargetIndicator();
 	void HideTargetIndicator();
 

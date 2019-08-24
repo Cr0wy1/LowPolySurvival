@@ -179,13 +179,7 @@ FIntVector BlockToChunkBlockLocation(const FIntVector & blockLocation, FIntVecto
 
 	FIntVector chunkLoc = BlockToChunkLocation(blockLocation);
 
-	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z % FWorldParams::chunkSize);
-
-	chunkBlockLoc.X += chunkBlockLoc.X < 0 ? FWorldParams::chunkSize : 0;
-	chunkBlockLoc.Y += chunkBlockLoc.Y < 0 ? FWorldParams::chunkSize : 0;
-	chunkBlockLoc.Z += chunkBlockLoc.Z < 0 ? FWorldParams::chunkSize : 0;
-
-	OUT_chunkBlockLocation = chunkBlockLoc;
+	OUT_chunkBlockLocation = FIntVector(blockLocation.X & 15, blockLocation.Y & 15, blockLocation.Z & 15);
 
 	return chunkLoc;
 }
@@ -194,13 +188,10 @@ TArray<FIntVector> BlockToChunkBlockLocation(const FIntVector &blockLocation, TA
 
 	TArray<FIntVector> result;
 
-	FIntVector chunkLoc = BlockToChunkLocation(blockLocation);
+	FIntVector chunkBlockLoc;
 
-	FIntVector chunkBlockLoc = FIntVector(blockLocation.X % FWorldParams::chunkSize, blockLocation.Y % FWorldParams::chunkSize, blockLocation.Z % FWorldParams::chunkSize);
+	FIntVector chunkLoc = BlockToChunkBlockLocation(blockLocation, chunkBlockLoc);
 
-	chunkBlockLoc.X += chunkBlockLoc.X < 0 ? FWorldParams::chunkSize : 0;
-	chunkBlockLoc.Y += chunkBlockLoc.Y < 0 ? FWorldParams::chunkSize : 0;
-	chunkBlockLoc.Z += chunkBlockLoc.Z < 0 ? FWorldParams::chunkSize : 0;
 
 	result.Add(chunkLoc);
 	OUT_chunkBlockLocation.Add(chunkBlockLoc);
