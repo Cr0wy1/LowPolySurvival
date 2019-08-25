@@ -26,7 +26,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIWidget")
 	void CloseUI();
 
-	void OpenUI();
+	virtual void OpenUI();
 
 	bool IsUIOpen() const;
 };

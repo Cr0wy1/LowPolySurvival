@@ -11,6 +11,7 @@
 class UMyGameInstance;
 class UDebugWidget;
 class UEscapeMenuWidget;
+class UChatWidget;
 /**
  * 
  */
@@ -26,6 +27,7 @@ protected:
 
 	UDebugWidget * debugWidget = nullptr;
 	UEscapeMenuWidget* escapeMenuWidget = nullptr;
+	UChatWidget* chatWidget = nullptr;
 
 	virtual void BeginPlay() override;
 
@@ -34,7 +36,7 @@ protected:
 	virtual void SetupInputComponent() override;
 	void OnToggleDebugScreen();
 	void OnEscapeMenuPressed();
-	
+	void OnOpenChatPressed();
 	
 public:
 

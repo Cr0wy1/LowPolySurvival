@@ -6,6 +6,7 @@
 #include "WorldGenerator.h"
 #include "EscapeMenuWidget.h"
 #include "WidgetAsset.h" 
+#include "UChatWidget.h"
 
 
 void APlayercharController::BeginPlay() {
@@ -24,6 +25,10 @@ void APlayercharController::BeginPlay() {
 		escapeMenuWidget->AddToPlayerScreen();
 	}
 
+	if (widgetAsset_A->chatWidget_BP) {
+		chatWidget = CreateWidget<UChatWidget>(this, widgetAsset_A->chatWidget_BP);
+		chatWidget->AddToPlayerScreen();
+	}
 }
 
 void APlayercharController::SetupInputComponent() {
@@ -32,6 +37,7 @@ void APlayercharController::SetupInputComponent() {
 
 	InputComponent->BindAction("ToggleDebugScreen", IE_Pressed, this, &APlayercharController::OnToggleDebugScreen);
 	InputComponent->BindAction("EscapeMenu", IE_Pressed, this, &APlayercharController::OnEscapeMenuPressed);
+	InputComponent->BindAction("OpenChat", IE_Pressed, this, &APlayercharController::OnOpenChatPressed);
 
 }
 
@@ -44,7 +50,7 @@ void APlayercharController::OnToggleDebugScreen(){
 		bIsDebugScreenShown ? debugWidget->SetVisibility(ESlateVisibility::HitTestInvisible) : debugWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("DebugScreenShown: %i"), bIsDebugScreenShown);
+	//UE_LOG(LogTemp, Warning, TEXT("DebugScreenShown: %i"), bIsDebugScreenShown);
 
 }
 
@@ -53,7 +59,15 @@ void APlayercharController::OnEscapeMenuPressed(){
 		escapeMenuWidget->OpenUI();
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("EscapeMenu"), bIsDebugScreenShown);
+	//UE_LOG(LogTemp, Warning, TEXT("EscapeMenu"), bIsDebugScreenShown);
+}
+
+void APlayercharController::OnOpenChatPressed(){
+	if (chatWidget) {
+		chatWidget->OpenUI();
+	}
+
+
 }
 
 void APlayercharController::CenterMouse() {

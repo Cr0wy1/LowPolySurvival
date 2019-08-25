@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Item.h"
+#include "GameStructs.h"
 #include "LowPolySurvivalCharacter.generated.h"
 
 class ABuildings;
@@ -25,6 +26,7 @@ class UWidgetInteractionComponent;
 class UPlacementMenuWidget;
 class UMyGameInstance;
 class UCharacterMovementComponent;
+
 
 
 
@@ -54,6 +56,8 @@ protected:
 	APlayercharController * controller = nullptr;
 
 	ABuildings* currentInteractionBuilding = nullptr;
+
+	EPlayerMode playerMode = EPlayerMode::SURVIVAL;
 
 	//Viewport Size
 	int32 viewX, viewY;
@@ -141,11 +145,13 @@ protected:
 
 	void UpdateMeshRightHand();
 
+	
 
 	//MOVEMENT
 	/** Handles moving */
-	void MoveForward(float Val);
-	void MoveRight(float Val);
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void MoveUp(float Value);
 
 	/**
 	* Called via input to turn at a given rate.
@@ -208,6 +214,8 @@ public:
 
 
 	void OnUpdateHandStack();
+
+	void SetPlayerMode(EPlayerMode _playerMode);
 
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }

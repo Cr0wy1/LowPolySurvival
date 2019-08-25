@@ -97,3 +97,32 @@ void FBiomeData::InitStaticMembers(UMyGameInstance * gameInstance){
 	DATA::RAINFOREST = biomeTable->FindRow<FBiomeData>("10", FString());
 	DATA::SWAMP = biomeTable->FindRow<FBiomeData>("11", FString());
 }
+
+FBlockGrid::FBlockGrid(){
+}
+
+FBlockGrid::FBlockGrid(int32 xSize, int32 ySize, int32 zSize){
+	Init(xSize, ySize, zSize);
+}
+
+//FBlockGrid
+void FBlockGrid::Init(int32 xSize, int32 ySize, int32 zSize){
+	dims = FIntVector(xSize, ySize, zSize);
+	grid.Init(TArray<TArray<FBlock>>(), xSize);
+
+	for (size_t x = 0; x < xSize; x++) {
+		grid[x].Init(TArray<FBlock>(), ySize);
+
+		for (size_t y = 0; y < ySize; y++) {
+			grid[x][y].Init(FBlock(), zSize);
+		}
+	}
+}
+
+TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex){
+	return grid[xIndex];
+}
+
+const TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex) const{
+	return grid[xIndex];
+}

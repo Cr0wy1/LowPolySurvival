@@ -98,6 +98,8 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 	movementComp = GetCharacterMovement();
 	movementComp->JumpZVelocity = 860.0f;
 	movementComp->GravityScale = 3.0f;
+	movementComp->MaxFlySpeed = 2000.0f;
+	movementComp->BrakingDecelerationFlying = 2000.0f;
 }
 
 
@@ -219,6 +221,7 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &ALowPolySurvivalCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ALowPolySurvivalCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveUp", this, &ALowPolySurvivalCharacter::MoveUp);
 
 	//Inventory
 	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ALowPolySurvivalCharacter::ToggleInventory);
@@ -546,6 +549,25 @@ void ALowPolySurvivalCharacter::UpdateMeshRightHand(){
 
 }
 
+void ALowPolySurvivalCharacter::SetPlayerMode(EPlayerMode _playerMode){
+	if (playerMode != _playerMode) {
+		playerMode = _playerMode;
+
+		switch (playerMode){
+
+			case EPlayerMode::CREATIVE:
+				movementComp->SetMovementMode(EMovementMode::MOVE_Flying);
+				break;
+			case EPlayerMode::SPECTATOR:
+				movementComp->SetMovementMode(EMovementMode::MOVE_Flying);
+				break;
+			default: //default = SURVIVAL
+				movementComp->SetMovementMode(EMovementMode::MOVE_Walking);
+				break;
+			}
+	}
+}
+
 
 void ALowPolySurvivalCharacter::MoveForward(float Value){
 
@@ -562,6 +584,14 @@ void ALowPolySurvivalCharacter::MoveRight(float Value){
 
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
+	}
+}
+
+void ALowPolySurvivalCharacter::MoveUp(float Value){
+	if (Value != 0.0f) {
+
+		// add movement in that direction
+		AddMovementInput(GetActorUpVector(), Value);
 	}
 }
 

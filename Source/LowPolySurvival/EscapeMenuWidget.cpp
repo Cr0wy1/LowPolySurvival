@@ -3,6 +3,7 @@
 
 #include "EscapeMenuWidget.h"
 
+
 FReply UEscapeMenuWidget::NativeOnPreviewKeyDown(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent) {
 
 	if (InKeyEvent.GetKey() == EKeys::Tab || InKeyEvent.GetKey() == EKeys::Escape) {

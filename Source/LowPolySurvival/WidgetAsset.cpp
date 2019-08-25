@@ -4,3 +4,4 @@
 #include "WidgetAsset.h"
 #include "DebugWidget.h"
 #include "EscapeMenuWidget.h"
+#include "UChatWidget.h"

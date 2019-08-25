@@ -212,12 +212,9 @@ void AChunk::ApplyNoiseOnGrid(){
 		for (int32 y = 0; y < gridDim.Y; y++) {
 
 			cBiome = worldGenerator->GetBiome(heatNoiseMap[x][y], rainNoiseMap[x][y]);
-			
 
 			//float biomeNoise = worldGenerator->BiomeNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
 			biomeR = cBiome->baseBlockResource;
-
-			
 
 			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
 			int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;

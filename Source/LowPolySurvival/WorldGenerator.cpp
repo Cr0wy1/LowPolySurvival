@@ -245,12 +245,12 @@ float AWorldGenerator::OreNoise(const FVector & loc) const{
 }
 
 float AWorldGenerator::HeatNoise(const FVector2D & loc) const{
-	return Noise(loc.X, loc.Y, 1);
+	return Noise(loc.X*0.5, loc.Y*0.5, 6, 0.5, 32);
 }
 
 float AWorldGenerator::RainNoise(const FVector2D & loc) const
 {
-	return Noise(loc.X + 1000, loc.Y + 1000, 1);
+	return Noise(loc.X*0.5, loc.Y*0.5, 6, 0.5, 32);
 }
 
 const TArray<FNoiseParams> AWorldGenerator::GetNoiseParams() const{

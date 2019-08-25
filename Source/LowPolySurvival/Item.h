@@ -217,7 +217,7 @@ struct LOWPOLYSURVIVAL_API FItemStack {
 	bool operator!=(FItemStack &otherStack)const;
 	
 	static FItemStack FromId(AActor* owner, int32 itemId, int32 resourceId = 0, int32 amount = 1);
-
+	static FItemStack FromId(AActor* owner, FName itemId, int32 resourceId = 0, int32 amount = 1);
 };
 
 

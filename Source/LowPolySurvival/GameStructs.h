@@ -42,7 +42,17 @@ enum class EResourceType : uint8 {
 };
 
 
+UENUM(BlueprintType)
+enum class EPlayerMode : uint8 {
+	SURVIVAL,
+	CREATIVE,
+	SPECTATOR,
+};
+
+
 struct FBlock;
+
+
  
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBlockData {
@@ -80,6 +90,22 @@ struct LOWPOLYSURVIVAL_API FBlock {
 	static FBlock FromId(AActor* owner, int32 resourceId);
 
 	FString ToString() const;
+};
+
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FBlockGrid {
+
+	FIntVector dims;
+	TArray<TArray<TArray<FBlock>>> grid;
+
+	FBlockGrid();
+	FBlockGrid(int32 xSize, int32 ySize, int32 zSize);
+
+	void Init(int32 xSize, int32 ySize, int32 zSize);
+
+	TArray<TArray<FBlock>>& operator[](int32 xIndex);
+	const TArray<TArray<FBlock>>& operator[](int32 xIndex) const;
 };
 
 

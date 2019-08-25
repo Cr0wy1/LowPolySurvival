@@ -378,6 +378,10 @@ inline float Noise(float x, float y, uint8 octaves, float frequency, float ampli
 	float noise = 0.0f;
 
 	float maxValue = 0;
+	if (x == 0 && y == 0) {
+		UE_LOG(LogTemp, Warning, TEXT("octaves: %i"), octaves);
+	}
+	
 
 	for (size_t i = 0; i < octaves; i++) {
 		noise += USimplexNoise::SimplexNoise2D(nx * frequency, ny * frequency) * amplitude;
@@ -385,7 +389,7 @@ inline float Noise(float x, float y, uint8 octaves, float frequency, float ampli
 		maxValue += amplitude;
 		amplitude *= persistence;
 
-		amplitude *= 2.0f;
+		frequency *= 2.0f;
 	}
 
 	return noise / maxValue;
@@ -412,7 +416,7 @@ inline float Noise3D(float x, float y, float z, uint8 octaves, float frequency, 
 		maxValue += amplitude;
 		amplitude *= persistence;
 
-		amplitude *= 2.0f;
+		frequency *= 2.0f;
 	}
 
 	return noise / maxValue;;

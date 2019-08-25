@@ -10,6 +10,7 @@
 
 class UDebugWidget;
 class UEscapeMenuWidget;
+class UChatWidget;
 /**
  * 
  */
@@ -26,5 +27,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UEscapeMenuWidget> escapeMenuWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UChatWidget> chatWidget_BP;
 };
  

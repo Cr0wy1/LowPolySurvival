@@ -130,13 +130,16 @@ bool FItemStack::operator!=(FItemStack & otherStack) const
 	return !(*this == otherStack);
 }
 
-FItemStack FItemStack::FromId(AActor* owner, int32 id, int32 resourceId, int32 amount){
+FItemStack FItemStack::FromId(AActor* owner, int32 itemId, int32 resourceId, int32 amount){
+	return FItemStack::FromId(owner, *FString::FromInt(itemId), resourceId, amount);
+}
 
+FItemStack FItemStack::FromId(AActor * owner, FName itemId, int32 resourceId, int32 amount){
 	FItemStack stack;
 
-	if (owner) { 
+	if (owner) {
 		UMyGameInstance* gameInstance = Cast<UMyGameInstance>(owner->GetGameInstance());
-		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemData>(*FString::FromInt(id), FString());
+		stack.itemInfo = gameInstance->GetItemTable()->FindRow<FItemData>(itemId, FString());
 		stack.resourceInfo = gameInstance->GetResourceTable()->FindRow<FResource>(*FString::FromInt(resourceId), FString());
 		stack.amount = amount;
 	}
