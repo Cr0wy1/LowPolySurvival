@@ -4,11 +4,11 @@
 #include "SaveRegion.h"
 #include "MyGameInstance.h"
 
-void USaveRegion::SetGrid(const TArray<TArray<TArray<FBlock>>> blockGrid){
+void USaveRegion::SetGrid(const FBlockGrid &blockGrid){
 
-	if (blockGrid.Num() != FWorldParams::chunkSize) return;
+	if (blockGrid.dims.X != FWorldParams::chunkSize) return;
 
-	FIntVector dim = FIntVector(blockGrid.Num(), blockGrid[0].Num(), blockGrid[0][0].Num());
+	FIntVector dim = blockGrid.dims;
 
 	grid.yDims.Init(FYDim(), dim.X);
 	for (size_t x = 0; x < dim.X; x++){
@@ -28,15 +28,14 @@ void USaveRegion::SetGrid(const TArray<TArray<TArray<FBlock>>> blockGrid){
 	testName = "WORLD";
 }
 
-void USaveRegion::GetGrid(AActor* contextActor, TArray<TArray<TArray<FBlock>>>& OUT_blockGrid){
+void USaveRegion::GetGrid(AActor* contextActor, FBlockGrid& OUT_blockGrid){
 	
 	FIntVector dim = FIntVector(grid.yDims.Num(), grid[0].zDims.Num(), grid[0][0].Num());
 
-	OUT_blockGrid.Init(TArray<TArray<FBlock>>(), dim.X);
+	OUT_blockGrid.Init(dim.X, dim.Y, dim.Z);
+
 	for (size_t x = 0; x < dim.X; x++) {
-		OUT_blockGrid[x].Init(TArray<FBlock>(), dim.Y);
 		for (size_t y = 0; y < dim.Y; y++) {
-			OUT_blockGrid[x][y].Init(FBlock(), dim.Z);
 			for (size_t z = 0; z < dim.Z; z++) {
 				
 				OUT_blockGrid[x][y][z].SetResource(FResource::FromId(contextActor, grid[x][y][z].resourceId));

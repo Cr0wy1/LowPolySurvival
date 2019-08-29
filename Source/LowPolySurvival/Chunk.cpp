@@ -125,14 +125,7 @@ void AChunk::InitBlockGrid(){
 	uint8 dim = FWorldParams::chunkSize;
 	gridDim = FIntVector(dim, dim, dim);
 
-	blockGrid.Init(TArray<TArray<FBlock>>(), gridDim.X);
-	for (size_t x = 0; x < gridDim.X; x++) {
-		blockGrid[x].Init(TArray<FBlock>(), gridDim.Y);
-
-		for (size_t y = 0; y < gridDim.Y; y++) {
-			blockGrid[x][y].Init(FBlock(), gridDim.Z);
-		}
-	}
+	blockGrid.Init(dim, dim, dim);
 }
 
 void AChunk::TopDownTrace(const FIntVector &blockLoc){
@@ -174,10 +167,10 @@ void AChunk::TopDownTrace(const FIntVector &blockLoc){
 }
 
 void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
-	for (size_t x = 0; x < blockGrid.Num(); x++) {
-		for (size_t y = 0; y < blockGrid[0].Num(); y++) {
+	for (size_t x = 0; x < blockGrid.dims.X; x++) {
+		for (size_t y = 0; y < blockGrid.dims.Y; y++) {
 			int32 randZ = FMath::Rand() % blockAmount;
-			for (size_t z = 0; z < blockGrid[0][0].Num(); z++) {
+			for (size_t z = 0; z < blockGrid.dims.Z; z++) {
 				if (z < (zLine + randZ)) {
 					blockGrid[x][y][z].data.bIsSolid = true;
 				}
@@ -471,7 +464,7 @@ bool AChunk::LoadFromFile(){
 		if (saveRegion) {
 			saveRegion->GetGrid(this, blockGrid);
 
-			gridDim = FIntVector(blockGrid.Num(), blockGrid[0].Num(), blockGrid[0][0].Num());
+			gridDim = blockGrid.dims;
 
 			return true;
 		}
@@ -592,11 +585,11 @@ FBlock* AChunk::GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targ
 	return nullptr;
 }
 
-const TArray<TArray<TArray<FBlock>>>* AChunk::GetGridData() const{
+const FBlockGrid* AChunk::GetGridData() const{
 	return &blockGrid;
 }
 
-const AWorldGenerator * AChunk::GetWorldGenerator() const{
+AWorldGenerator * AChunk::GetWorldGenerator() const{
 	return worldGenerator;
 }
 

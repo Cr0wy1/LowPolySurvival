@@ -119,6 +119,10 @@ void FBlockGrid::Init(int32 xSize, int32 ySize, int32 zSize){
 	}
 }
 
+bool FBlockGrid::IsValidIndex(int32 xIndex) const{
+	return grid.IsValidIndex(xIndex);
+}
+
 TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex){
 	return grid[xIndex];
 }

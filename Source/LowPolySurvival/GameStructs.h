@@ -95,6 +95,7 @@ struct LOWPOLYSURVIVAL_API FBlock {
 
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBlockGrid {
+	GENERATED_BODY()
 
 	FIntVector dims;
 	TArray<TArray<TArray<FBlock>>> grid;
@@ -103,6 +104,8 @@ struct LOWPOLYSURVIVAL_API FBlockGrid {
 	FBlockGrid(int32 xSize, int32 ySize, int32 zSize);
 
 	void Init(int32 xSize, int32 ySize, int32 zSize);
+
+	bool IsValidIndex(int32 xIndex) const;
 
 	TArray<TArray<FBlock>>& operator[](int32 xIndex);
 	const TArray<TArray<FBlock>>& operator[](int32 xIndex) const;

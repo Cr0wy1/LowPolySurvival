@@ -58,7 +58,7 @@ protected:
 	UChunkColumn* chunkColumn;
 
 	FIntVector gridDim;
-	TArray<TArray<TArray<FBlock>>> blockGrid;
+	FBlockGrid blockGrid;
 
 	TArray<AActor*> loadedActors;
 
@@ -120,8 +120,8 @@ public:
 	FBlock* GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targetChunk = nullptr) const;
 
 
-	const TArray<TArray<TArray<FBlock>>>* GetGridData() const;
-	const AWorldGenerator* GetWorldGenerator() const;
+	const FBlockGrid* GetGridData() const;
+	AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
 
 	TArray<TArray<FBlock>>& operator[](int32 index);

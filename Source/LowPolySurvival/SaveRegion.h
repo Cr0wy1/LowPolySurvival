@@ -98,6 +98,6 @@ public:
 	FName testName = "test";
 
 
-	void SetGrid(const TArray<TArray<TArray<FBlock>>> blockGrid);
-	void GetGrid(AActor* contextActor, TArray<TArray<TArray<FBlock>>> &OUT_blockGrid);
+	void SetGrid(const FBlockGrid &blockGrid);
+	void GetGrid(AActor* contextActor, FBlockGrid &OUT_blockGrid);
 }; 
