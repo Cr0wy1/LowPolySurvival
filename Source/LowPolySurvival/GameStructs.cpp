@@ -5,6 +5,13 @@
 #include "GameFramework/Actor.h"
 
 
+const FIntVector FGridDir::FRONT =	FIntVector(1, 0, 0);
+const FIntVector FGridDir::RIGHT =	FIntVector(0, 1, 0);
+const FIntVector FGridDir::UP =		FIntVector(0, 0, 1);
+const FIntVector FGridDir::BACK =	FIntVector(-1, 0, 0);
+const FIntVector FGridDir::LEFT =	FIntVector(0, -1, 0);
+const FIntVector FGridDir::DOWN =	FIntVector(0, 0, -1);
+
 //FBlock
 bool FBlock::ApplyDamage(int32 damageAmount){
 	durability -= damageAmount;
@@ -121,6 +128,24 @@ void FBlockGrid::Init(int32 xSize, int32 ySize, int32 zSize){
 
 bool FBlockGrid::IsValidIndex(int32 xIndex) const{
 	return grid.IsValidIndex(xIndex);
+}
+
+bool FBlockGrid::IsValidIndex(int32 x, int32 y, int32 z) const{
+	return grid.IsValidIndex(x) && grid[x].IsValidIndex(y) && grid[x][y].IsValidIndex(z);
+}
+
+bool FBlockGrid::IsValidIndex(const FIntVector & Index3D) const
+{
+	return IsValidIndex(Index3D.X, Index3D.Y, Index3D.Z);
+}
+
+const FBlock * FBlockGrid::GetBlockSafe(const FIntVector & Index3D) const{
+
+	if (IsValidIndex(Index3D)) {
+		return &grid[Index3D.X][Index3D.Y][Index3D.Z];
+	}
+
+	return nullptr;
 }
 
 TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex){

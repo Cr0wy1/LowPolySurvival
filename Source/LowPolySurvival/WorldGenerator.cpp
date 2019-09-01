@@ -37,9 +37,7 @@ void AWorldGenerator::BeginPlay()
 	//Random Seed
 	FMath::RandInit(0);
 
-	FWorldLoader::loadedChunkColumns.Reset();
-	FWorldLoader::loadedChunks.Reset();
-
+	CleanAllChunks();
 
 }
    
@@ -176,13 +174,29 @@ void AWorldGenerator::CheckChunks(FIntVector center){
 	
 }
 
+void AWorldGenerator::CleanAllChunks(){
+
+	for (auto &loadedChunk : FWorldLoader::loadedChunks) {
+		//if (loadedChunk.Value) {
+			loadedChunk.Value->Unload();
+		//}
+		
+	}
+
+	FWorldLoader::loadedChunkColumns.Reset();
+	FWorldLoader::loadedChunks.Reset();
+	checkedChunkLocs.Reset();
+}
+
 
 
 void AWorldGenerator::HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer){
 	FIntVector chunkBlockLoc;
 	FIntVector chunkLoc = BlockToChunkBlockLocation(blockLocation, chunkBlockLoc);
 
+	
 	FWorldLoader::loadedChunks[chunkLoc]->HitBlock(chunkBlockLoc, damageAmount, causer);
+	
 }
 
 void AWorldGenerator::RemoveBlock(FIntVector blockLocation){

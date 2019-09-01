@@ -99,6 +99,8 @@ public:
 
 	void CheckChunks(FIntVector center) ;
 
+	void CleanAllChunks();
+
 	void HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
 	void RemoveBlock(FIntVector blockLocation);
 

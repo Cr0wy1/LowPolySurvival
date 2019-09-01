@@ -45,20 +45,6 @@ struct LOWPOLYSURVIVAL_API FMarchCube {
 		return cubeIndex;
 	}
 
-	FLinearColor GetColorFromBlockId(int32 blockId) const {
-
-		if (blockId == 1) {
-			return FColor::Black;
-		}
-		else if (blockId == 2) {
-			return FColor(139, 69, 19);
-		}
-		else if (blockId == 3) {
-			return FColor::Green;
-		}
-
-		return FColor::Purple;
-	}
 
 	FLinearColor GetEdgeColor(uint8 edgeIndex) const {
 
@@ -115,7 +101,7 @@ protected:
 	void MarchingCubes(bool bBorderNormalsOnly = true);
 	void CreateMarchCubes(const AChunk* chunk);
 
-	virtual void DoTaskWork(bool bUpdateOnly) override;
+	virtual void DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid) override;
 
 	TArray<TArray<uint8>> triTable =
 	{

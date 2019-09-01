@@ -40,6 +40,7 @@ public:
 
 	void Init(AWorldGenerator* _worldGenerator, UChunkColumn* _chunkColumn);
 
+
 protected:
 
 
@@ -123,6 +124,12 @@ public:
 	const FBlockGrid* GetGridData() const;
 	AWorldGenerator* GetWorldGenerator() const;
 	FIntVector GetChunkLocation() const;
+
+	//Return nearby Chunk if exits, else return nullptr
+	AChunk* GetNearbyChunk(EGridDir gridDir) const;
+	
+	//Return chunk Array with nearby chunks, if gridDirs is empty, return all nearby
+	TArray<AChunk*> GetNearbyChunks(TArray<EGridDir> gridDirs = TArray<EGridDir>()) const;
 
 	TArray<TArray<FBlock>>& operator[](int32 index);
 	const TArray<TArray<FBlock>>& operator[](int32 index) const;

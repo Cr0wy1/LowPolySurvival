@@ -340,7 +340,7 @@ bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FV
 	if (OUT_hitresult.GetActor()) {
 		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
 		
-		FVector blockCenter = FVector(WorldToBlockLocation(OUT_hitresult.ImpactPoint + (OUT_Direction * 25) )) * 100 + FVector(50,50,50);
+		FVector blockCenter = FVector(WorldToBlockLocation(OUT_hitresult.ImpactPoint + (OUT_Direction * 25) )) * 100;
 		DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
 	}
 

@@ -48,14 +48,19 @@ class LOWPOLYSURVIVAL_API UGridMeshGen : public UObject
 	GENERATED_BODY()
 
 	friend class GridMeshGenTask;
+	friend class GridMeshGenThread;
 
 protected:
 
 	FMeshGenData meshGenData;
 	FIntVector gridSize;
 	FGridMeshParams params;
+	 
+	FAsyncTask<GridMeshGenTask>* task;
+	GridMeshGenThread* gridMeshGenThread;
 
 public:
+	virtual void EnsureCompletion();
 
 	virtual FMeshGenData* CreateMesh(const FBlockGrid &blockGrid, const FGridMeshParams &_params = FGridMeshParams());
 	virtual FMeshGenData* UpdateMesh(const FBlockGrid &blockGrid, const FIntVector &blockLoc, const FGridMeshParams &_params = FGridMeshParams());
@@ -64,7 +69,7 @@ public:
 
 protected:
 
-	virtual void DoTaskWork(bool bUpdateOnly);
+	virtual void DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid);
 
 };
 
@@ -73,10 +78,11 @@ class GridMeshGenTask : public FNonAbandonableTask {
 
 
 	UGridMeshGen* gridMeshGen;
+	const FBlockGrid* blockGrid;
 	bool bUpdateOnly = false;
 
 public:
-	GridMeshGenTask(UGridMeshGen* _gridMeshGen, bool _bUpdateOnly);
+	GridMeshGenTask(UGridMeshGen* _gridMeshGen, const FBlockGrid* _blockGrid, bool _bUpdateOnly);
 	~GridMeshGenTask();
 
 	void DoWork();
@@ -86,4 +92,34 @@ public:
 		RETURN_QUICK_DECLARE_CYCLE_STAT(ExampleAutoDeleteAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
 	}
 
+};
+
+
+class LOWPOLYSURVIVAL_API GridMeshGenThread : public FRunnable {
+
+	static GridMeshGenThread* runnable;
+
+	bool bKill = false;
+	bool bPause = false;
+
+	UGridMeshGen* gridMeshGen;
+	const FBlockGrid* blockGrid;
+	bool bUpdateOnly = false;
+
+	FRunnableThread* Thread;
+
+	TQueue<UGridMeshGen*> gridGens; 
+
+public:
+	GridMeshGenThread(UGridMeshGen* _gridMeshGen, const FBlockGrid* _blockGrid, bool _bUpdateOnly);
+	~GridMeshGenThread();
+
+	static GridMeshGenThread* JoyInt(UGridMeshGen* _gridMeshGen, const FBlockGrid* _blockGrid, bool _bUpdateOnly);
+
+	//FRunnable interface.
+	virtual bool Init();
+	virtual uint32 Run();
+	virtual void Stop();
+
+	void EnsureCompletion();
 };

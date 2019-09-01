@@ -9,8 +9,7 @@
 FMeshGenData* UGridMarchingCubesMeshGen::CreateMesh(const FBlockGrid &blockGrid, const FGridMeshParams &param) {
 	Super::CreateMesh(blockGrid, param);
 
-	meshGenData.bIsReady = false;
-	(new FAutoDeleteAsyncTask<GridMeshGenTask>(this, false))->StartBackgroundTask();
+
 
 	return &meshGenData;
 }
@@ -123,8 +122,6 @@ void UGridMarchingCubesMeshGen::MarchingCubes(bool bBorderNormalsOnly) {
 		}
 	}
 
-	UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
-
 }
 
 void UGridMarchingCubesMeshGen::CreateMarchCubes(const AChunk * chunk){
@@ -134,7 +131,6 @@ void UGridMarchingCubesMeshGen::CreateMarchCubes(const AChunk * chunk){
 	marchCubes.Reset();
 
 	auto mainGrid = *chunk->GetGridData();
-	UE_LOG(LogTemp, Warning, TEXT("geridSize: %s"), *gridSize.ToString());
 
 
 	//Initialize MarchCube 3D Array
@@ -325,13 +321,14 @@ void UGridMarchingCubesMeshGen::CreateMarchCubes(const AChunk * chunk){
 	}
 }
 
-void UGridMarchingCubesMeshGen::DoTaskWork(bool bUpdateOnly){
-	Super::DoTaskWork(bUpdateOnly);
+void UGridMarchingCubesMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid){
+	Super::DoTaskWork(bUpdateOnly, blockGrid);
 
 	if (!bUpdateOnly && params.chunk) {
 		CreateMarchCubes(params.chunk);
 	}
 
 	MarchingCubes(false);
+	UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
 	meshGenData.bIsReady = true;
 }

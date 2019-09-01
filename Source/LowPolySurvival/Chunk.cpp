@@ -22,7 +22,7 @@
 AChunk::AChunk()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	USceneComponent* SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = SceneComponent;
@@ -49,10 +49,13 @@ void AChunk::Init(AWorldGenerator * _worldGenerator, UChunkColumn* _chunkColumn)
 	chunkColumn = _chunkColumn;
 }
 
+
 // Called every frame
 void AChunk::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("ticking"));
 
 }
 
@@ -102,9 +105,11 @@ void AChunk::Unload() {
 
 	//(new FAutoDeleteAsyncTask<ChunkTask>(this, true))->StartBackgroundTask();
 
+	proceduralMesh->EnsureCompletion();
+
 	for (AActor* actor : loadedActors) {
 		actor->Destroy();
-	}
+	} 
 
 	Destroy();
 }
@@ -595,6 +600,45 @@ AWorldGenerator * AChunk::GetWorldGenerator() const{
 
 FIntVector AChunk::GetChunkLocation() const{
 	return chunkLoc;
+}
+
+AChunk * AChunk::GetNearbyChunk(EGridDir gridDir) const{
+
+	switch (gridDir){
+		case EGridDir::FRONT:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::FRONT);
+		case EGridDir::RIGHT:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::RIGHT);
+		case EGridDir::UP:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::UP);
+		case EGridDir::BACK:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::BACK);
+		case EGridDir::LEFT:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::LEFT);
+		case EGridDir::DOWN:
+			return worldGenerator->GetChunkSafe(chunkLoc + FGridDir::DOWN);
+	}
+
+	return nullptr;
+}
+
+TArray<AChunk*> AChunk::GetNearbyChunks(TArray<EGridDir> gridDirs) const{
+
+	TArray<AChunk*> nearbyChunks;
+
+	size_t gridDirsNum = gridDirs.Num();
+
+	if (gridDirsNum < 1) {
+		gridDirs = { EGridDir::FRONT, EGridDir::RIGHT, EGridDir::UP, EGridDir::BACK, EGridDir::LEFT, EGridDir::DOWN };
+		gridDirsNum = 6;
+	}
+
+	for (size_t i = 0; i < gridDirsNum; i++){
+		nearbyChunks.Add(GetNearbyChunk(gridDirs[i]));
+	}
+
+
+	return nearbyChunks;
 }
 
 TArray<TArray<FBlock>>& AChunk::operator[](int32 index){

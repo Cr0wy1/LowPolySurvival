@@ -31,6 +31,15 @@ struct LOWPOLYSURVIVAL_API FMeshGenData {
 		tangents.Reset();
 		vertColors.Reset();
 	}
+
+	FString ToString() const {
+		return "Verticies: " + FString::FromInt(vertexArray.Num()) + 
+		", Triangles: " + FString::FromInt(triangles.Num()) + 
+		", UVs: " + FString::FromInt(UVs.Num()) + 
+		", Normals: " + FString::FromInt(normals.Num()) + 
+		", Tangents: " + FString::FromInt(tangents.Num()) + 
+		", Colors: " + FString::FromInt(vertColors.Num());
+	}
 };
 
 /**

@@ -26,6 +26,7 @@ class LOWPOLYSURVIVAL_API UProceduralMeshGeneratorComponent : public UProcedural
 
 protected:
 
+	UPROPERTY()
 	UGridMeshGen * meshGen;
 
 	TArray<int32> borderVertexIndecies;
@@ -56,10 +57,11 @@ public:
 
 	FMeshGenData* meshGenData;
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-
 	UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer);
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void BeginDestroy() override;
+
+	void EnsureCompletion();
 
 	void GenerateMesh(const AChunk* chunk);
 	void UpdateMesh(const AChunk* chunk, const FIntVector &chunkBlockLoc);

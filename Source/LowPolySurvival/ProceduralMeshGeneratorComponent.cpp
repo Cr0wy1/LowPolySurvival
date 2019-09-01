@@ -7,10 +7,8 @@
 #include "Chunk.h"
 #include "KismetProceduralMeshLibrary.h"
 #include "MyGameInstance.h"
-#include "GridComponent.h"
 #include "WorldGenerator.h"
-#include "RunnableThread.h"
-#include "GridMeshGen.h"
+#include "GridVoxelMeshGen.h"
 
 
 
@@ -26,6 +24,7 @@ void UProceduralMeshGeneratorComponent::BeginPlay(){
 	Super::BeginPlay();
 
 	meshGen = NewObject<UGridMarchingCubesMeshGen>(this);
+	//meshGen = NewObject<UGridVoxelMeshGen>(this);
 
 }
 
@@ -33,8 +32,21 @@ void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTic
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (meshGen->IsReady() && !bIsMeshGenerated) {
-		CreateMesh(false);
+		CreateMesh(false); 
+		
+	}
+}
 
+void UProceduralMeshGeneratorComponent::BeginDestroy(){
+
+	EnsureCompletion();
+	
+	Super::BeginDestroy();
+}
+
+void UProceduralMeshGeneratorComponent::EnsureCompletion(){
+	if (meshGen) {
+		meshGen->EnsureCompletion();
 	}
 }
 
@@ -90,8 +102,12 @@ void UProceduralMeshGeneratorComponent::CreateMesh(bool bBorderNormalsOnly){
 		CreateMeshSection(0, meshVertexArray, meshTriangles, meshNormals, TArray<FVector2D>(), meshGenData->vertColors, meshTangents, true);
 	}
 	else {
-		ClearMeshSection(0);
-		CreateMeshSection(0, meshGenData->vertexArray, meshGenData->triangles, meshGenData->normals, TArray<FVector2D>(), meshGenData->vertColors, meshGenData->tangents, true);
+		
+		if (meshGenData) {
+			ClearMeshSection(0);
+			CreateMeshSection(0, meshGenData->vertexArray, meshGenData->triangles, meshGenData->normals, meshGenData->UVs, meshGenData->vertColors, meshGenData->tangents, true);
+		}
+		
 	}
 
 	bIsMeshGenerated = true;

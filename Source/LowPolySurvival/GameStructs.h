@@ -50,6 +50,30 @@ enum class EPlayerMode : uint8 {
 };
 
 
+UENUM(BlueprintType)
+enum class EGridDir : uint8 {
+	FRONT,
+	RIGHT,
+	UP,
+	BACK,
+	LEFT,
+	DOWN,
+};
+
+
+USTRUCT()
+struct LOWPOLYSURVIVAL_API FGridDir {
+
+	GENERATED_BODY()
+
+	static const FIntVector FRONT;
+	static const FIntVector RIGHT;
+	static const FIntVector UP;
+	static const FIntVector BACK;
+	static const FIntVector LEFT;
+	static const FIntVector DOWN;
+};
+
 struct FBlock;
 
 
@@ -106,6 +130,11 @@ struct LOWPOLYSURVIVAL_API FBlockGrid {
 	void Init(int32 xSize, int32 ySize, int32 zSize);
 
 	bool IsValidIndex(int32 xIndex) const;
+	bool IsValidIndex(int32 x, int32 y, int32 z) const;
+	bool IsValidIndex(const FIntVector &Index3D) const;
+
+	//Checks if index is Valid and return a block pointer, if is not valid return nullptr
+	const FBlock* GetBlockSafe(const FIntVector &Index3D) const;
 
 	TArray<TArray<FBlock>>& operator[](int32 xIndex);
 	const TArray<TArray<FBlock>>& operator[](int32 xIndex) const;
