@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameStructs.h"
 #include "PlacementComponent.generated.h"
 
 
@@ -38,8 +39,7 @@ protected:
 
 	int32 placeMargin = 0;
 
-	FHitResult cHitResult;
-	FVector cHitDirection;
+	const FCrosshairResult* crosshairResult;
 
 	ALowPolySurvivalCharacter* character = nullptr;
 	APlaceWidget* placeWidget = nullptr;

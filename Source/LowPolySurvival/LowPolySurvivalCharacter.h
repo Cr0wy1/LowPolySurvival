@@ -26,6 +26,7 @@ class UWidgetInteractionComponent;
 class UPlacementMenuWidget;
 class UMyGameInstance;
 class UCharacterMovementComponent;
+class UCrosshairTraceComponent;
 
 
 
@@ -50,8 +51,7 @@ protected:
 
 	UMyGameInstance* gameInstance = nullptr;
 
-	FHitResult cCrosshairTraceResult;
-	FVector cCrosshairTraceDirection;
+	const FCrosshairResult* crosshairResult;
 
 	APlayercharController * controller = nullptr;
 
@@ -59,8 +59,6 @@ protected:
 
 	EPlayerMode playerMode = EPlayerMode::SURVIVAL;
 
-	//Viewport Size
-	int32 viewX, viewY;
 
 	//bool for Primary key handling
 	bool bIsHoldingPrimary = false;
@@ -144,7 +142,7 @@ protected:
 	void OnOpenPlacementMenuReleased();
 
 	void UpdateMeshRightHand();
-
+	
 	
 
 	//MOVEMENT
@@ -162,7 +160,8 @@ protected:
 
 public:
 
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Indicator")
+	UCrosshairTraceComponent * crossTraceComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Inventory")
 	UInventoryComponent* inventoryComp;
@@ -197,8 +196,6 @@ public:
 	UInventoryManagerWidget* inventoryManager = nullptr;
 	UPlacementMenuWidget* placementMenuWidget = nullptr;
 
-	bool CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction);
-
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void AddItemStackToInventory(UPARAM(ref) FItemStack &itemstack, bool bIsNew = false);
 
@@ -230,5 +227,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AMechArmActor* GetArmActor() const;
+
+	const FCrosshairResult* GetCrosshairResultPtr() const;
 };
 

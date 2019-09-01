@@ -16,6 +16,8 @@
 #include "SaveRegion.h"
 #include "Kismet/GameplayStatics.h"
 #include "Async.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Materials/MaterialInstance.h"
 
  
 // Sets default values
@@ -31,10 +33,12 @@ AChunk::AChunk()
 	proceduralMesh->SetupAttachment(RootComponent);
 	proceduralMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel3);
 	proceduralMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Block);
-	proceduralMesh->SetRelativeLocation(FVector(100, 100, 100));
-
+	
 	proceduralMesh->onGeneratedMesh.AddDynamic(this, &AChunk::OnGeneratedMesh);
-}
+	
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> materialClassFinder(TEXT("MaterialInstance'/Game/Terrain/TerrainColor_MI.TerrainColor_MI'"));
+	SetTerrainMaterial(materialClassFinder.Object);
+} 
 
 // Called when the game starts or when spawned 
 void AChunk::BeginPlay(){
@@ -85,7 +89,7 @@ void AChunk::Create() {
 
 	ApplyNoiseOnGrid();
 	AddNoiseCaves();
-	//AddNoiseOres(); 
+	AddNoiseOres(); 
 	//AddWater();
 
 	bNeedsSaving = true;
@@ -201,6 +205,8 @@ void AChunk::ApplyNoiseOnGrid(){
 	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 	auto heatNoiseMap = *chunkColumn->GetHeatNoiseMap();
 	auto rainNoiseMap = *chunkColumn->GetRainNoiseMap();
+	auto hillsNoiseMap = *chunkColumn->GetHillsNoiseMap();
+	
 
 	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
 
@@ -214,7 +220,11 @@ void AChunk::ApplyNoiseOnGrid(){
 			//float biomeNoise = worldGenerator->BiomeNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
 			biomeR = cBiome->baseBlockResource;
 
-			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
+			int32 upAmount = terrainNoiseMap[x][y] * 100;
+			//if (hillsNoiseMap[x][y] > 0.2) {
+				//upAmount += hillsNoiseMap[x][y] * 100;
+			//}
+			// FWorldParams::terrainNoiseHeight;
 			int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
 			int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
 
@@ -251,7 +261,7 @@ void AChunk::AddNoiseCaves(){
 	FResource* airR = FResource::FromId(this, 0);
 
 	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
-	float caveNoiseLevel = 0.2f;
+	float caveNoiseLevel = 0.3f;
 	 
 	//Check if is earthcore level to ensure not digging holes at this
 	int32 zInit = chunkLoc.Z < 1 ? 1 : 0;
@@ -286,19 +296,21 @@ void AChunk::AddNoiseOres(){
 		for (int32 y = 0; y < gridDim.Y; y++) {
 			for (int32 z = 0; z < gridDim.Z; z++) {
 
-				float noiseCoal = worldGenerator->OreNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
-				float noiseIron = worldGenerator->OreNoise(FVector(blockLoc.X + x * 2, blockLoc.Y + y * 2, blockLoc.Z + z * 2));
-				float noiseGold = worldGenerator->OreNoise(FVector(blockLoc.X + x * 3, blockLoc.Y + y * 3, blockLoc.Z + z * 3));
+				if (blockGrid[x][y][z].resource && blockGrid[x][y][z].resource->id == 3) {
 
+					float noiseCoal = worldGenerator->OreNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
+					float noiseIron = worldGenerator->OreNoise(FVector(blockLoc.X + x * 2, blockLoc.Y + y * 2, blockLoc.Z + z * 2));
+					float noiseGold = worldGenerator->OreNoise(FVector(blockLoc.X + x * 3, blockLoc.Y + y * 3, blockLoc.Z + z * 3));
 
-				if (noiseCoal < 0.08f) {
-					blockGrid[x][y][z].SetResource(coalR);
-				}
-				if (noiseIron < 0.04) {
-					blockGrid[x][y][z].SetResource(ironR);
-				}
-				if (noiseGold < 0.02) {
-					blockGrid[x][y][z].SetResource(goldR);
+					if (noiseCoal < 0.08f) {
+						blockGrid[x][y][z].SetResource(coalR);
+					}
+					if (noiseIron < 0.04) {
+						blockGrid[x][y][z].SetResource(ironR);
+					}
+					if (noiseGold < 0.02) {
+						blockGrid[x][y][z].SetResource(goldR);
+					}
 				}
 			}
 

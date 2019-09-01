@@ -15,6 +15,7 @@ class AChunk;
 class UChunkColumn;
 class UMaterialInterface;
 class UMyGameInstance;
+class UChunkLoader;
 
 
 USTRUCT()
@@ -52,6 +53,9 @@ protected:
 
 	UMyGameInstance* gameInstance = nullptr;
 	APlayercharController * playerController = nullptr;
+
+	UPROPERTY()
+	UChunkLoader* chunkLoader;
 	 
 	FIntVector cPlayerChunkLoc = FIntVector(0.5f, 0.5f, 0.5f);
 	 

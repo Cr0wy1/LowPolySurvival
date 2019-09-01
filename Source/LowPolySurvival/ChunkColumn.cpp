@@ -40,8 +40,8 @@ void UChunkColumn::InitTerrainNoiseMaps(){
 		rainNoiseMap[x].Init(float(), size);
 
 		for (int32 y = 0; y < size; y++) { 
-			hillsNoiseMap[x][y] = Noise(blockLoc.X + x, blockLoc.Y + y, 1, 3, 128, 0.5);
-			terrainNoiseMap[x][y] = worldGenerator->TerrainNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
+			hillsNoiseMap[x][y] = FMath::Pow( Noise(blockLoc.X + x + 1000, blockLoc.Y + y + 1000, 2, 2), 2) * 0.2;
+			terrainNoiseMap[x][y] = worldGenerator->TerrainNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y)) * 0.1;
 			heatNoiseMap[x][y] = worldGenerator->HeatNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
 			rainNoiseMap[x][y] = worldGenerator->RainNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
 
@@ -53,8 +53,8 @@ void UChunkColumn::InitTerrainNoiseMaps(){
 	 
 	for (int32 x = 0; x < size; x++) {
 		for (int32 y = 0; y < size; y++) {
-
-			float test = FMath::Lerp(terrainNoiseMap[x][y], hillsNoiseMap[x][y] * 3.0f, rainNoiseMap[x][y]);
+			//terrainNoiseMap[x][y] += hillsNoiseMap[x][y];
+			float test = FMath::Lerp(terrainNoiseMap[x][y], hillsNoiseMap[x][y], rainNoiseMap[x][y]);
 
 			terrainNoiseMap[x][y] = test;//worldGenerator->TerrainNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
 
@@ -93,17 +93,4 @@ void UChunkColumn::Create() {
 	InitTerrainNoiseMaps();
 }
 
-const TArray<TArray<float>>* UChunkColumn::GetTerrainNoiseMap() const{
-	return &terrainNoiseMap;
-}
-
-const TArray<TArray<float>>* UChunkColumn::GetHeatNoiseMap() const
-{
-	return &heatNoiseMap;
-}
-
-const TArray<TArray<float>>* UChunkColumn::GetRainNoiseMap() const
-{
-	return &rainNoiseMap;
-}
 

@@ -45,7 +45,8 @@ public:
 	void Load(FIntVector _chunkColLoc);
 	void Unload();
 
-	const TArray<TArray<float>>* GetTerrainNoiseMap() const;
-	const TArray<TArray<float>>* GetHeatNoiseMap() const;
-	const TArray<TArray<float>>* GetRainNoiseMap() const;
+	const TArray<TArray<float>>* GetTerrainNoiseMap() { return &terrainNoiseMap; }
+	const TArray<TArray<float>>* GetHillsNoiseMap() { return &hillsNoiseMap;  } 
+	const TArray<TArray<float>>* GetHeatNoiseMap() { return &heatNoiseMap; }
+	const TArray<TArray<float>>* GetRainNoiseMap() { return &rainNoiseMap; }
 };

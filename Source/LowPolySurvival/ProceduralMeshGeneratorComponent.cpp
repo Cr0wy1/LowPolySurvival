@@ -23,10 +23,18 @@ UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObje
 void UProceduralMeshGeneratorComponent::BeginPlay(){
 	Super::BeginPlay();
 
-	meshGen = NewObject<UGridMarchingCubesMeshGen>(this);
-	//meshGen = NewObject<UGridVoxelMeshGen>(this);
+	EMeshGenType genType = EMeshGenType::MARCHINGCUBES;
 
-}
+	if (genType == EMeshGenType::MARCHINGCUBES) {
+		meshGen = NewObject<UGridMarchingCubesMeshGen>(this);
+		SetRelativeLocation(FVector(100, 100, 100));
+	}
+	else if (genType == EMeshGenType::VOXEL) { 
+		meshGen = NewObject<UGridVoxelMeshGen>(this);
+		SetRelativeLocation(FVector(50, 50, 50));
+	}
+
+} 
 
 void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -46,7 +54,7 @@ void UProceduralMeshGeneratorComponent::BeginDestroy(){
 
 void UProceduralMeshGeneratorComponent::EnsureCompletion(){
 	if (meshGen) {
-		meshGen->EnsureCompletion();
+		//meshGen->EnsureCompletion();
 	}
 }
 
@@ -69,6 +77,8 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(const AChunk * chunk){
 void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const FIntVector &chunkBlockLoc){
 	
 	if (!meshGen->IsReady()) return;
+	//meshGen->EnsureCompletion();
+
 
 	bIsMeshGenerated = false;
 

@@ -16,6 +16,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGeneratedMesh);
 class UGridComponent;
 class AChunk;
 
+
+
+UENUM()
+enum class EMeshGenType : uint8 {
+	MARCHINGCUBES,
+	VOXEL,
+};
 /**
  * 
  */

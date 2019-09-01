@@ -40,14 +40,12 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	if (currentBuilding) {
 
 		placeMargin = 0;
-
-		character->CrosshairLineTrace(cHitResult, cHitDirection);
 		
-		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
+		ABuildings* targetBuilding = crosshairResult->GetHitActor<ABuildings>();
 
 		if (character->placementMenuWidget->IsObjectSnapChecked() && targetBuilding) {
 			
-			if (targetBuilding->HasPlaceInterface()) {
+			if (targetBuilding->HasPlaceInterface()) { 
 				ShowPlaceWidget();
 				SnapToObjectInterface();
 
@@ -99,19 +97,14 @@ void UPlacementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 }
 
 void UPlacementComponent::Init(ALowPolySurvivalCharacter * _character){
-	character = _character;
-	
+	character = _character; 
+	crosshairResult = character->GetCrosshairResultPtr();
 }
 
 void UPlacementComponent::ActivatePlacement(FItemData* itemInfo){
 	currentBuildingTemplate_BP = itemInfo->buildingTemplate_BP;
 
-	FHitResult hitResult;
-	FVector hitDirection;
-	
-	character->CrosshairLineTrace(hitResult, hitDirection);
-
-	currentBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, hitResult.Location, FRotator(0.0f) );
+	currentBuilding = GetWorld()->SpawnActor<ABuildings>(currentBuildingTemplate_BP, crosshairResult->hitResult.Location, FRotator(0.0f) );
 	currentBuilding->SetHolo(true);
 	currentBuilding->ConstructFromItem(itemInfo);
 	currentBuilding->SetMaterial(canPlaceMI);
@@ -170,7 +163,7 @@ bool UPlacementComponent::PlaceBuilding(){
 
 bool UPlacementComponent::SnapToObjectSocket(){
 
-	ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
+	ABuildings* targetBuilding = crosshairResult->GetHitActor<ABuildings>();
 
 	if (!targetBuilding) { return false; }
 
@@ -182,13 +175,13 @@ bool UPlacementComponent::SnapToObjectSocket(){
 	FVector dir;
 	float length;
 
-	(cHitResult.Location - (targetBuilding->GetActorLocation() + sockets[0]->RelativeLocation)).ToDirectionAndLength(dir, length);
+	(crosshairResult->hitResult.Location - (targetBuilding->GetActorLocation() + sockets[0]->RelativeLocation)).ToDirectionAndLength(dir, length);
 
 	UStaticMeshSocket* closestSocket = sockets[0];
 	float closestDistance = length;
 
 	for (size_t i = 1; i < sockets.Num(); i++) {
-		(cHitResult.Location - (targetBuilding->GetActorLocation() + sockets[i]->RelativeLocation)).ToDirectionAndLength(dir, length);
+		(crosshairResult->hitResult.Location - (targetBuilding->GetActorLocation() + sockets[i]->RelativeLocation)).ToDirectionAndLength(dir, length);
 
 		if (length < closestDistance) {
 			closestDistance = length;
@@ -216,9 +209,9 @@ bool UPlacementComponent::SnapToObjectInterface(){
 
 bool UPlacementComponent::SnapToHitSurface(){
 
-	FMatrix rotMatrix = FRotationMatrix::MakeFromZX(cHitResult.ImpactNormal, cHitDirection);
+	FMatrix rotMatrix = FRotationMatrix::MakeFromZX(crosshairResult->hitResult.ImpactNormal, crosshairResult->hitDirection);
 
-	placeTrans = FTransform(rotMatrix.Rotator(), cHitResult.ImpactPoint);
+	placeTrans = FTransform(rotMatrix.Rotator(), crosshairResult->hitResult.ImpactPoint);
 
 	return false;
 }
@@ -228,7 +221,7 @@ bool UPlacementComponent::SnapToWorldGrid(){
 	//UE_LOG(LogTemp, Warning, TEXT("World grid snap"));
 
 	
-	FVector cLocation = cHitResult.Location / worldGridSize;
+	FVector cLocation = crosshairResult->hitResult.Location / worldGridSize;
 
 	cLocation.X = FMath::RoundToInt(cLocation.X);
 	cLocation.Y = FMath::RoundToInt(cLocation.Y);
@@ -241,7 +234,7 @@ bool UPlacementComponent::SnapToWorldGrid(){
 
 void UPlacementComponent::ShowPlaceWidget(){
 
-		ABuildings* targetBuilding = Cast<ABuildings>(cHitResult.GetActor());
+		ABuildings* targetBuilding = crosshairResult->GetHitActor<ABuildings>();
 
 		if (targetBuilding && targetBuilding->HasPlaceInterface()) {
 

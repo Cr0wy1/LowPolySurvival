@@ -25,6 +25,7 @@
 #include "MyGameInstance.h"
 #include "WorldGenerator.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "CrosshairTraceComponent.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -66,6 +67,11 @@ ALowPolySurvivalCharacter::ALowPolySurvivalCharacter()
 
 	meshRightHand = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Right Hand"));
 	meshRightHand->SetupAttachment(sceneRightHand);
+
+
+	//Crosshair Trace
+	crossTraceComp = CreateDefaultSubobject<UCrosshairTraceComponent>("Crosshair Trace");
+	crosshairResult = crossTraceComp->GetCrosshairResultPtr();
 
 	//Inventoriesy
 	inventoryComp = CreateDefaultSubobject<UInventoryComponent>("Inventory");
@@ -118,8 +124,6 @@ void ALowPolySurvivalCharacter::BeginPlay(){
 	controller = Cast<APlayercharController>(GetController());
 	armActor = Cast<AMechArmActor>(armActorComp->GetChildActor());
 
-	controller->GetViewportSize(viewX, viewY);
-	//CreateWidget(controller, )
 
 	sceneRightHand->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("hand_R_tool"));
 
@@ -153,7 +157,7 @@ void ALowPolySurvivalCharacter::AddItemStackToInventory(UPARAM(ref) FItemStack &
 }
 
 void ALowPolySurvivalCharacter::OpenInventory(ALogistic* logistic){
-	//UE_LOG(LogTemp, Warning, TEXT("Open Inventory"));
+	
 	if (inventoryManager) {
 		inventoryManager->ShowInventory(logistic->inventoryComp);
 	}
@@ -168,26 +172,27 @@ void ALowPolySurvivalCharacter::ApplyDamage(int32 amount, AActor * causer){
 	
 }
 
-APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{
+APlayerController * ALowPolySurvivalCharacter::GetPlayerController() const{ 
 	return controller;
 }
 
 void ALowPolySurvivalCharacter::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
-	CrosshairLineTrace(cCrosshairTraceResult, cCrosshairTraceDirection);
+	if (crosshairResult->IsActorHit() ) {
+		ABuildings* targetBuilding = crosshairResult->GetHitActor<ABuildings>();
+		AChunk* chunk = crosshairResult->GetHitActor<AChunk>();
 
-	if (cCrosshairTraceResult.GetActor()) {
-		ABuildings* targetBuilding = Cast<ABuildings>(cCrosshairTraceResult.GetActor());
 		if (targetBuilding) {
 			playerHUDWidget->UpdateTargetIndicator(targetBuilding->info);
 			playerHUDWidget->ShowTargetIndicator();
 		}
-		else if (Cast<AChunk>(cCrosshairTraceResult.GetActor())) {
-			AChunk* chunk = Cast<AChunk>(cCrosshairTraceResult.GetActor());
-
-			playerHUDWidget->UpdateTargetIndicator(chunk->GetBlock(cCrosshairTraceResult.ImpactPoint));
+		else if (chunk) {
+			playerHUDWidget->UpdateTargetIndicator(chunk->GetBlock(crosshairResult->hitResult.ImpactPoint));
 			playerHUDWidget->ShowTargetIndicator();
+
+			FVector blockCenter = FVector(WorldToBlockLocation(crosshairResult->hitResult.ImpactPoint + crosshairResult->hitDirection)) * 100 + FVector(50,50,50);
+			DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
 		}
 		else {
 			playerHUDWidget->HideTargetIndicator();
@@ -264,24 +269,17 @@ void ALowPolySurvivalCharacter::SetupPlayerInputComponent(class UInputComponent*
 
 void ALowPolySurvivalCharacter::OnHit(){
 
-	FHitResult hitResult;
-	FVector direction;
-	CrosshairLineTrace(hitResult, direction);
-
 	FVector dir;
 	float length;
-	(hitResult.ImpactPoint - GetActorLocation()).ToDirectionAndLength(dir, length);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%f"), length);
-	 
+	(crosshairResult->hitResult.ImpactPoint - GetActorLocation()).ToDirectionAndLength(dir, length);
 
 	if (length <= attributeComp->GetAttributes().hitRange) {
 
 
-		ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
+		ABuildings* building = crosshairResult->GetHitActor<ABuildings>();
 
 		if (building) {
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResult.GetActor()->GetName());
 
 			int32 damage = 10;
 			
@@ -293,11 +291,11 @@ void ALowPolySurvivalCharacter::OnHit(){
 		}
 
 
-		AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+		AChunk* chunk = crosshairResult->GetHitActor<AChunk>();
 
 		if (chunk) {
-			//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
-			FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint + (direction * 25));
+			
+			FIntVector blockLoc = WorldToBlockLocation(crosshairResult->hitResult.ImpactPoint + crosshairResult->hitDirection);
 
 			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc), 100, this);
 			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0,0,1), 100, this);
@@ -307,14 +305,7 @@ void ALowPolySurvivalCharacter::OnHit(){
 			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, -1, 0), 100, this);  
 			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(-1, 0, 0), 100, this);
 			
-			DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
-			DrawDebugBox(GetWorld(), FVector(blockLoc)*100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
-
-			
-			
 		}
-		 
-
 
 		bIsInHit = true;
 
@@ -323,31 +314,6 @@ void ALowPolySurvivalCharacter::OnHit(){
 	}
 
 	
-}
-
-bool ALowPolySurvivalCharacter::CrosshairLineTrace(FHitResult &OUT_hitresult, FVector &OUT_Direction){
-
-	FVector worldLocation;
-	controller->DeprojectScreenPositionToWorld(viewX * 0.5f, viewY * 0.5f, worldLocation, OUT_Direction);
-
-	FVector startLocation = worldLocation;
-	FVector endLocation = OUT_Direction * 1000 + startLocation;
-	
-	FCollisionQueryParams params;
-	params.AddIgnoredActor(this); 
-	GetWorld()->LineTraceSingleByChannel(OUT_hitresult, startLocation, endLocation, ECollisionChannel::ECC_GameTraceChannel2, params);
-
-	if (OUT_hitresult.GetActor()) {
-		//DrawDebugLine(GetWorld(), startLocation, hitResult.ImpactPoint, FColor::Red, false, -1.0f, 0, 1.0f);
-		
-		FVector blockCenter = FVector(WorldToBlockLocation(OUT_hitresult.ImpactPoint + (OUT_Direction * 25) )) * 100;
-		DrawDebugBox(GetWorld(), blockCenter, FVector(50, 50, 50), FColor::Purple, false, -1, 0, 3);
-	}
-
-	//DrawDebugSphere(GetWorld(), OUT_hitresult.ImpactPoint, 50, 10, FColor::Red); 
-
-
-	return true;
 }
 
 void ALowPolySurvivalCharacter::OnPrimaryPressed(){
@@ -394,39 +360,31 @@ void ALowPolySurvivalCharacter::OnShiftReleased(){
 }
 
 void ALowPolySurvivalCharacter::ToggleInventory(){
-	//inventory->AddToPlayerViewport(controller);
-	//UE_LOG(LogTemp, Warning, TEXT("Toggle Inventory"));
 
 	inventoryManager->ShowInventory(inventoryComp);
 }
 
 void ALowPolySurvivalCharacter::OnInteraction(){
-	FHitResult hitResult;
-	FVector direction;
-	CrosshairLineTrace(hitResult, direction);
 
-	ABuildings* building = Cast<ABuildings>(hitResult.GetActor());
+	ABuildings* building = crosshairResult->GetHitActor<ABuildings>();
 
 	if (building) {
 		currentInteractionBuilding = building;
 		building->Interact(this);
 	}
+	else {
+		AChunk* chunk = crosshairResult->GetHitActor<AChunk>();
 
-	AChunk* chunk = Cast<AChunk>(hitResult.GetActor());
+		if (chunk) {
+			FIntVector blockLoc = WorldToBlockLocation(crosshairResult->hitResult.ImpactPoint - (crosshairResult->hitDirection * 25));
 
-	if (chunk) {
-		//FVector absHitLoc = hitResult.ImpactPoint.GetAbs();
-		FIntVector blockLoc = WorldToBlockLocation(hitResult.ImpactPoint - (direction * 25));
+			gameInstance->GetWorldGenerator()->SetBlock(FIntVector(blockLoc), FBlock::FromId(this, 8));
 
-		gameInstance->GetWorldGenerator()->SetBlock(FIntVector(blockLoc), FBlock::FromId(this, 8) );
+			DrawDebugPoint(GetWorld(), crosshairResult->hitResult.ImpactPoint, 5, FColor::Red, false, 30);
+			DrawDebugBox(GetWorld(), FVector(blockLoc) * 100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
 
-		DrawDebugPoint(GetWorld(), hitResult.ImpactPoint, 5, FColor::Red, false, 30);
-		DrawDebugBox(GetWorld(), FVector(blockLoc) * 100, FVector(10, 10, 10), FColor::White, false, 60, 0, 1);
-
-
-
+		}
 	}
-	
 }
 
 void ALowPolySurvivalCharacter::OnScrollDown(){
@@ -522,6 +480,10 @@ void ALowPolySurvivalCharacter::SetIsInHitAnimationb(bool b){
 
 AMechArmActor * ALowPolySurvivalCharacter::GetArmActor() const{
 	return armActor;
+}
+
+const FCrosshairResult * ALowPolySurvivalCharacter::GetCrosshairResultPtr() const{
+	return crossTraceComp->GetCrosshairResultPtr();
 }
 
 void ALowPolySurvivalCharacter::UpdateMeshRightHand(){

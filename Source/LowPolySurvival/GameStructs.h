@@ -8,7 +8,7 @@
 
 
 class UMyGameInstance;
-
+struct FBlock;
 
 
 using FBlockLoc = FIntVector;
@@ -74,10 +74,37 @@ struct LOWPOLYSURVIVAL_API FGridDir {
 	static const FIntVector DOWN;
 };
 
-struct FBlock;
 
 
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FCrosshairResult{
+	GENERATED_BODY()
+
+
+	FHitResult hitResult;
+	FVector hitDirection;
+
+	bool IsActorHit() const { return hitResult.GetActor(); }
+
+	template<typename OtherClass>
+	bool IsClass(OtherClass checkClass) const {
+		if (hitResult.GetActor()) {
+			return hitResult.GetActor()->IsA(checkClass);
+		}
+		return false;
+	}
+
+	//Cast and retun the hitted actor, return nullptr if cast fails
+	template<typename OtherClass>
+	OtherClass* GetHitActor() const {
+		return Cast<OtherClass>(hitResult.GetActor());
+	}
+
+};
  
+
+
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBlockData {
 	GENERATED_BODY()

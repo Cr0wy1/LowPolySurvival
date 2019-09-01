@@ -125,10 +125,11 @@ void UGridVoxelMeshGen::BuildCubeSite(int32 siteIndex, const FIntVector &blockLo
 		meshGenData.normals.Add(normalsTable[siteIndex]);
 	}
 
+	float uvBorder = 16.0f / 256.0f;
 	meshGenData.UVs.Add(FVector2D(0, 0));
-	meshGenData.UVs.Add(FVector2D(0.0f, 0.0625f));
-	meshGenData.UVs.Add(FVector2D(0.0625f, 0.0f));
-	meshGenData.UVs.Add(FVector2D(0.0625f, 0.0625f));
+	meshGenData.UVs.Add(FVector2D(0.0f, uvBorder));
+	meshGenData.UVs.Add(FVector2D(uvBorder, 0.0f));
+	meshGenData.UVs.Add(FVector2D(uvBorder, uvBorder));
 
 	meshGenData.triangles.Add(vertIndex - 1);
 	meshGenData.triangles.Add(vertIndex - 2);
