@@ -364,6 +364,23 @@ float USimplexNoise::SimplexNoiseInRange3D(float x, float y, float z, float rang
 	return SimplexNoiseScaled3D(x, y, z, (rangeMax - rangeMin)) + rangeMin;
 }
 
+void USimplexNoise::NoiseOctaves(TArray<TArray<float>>& OUT_noiseArr, int32 xOffset, int32 yOffset, int32 xSize, int32 ySize, uint8 octaves, float frequency, float persistance){
+
+	int32 xMax = xOffset + xSize;
+	int32 yMax = yOffset + ySize;
+
+	OUT_noiseArr.Init(TArray<float>(), xSize);
+	for (size_t x = xOffset; x < xMax; x++){
+		OUT_noiseArr[x].Init(float(), ySize);
+		for (size_t y = yOffset; y < yMax; y++) {
+
+			OUT_noiseArr[x][y] = Noise(x, y, octaves, frequency, 1.0f, persistance);
+
+		}
+	}
+
+}
+
 inline float Noise(float x, float y, FNoiseParams params){
 
 	return Noise(x, y, params.octaves, params.frequency, params.amplitude, params.persistence);

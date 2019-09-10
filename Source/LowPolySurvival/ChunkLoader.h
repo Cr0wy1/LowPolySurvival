@@ -20,10 +20,11 @@ class LOWPOLYSURVIVAL_API UChunkLoader : public UObject
 		 
 public:
 
+
+
 	static UChunkLoader* Construct(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ);
 
 	void Init(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ);
-
 	void UpdateLocation(FChunkLoc newCenterChunkLoc);
 
 protected:

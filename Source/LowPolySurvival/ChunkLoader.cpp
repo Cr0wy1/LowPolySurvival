@@ -69,7 +69,7 @@ void UChunkLoader::UpdateLocation(FChunkLoc newCenterChunkLoc){
 void UChunkLoader::OnCheckChunk(FIntVector chunkLoc) {
 
 	int32 chunkSize = 10;
-	UE_LOG(LogTemp, Warning, TEXT("loadedChunkCols: %i"), FWorldLoader::loadedChunkColumns.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("loadedChunkCols: %i"), FWorldLoader::loadedChunkColumns.Num());
 
 	if (chunkLoc.X < chunkSize && chunkLoc.Y < chunkSize && chunkLoc.X > chunkSize*-1 && chunkLoc.Y > chunkSize*-1) {
 
