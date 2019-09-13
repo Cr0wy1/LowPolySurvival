@@ -8,11 +8,11 @@
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "WidgetAsset.h"
+#include "BiomeGenLibrary.h"
 
 const float FWorldParams::blockSize = 100.0f;
-const float FWorldParams::deathZone = 0.0f;
 const float FWorldParams::buildHeight = 10000.0f;
-
+const int32 FWorldParams::deathZone = 0.0f;
 
 
 void UMyGameInstance::Init(){
@@ -74,7 +74,8 @@ void UMyGameInstance::InitDataTables(){
 			}
 		}
 
-		FBiomeData::InitStaticMembers(this);
+		FSBiome::InitStaticMembers(this);
+		FSBiomeDiagram::InitStaticMembers();
 	}
 
 }

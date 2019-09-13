@@ -177,6 +177,30 @@ struct LOWPOLYSURVIVAL_API FGenerationParams {
 
 };
 
+
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FSBiome {
+	GENERATED_BODY()
+
+	static FBiomeData* GRAS;
+	static FBiomeData* DESERT;
+	static FBiomeData* TUNDRA;
+	static FBiomeData* GRASDESERT;
+	static FBiomeData* SAVANNA;
+	static FBiomeData* WOODS;
+	static FBiomeData* TAIGA;
+	static FBiomeData* SEASONALFOREST;
+	static FBiomeData* FOREST;
+	static FBiomeData* RAINFOREST;
+	static FBiomeData* SWAMP;
+	static FBiomeData* OCEAN;
+	static FBiomeData* STONE;
+
+	static void InitStaticMembers(UMyGameInstance* gameInstance);
+
+};
+
+
 //DataTable Structs
 USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FWorldGenInfo : public FTableRowBase {
@@ -230,19 +254,6 @@ USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBiomeData : public FTableRowBase {
 	GENERATED_BODY()
 
-	struct DATA {
-		static FBiomeData* GRAS;
-		static FBiomeData* DESERT;
-		static FBiomeData* TUNDRA;
-		static FBiomeData* GRASDESERT;
-		static FBiomeData* SAVANNA;
-		static FBiomeData* WOODS;
-		static FBiomeData* TAIGA;
-		static FBiomeData* SEASONALFOREST;
-		static FBiomeData* FOREST;
-		static FBiomeData* RAINFOREST;
-		static FBiomeData* SWAMP;
-	};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 id = 0;
@@ -267,7 +278,7 @@ struct LOWPOLYSURVIVAL_API FBiomeData : public FTableRowBase {
 
 	FResource* baseBlockResource = nullptr;
 
-	static void InitStaticMembers(UMyGameInstance* gameInstance);
+	
 };
 
 

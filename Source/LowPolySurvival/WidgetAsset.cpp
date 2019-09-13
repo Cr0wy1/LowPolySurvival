@@ -5,3 +5,4 @@
 #include "DebugWidget.h"
 #include "EscapeMenuWidget.h"
 #include "UChatWidget.h"
+#include "MapWidget.h"

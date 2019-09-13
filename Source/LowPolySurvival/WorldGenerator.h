@@ -10,21 +10,24 @@
 #include "WorldGenerator.generated.h"
 
 
-class APlayercharController;
+
 class AChunk;
 class UChunkColumn;
 class UMaterialInterface;
-class UMyGameInstance;
-class UChunkLoader;
+
 
 
 USTRUCT()
 struct LOWPOLYSURVIVAL_API FWorldLoader {
 	GENERATED_BODY()
 
-	static TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
-	static TMap<FIntVector, AChunk*> loadedChunks;
 
+	TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
+	TMap<FIntVector, AChunk*> loadedChunks;
+
+	FString ToString() {
+		return "Loaded: chunkColsNum:" + FString::FromInt(loadedChunkColumns.Num()) + "chunksNum:" + FString::FromInt(loadedChunks.Num());
+	}
 };
 
 
@@ -41,7 +44,7 @@ public:
 	// Sets default values for this actor's properties
 	AWorldGenerator();
 
-
+	static FWorldLoader loader;
 
 protected:
 
@@ -49,26 +52,12 @@ protected:
 	bool bDrawDebug = false;
 
 	FString worldName = "world";
-	
-
-	UMyGameInstance* gameInstance = nullptr;
-	APlayercharController * playerController = nullptr;
-
-	UPROPERTY()
-	UChunkLoader* chunkLoader;
-	 
-	FIntVector cPlayerChunkLoc = FIntVector(0.5f, 0.5f, 0.5f);
+	int32 seed = 0;
 	 
 	//TMap<FIntVector, AChunk*> loadedChunks;
 	TArray<FIntVector> checkedChunkLocs;
 
 	//TMap<FIntVector, UChunkColumn*> loadedChunkColumns;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
-	int32 checkedRadiusZ = 2;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
-	int32 checkedRadiusXY = 2;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain")
 	FNoiseParams biomeNoiseParams;
@@ -91,17 +80,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void OnEnterChunk(); 
-	void OnCheckChunk(FIntVector chunkLoc);
-
-	void LoadChunk(FIntVector chunkLoc);
-	
-
 public:	
 	// Called every frame  
 	virtual void Tick(float DeltaTime) override; 
-
-	void CheckChunks(FIntVector center) ;
 
 	void CleanAllChunks();
 
@@ -122,7 +103,7 @@ public:
 	bool SetBlock(const FBlockLoc &blockLoc, const FBlock &block);
 	const FBlock* GetBlock(const FBlockLoc &blockLoc);
 
-	FBiomeData* GetBiome(float heatNoise, float rainNoise) const;
+	FBiomeData* GetBiome(float xNoise, float yNoise) const;
 	FBiomeData* GetBiome(const FBlockLoc &blockLoc) const;
     AChunk* GetChunk(const FChunkLoc &chunkLoc) const;
 	AChunk* GetChunkFromBlock(const FBlockLoc &blockLoc) const;
@@ -132,6 +113,8 @@ public:
 	int32 GetLoadedChunksNum() const;
 
 	FString GetWorldName() const;
+	int32 GetSeed() const;
+	
 
 	bool IsChunkLoaded(const FIntVector &chunkLoc) const;
 

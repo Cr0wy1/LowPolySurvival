@@ -7,6 +7,7 @@
 #include "EscapeMenuWidget.h"
 #include "WidgetAsset.h" 
 #include "UChatWidget.h"
+#include "MapWidget.h"
 
 
 void APlayercharController::BeginPlay() {
@@ -29,6 +30,11 @@ void APlayercharController::BeginPlay() {
 		chatWidget = CreateWidget<UChatWidget>(this, widgetAsset_A->chatWidget_BP);
 		chatWidget->AddToPlayerScreen();
 	}
+
+	if (widgetAsset_A->mapWidget_BP) {
+		mapWidget = CreateWidget<UMapWidget>(this, widgetAsset_A->mapWidget_BP);
+		mapWidget->AddToPlayerScreen();
+	}
 }
 
 void APlayercharController::SetupInputComponent() {
@@ -38,6 +44,9 @@ void APlayercharController::SetupInputComponent() {
 	InputComponent->BindAction("ToggleDebugScreen", IE_Pressed, this, &APlayercharController::OnToggleDebugScreen);
 	InputComponent->BindAction("EscapeMenu", IE_Pressed, this, &APlayercharController::OnEscapeMenuPressed);
 	InputComponent->BindAction("OpenChat", IE_Pressed, this, &APlayercharController::OnOpenChatPressed);
+	InputComponent->BindAction("OpenMap", IE_Pressed, this, &APlayercharController::OnOpenMapPressed);
+
+	
 
 }
 
@@ -68,6 +77,13 @@ void APlayercharController::OnOpenChatPressed(){
 	}
 
 
+}
+
+void APlayercharController::OnOpenMapPressed(){
+	if (mapWidget) {
+		mapWidget->OpenUI();
+		mapWidget->RenderMap();
+	}
 }
 
 void APlayercharController::CenterMouse() {

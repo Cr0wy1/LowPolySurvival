@@ -43,6 +43,7 @@ public:
 
 protected:
 
+	bool bIsAirChunk = false;
 
 	bool bIsTaskFinished = false;
 	bool bShouldGenerateMesh = false;
@@ -55,7 +56,7 @@ protected:
 	UMyGameInstance * gameInstance = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
 
-	UPROPERTY()
+	//UPROPERTY()
 	UChunkColumn* chunkColumn;
 
 	FIntVector gridDim;
@@ -120,6 +121,7 @@ public:
 	const FBlock* GetBlock(const FVector &worldLoc) const;
 	FBlock* GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targetChunk = nullptr) const;
 
+	bool IsAirChunk() const;
 
 	const FBlockGrid* GetGridData() const;
 	AWorldGenerator* GetWorldGenerator() const;

@@ -8,34 +8,54 @@
 #include "MyGameInstance.h"
 
 
+UChunkLoaderComponent::UChunkLoaderComponent(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
+	
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
 
-UChunkLoader* UChunkLoader::Construct(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ) {
-	UChunkLoader* chunkLoader = NewObject<UChunkLoader>(_worldGenerator);
-	chunkLoader->Init(_worldGenerator, radiusXY, radiusZ);
-	return chunkLoader; 
+void UChunkLoaderComponent::BeginPlay(){
+	Super::BeginPlay();
+
+	owner = GetOwner();
+
+	UMyGameInstance* gameInstance = owner->GetGameInstance<UMyGameInstance>();
+	worldGenerator = gameInstance->GetWorldGenerator();
+
+	if (bIsDynamic) {
+		SetComponentTickEnabled(true);
+	}
+	else {
+		SetComponentTickEnabled(false);
+		FIntVector chunkLoc = WorldToChunkLocation(owner->GetActorLocation());
+		UpdateLocation(chunkLoc);
+	}
 }
 
 
+void UChunkLoaderComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction) {
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-void UChunkLoader::Init(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ) {
-	worldGenerator = _worldGenerator;
-	checkedRadiusXY = radiusXY;
-	checkedRadiusZ = radiusZ;
+	if (owner) {
+		FIntVector chunkLoc = WorldToChunkLocation(owner->GetActorLocation());
+		UpdateLocation(chunkLoc);
+	}
+
 }
 
 
-void UChunkLoader::UpdateLocation(FChunkLoc newCenterChunkLoc){
+void UChunkLoaderComponent::UpdateLocation(FChunkLoc newCenterChunkLoc){
 
-	if (newCenterChunkLoc == centerChunkLoc) return;
-	centerChunkLoc = newCenterChunkLoc;
+	if (newCenterChunkLoc == cChunkLoc) return;
+	cChunkLoc = newCenterChunkLoc;
 
-	CheckChunks(centerChunkLoc);
+	CheckChunks(cChunkLoc);
 
 
 	TArray<FIntVector> chunksToUnload;
 
 	//collect unloaded chunks
-	for (auto loadedChunk : FWorldLoader::loadedChunks) {
+	for (auto loadedChunk : AWorldGenerator::loader.loadedChunks) {
 		if (!checkedChunkLocs.Contains(loadedChunk.Key)) {
 			chunksToUnload.Add(loadedChunk.Key);
 		}
@@ -44,8 +64,8 @@ void UChunkLoader::UpdateLocation(FChunkLoc newCenterChunkLoc){
 	//Unload unloaded chunks
 	for (const FIntVector loc : chunksToUnload) {
 
-		FWorldLoader::loadedChunks[loc]->Unload();
-		FWorldLoader::loadedChunks.Remove(loc);
+		AWorldGenerator::loader.loadedChunks[loc]->Unload();
+		AWorldGenerator::loader.loadedChunks.Remove(loc);
 		//UE_LOG(LogTemp, Warning, TEXT("removed"));
 	}
 
@@ -53,9 +73,9 @@ void UChunkLoader::UpdateLocation(FChunkLoc newCenterChunkLoc){
 	checkedChunkLocs.Empty();
 
 	//Generate Terrain Mesh for loaded Chunks
-	for (auto loadedChunk : FWorldLoader::loadedChunks) {
+	for (auto loadedChunk : AWorldGenerator::loader.loadedChunks) {
 
-		FIntVector deltaRange = loadedChunk.Key - centerChunkLoc;
+		FIntVector deltaRange = loadedChunk.Key - cChunkLoc;
 
 		//Check Terrainmesh < checkedRadius for mesh connection
 		if (deltaRange.X < checkedRadiusXY && deltaRange.Y < checkedRadiusXY && deltaRange.Z < checkedRadiusZ) {
@@ -66,18 +86,20 @@ void UChunkLoader::UpdateLocation(FChunkLoc newCenterChunkLoc){
 
 }
 
-void UChunkLoader::OnCheckChunk(FIntVector chunkLoc) {
+
+
+
+
+void UChunkLoaderComponent::OnCheckChunk(FIntVector chunkLoc) {
 
 	int32 chunkSize = 10;
 	//UE_LOG(LogTemp, Warning, TEXT("loadedChunkCols: %i"), FWorldLoader::loadedChunkColumns.Num());
 
 	if (chunkLoc.X < chunkSize && chunkLoc.Y < chunkSize && chunkLoc.X > chunkSize*-1 && chunkLoc.Y > chunkSize*-1) {
 
-
-
 		checkedChunkLocs.Add(chunkLoc);
 
-		if (!FWorldLoader::loadedChunks.Contains(chunkLoc)) {
+		if (!AWorldGenerator::loader.loadedChunks.Contains(chunkLoc)) {
 			LoadChunk(chunkLoc);
 		}
 
@@ -86,12 +108,12 @@ void UChunkLoader::OnCheckChunk(FIntVector chunkLoc) {
 
 
 
-void UChunkLoader::LoadChunk(FIntVector chunkLoc) {
+void UChunkLoaderComponent::LoadChunk(FIntVector chunkLoc) {
 
 	AChunk* newChunk = AChunk::Construct(worldGenerator, chunkLoc);
 }
 
-void UChunkLoader::CheckChunks(FIntVector center) {
+void UChunkLoaderComponent::CheckChunks(FIntVector center) {
 
 	int32 radiusXY = checkedRadiusXY * 2 + 1;
 	int32 radiusZ = checkedRadiusZ * 2 + 1;
@@ -127,10 +149,5 @@ void UChunkLoader::CheckChunks(FIntVector center) {
 			x += dx;
 			y += dy;
 		}
-
-
-
 	}
-
-
 }

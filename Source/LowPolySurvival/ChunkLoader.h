@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "Components/ActorComponent.h"
 #include "GameStructs.h"
 #include "ChunkLoader.generated.h"
 
@@ -13,30 +13,41 @@ class AWorldGenerator;
 /**
  * 
  */
-UCLASS()
-class LOWPOLYSURVIVAL_API UChunkLoader : public UObject
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class LOWPOLYSURVIVAL_API UChunkLoaderComponent : public UActorComponent
 {
 	GENERATED_BODY()
 		 
 public:
 
+	UChunkLoaderComponent(const FObjectInitializer & ObjectInitializer);
 
-
-	static UChunkLoader* Construct(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ);
-
-	void Init(AWorldGenerator* _worldGenerator, int32 radiusXY, int32 radiusZ);
 	void UpdateLocation(FChunkLoc newCenterChunkLoc);
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
 
-	FChunkLoc centerChunkLoc;
+	AActor * owner = nullptr;
+
+	//current ChunkLoader location in chunkLoc
+	FChunkLoc cChunkLoc = FChunkLoc(99999,99999,99999);
 
 	AWorldGenerator * worldGenerator;
 
 	TArray<FIntVector> checkedChunkLocs;
 
+	//Dynamic = chunkLoader is ticking and Update position automaticlly
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChunkLoader")
+	bool bIsDynamic = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChunkLoader")
 	int32 checkedRadiusZ = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChunkLoader")
 	int32 checkedRadiusXY = 2;
+
+	void BeginPlay();
 
 	void OnCheckChunk(FIntVector chunkLoc);
 	void LoadChunk(FIntVector chunkLoc);

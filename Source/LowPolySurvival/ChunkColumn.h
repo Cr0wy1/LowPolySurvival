@@ -14,6 +14,8 @@ UCLASS(BlueprintType, Blueprintable)
 class LOWPOLYSURVIVAL_API UChunkColumn : public UObject
 {
 	GENERATED_BODY()
+
+	
 	
 public:	
 	// Sets default values for this actor's properties
@@ -24,6 +26,8 @@ public:
 	void Init(AWorldGenerator* _worldGenerator);
 
 protected:
+
+	int32 chunksHolding = 0;
 
 	FIntVector chunkColLoc;
 	TArray<TArray<float>> hillsNoiseMap;
@@ -44,6 +48,9 @@ public:
 
 	void Load(FIntVector _chunkColLoc);
 	void Unload();
+
+	void AddChunk();
+	void RemoveChunk();
 
 	const TArray<TArray<float>>* GetTerrainNoiseMap() { return &terrainNoiseMap; }
 	const TArray<TArray<float>>* GetHillsNoiseMap() { return &hillsNoiseMap;  } 

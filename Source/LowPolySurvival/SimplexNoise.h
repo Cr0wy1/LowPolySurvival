@@ -86,7 +86,7 @@ public:
 
 
 	//Octaves
-	static void NoiseOctaves(TArray<TArray<float>> &OUT_noiseArr, int32 xOffset, int32 yOffset, int32 xSize, int32 ySize, uint8 octaves = 1, float frequency = 1.0f, float persistance = 0.5f);
+	static void NoiseOctaves(TArray<TArray<float>> &OUT_noiseArr, int32 xOffset, int32 yOffset, int32 xSize, int32 ySize, uint8 octaves = 1, float frequency = 1.0f, float persistance = 0.5f, float noiseScale = 1.0f);
 	
 };
 

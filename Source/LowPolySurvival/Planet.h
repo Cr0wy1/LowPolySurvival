@@ -6,6 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "Planet.generated.h"
 
+
+
+class UMyGameInstance;
+class APlayercharController;
+class UChunkLoader;
+
+
+
 UCLASS()
 class LOWPOLYSURVIVAL_API APlanet : public AActor
 {
@@ -20,6 +28,10 @@ public:
 	APlanet();
 
 protected:
+
+	UMyGameInstance * gameInstance = nullptr;
+	APlayercharController * playerController = nullptr;
+	UChunkLoader * chunkLoader = nullptr;
 
 	TArray<TArray<float>> noiseMap;
 

@@ -29,4 +29,6 @@ public:
 	virtual void OpenUI();
 
 	bool IsUIOpen() const;
+
+	virtual FReply NativeOnPreviewKeyDown(const FGeometry & InGeometry, const FKeyEvent & InKeyEvent) override;
 };

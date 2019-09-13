@@ -5,6 +5,8 @@
 #include "SimplexNoise.h"
 #include "MyGameInstance.h"
 #include "TestingLibrary.h"
+#include "Engine/World.h"
+#include "ChunkLoader.h"
 
 // Sets default values
 APlanet::APlanet()
@@ -21,9 +23,14 @@ void APlanet::BeginPlay()
 
 	int32 blockSizeX = radius * 2 * FWorldParams::chunkSize;
 
-	USimplexNoise::NoiseOctaves(noiseMap, 0, 0, blockSizeX, blockSizeX, 3);
+	//USimplexNoise::NoiseOctaves(noiseMap, 0, 0, blockSizeX, blockSizeX, 3);
 	
-	UE_LOG(LogTemp, Warning, TEXT("noiseMap: %s"), *UTestingLibrary::GetArrayDebugData(noiseMap));
+	//UE_LOG(LogTemp, Warning, TEXT("noiseMap: %s"), *UTestingLibrary::GetArrayDebugData(noiseMap));
+
+	//gameInstance = GetGameInstance<UMyGameInstance>();
+	//playerController = GetWorld()->GetFirstPlayerController<APlayercharController>();
+
+	//chunkLoader = UChunkLoader::Construct(this, checkedRadiusXY, checkedRadiusZ);
 
 }
 

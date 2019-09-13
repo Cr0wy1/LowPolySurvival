@@ -364,17 +364,14 @@ float USimplexNoise::SimplexNoiseInRange3D(float x, float y, float z, float rang
 	return SimplexNoiseScaled3D(x, y, z, (rangeMax - rangeMin)) + rangeMin;
 }
 
-void USimplexNoise::NoiseOctaves(TArray<TArray<float>>& OUT_noiseArr, int32 xOffset, int32 yOffset, int32 xSize, int32 ySize, uint8 octaves, float frequency, float persistance){
-
-	int32 xMax = xOffset + xSize;
-	int32 yMax = yOffset + ySize;
+void USimplexNoise::NoiseOctaves(TArray<TArray<float>>& OUT_noiseArr, int32 xOffset, int32 yOffset, int32 xSize, int32 ySize, uint8 octaves, float frequency, float persistance, float noiseScale){
 
 	OUT_noiseArr.Init(TArray<float>(), xSize);
-	for (size_t x = xOffset; x < xMax; x++){
+	for (int32 x = 0; x < xSize; x++){
 		OUT_noiseArr[x].Init(float(), ySize);
-		for (size_t y = yOffset; y < yMax; y++) {
+		for (int32 y = 0; y < ySize; y++) {
 
-			OUT_noiseArr[x][y] = Noise(x, y, octaves, frequency, 1.0f, persistance);
+			OUT_noiseArr[x][y] = Noise(xOffset + x, yOffset + y, octaves, frequency, 1.0f, persistance) * noiseScale;
 
 		}
 	}
@@ -395,10 +392,6 @@ inline float Noise(float x, float y, uint8 octaves, float frequency, float ampli
 	float noise = 0.0f;
 
 	float maxValue = 0;
-	if (x == 0 && y == 0) {
-		UE_LOG(LogTemp, Warning, TEXT("octaves: %i"), octaves);
-	}
-	
 
 	for (size_t i = 0; i < octaves; i++) {
 		noise += USimplexNoise::SimplexNoise2D(nx * frequency, ny * frequency) * amplitude;

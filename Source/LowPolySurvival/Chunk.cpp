@@ -51,6 +51,8 @@ void AChunk::BeginPlay(){
 void AChunk::Init(AWorldGenerator * _worldGenerator, UChunkColumn* _chunkColumn){
 	worldGenerator = _worldGenerator;
 	chunkColumn = _chunkColumn;
+
+	chunkColumn->AddChunk();
 }
 
 
@@ -59,7 +61,11 @@ void AChunk::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UE_LOG(LogTemp, Warning, TEXT("ticking"));
+	
+		UE_LOG(LogTemp, Warning, TEXT("ticking"));
+	
+
+	
 
 }
 
@@ -67,7 +73,7 @@ AChunk * AChunk::Construct(AWorldGenerator * worldGenerator, FIntVector chunkLoc
 
 	FIntVector chunkColLoc = chunkLoc;
 	chunkColLoc.Z = 0;
-	auto findChunkCol = FWorldLoader::loadedChunkColumns.Find(chunkColLoc);
+	auto findChunkCol = AWorldGenerator::loader.loadedChunkColumns.Find(chunkColLoc);
 
 	UChunkColumn* responseChunkColumn = findChunkCol ? *findChunkCol : UChunkColumn::Construct(worldGenerator, chunkColLoc);
 
@@ -75,7 +81,7 @@ AChunk * AChunk::Construct(AWorldGenerator * worldGenerator, FIntVector chunkLoc
 	AChunk* newChunk = worldGenerator->GetWorld()->SpawnActor<AChunk>(AChunk::StaticClass(), ChunkToWorldLocation(chunkLoc), FRotator::ZeroRotator);
 	newChunk->Init(worldGenerator, responseChunkColumn);
 
-	FWorldLoader::loadedChunks.Add(chunkLoc, newChunk);
+	AWorldGenerator::loader.loadedChunks.Add(chunkLoc, newChunk);
 
 
 	newChunk->Load(chunkLoc);
@@ -87,10 +93,15 @@ void AChunk::Create() {
 	
 	InitBlockGrid();
 
-	ApplyNoiseOnGrid();
-	AddNoiseCaves();
-	AddNoiseOres(); 
-	//AddWater();
+	int32 blockZ = chunkLoc.Z * FWorldParams::chunkSize;
+	int32 maxTerrainHeight = FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel;
+	if (maxTerrainHeight >= blockZ && FWorldParams::terrainBlockLevel < (blockZ + FWorldParams::chunkSize)) {
+		ApplyNoiseOnGrid();
+	}
+	
+	//AddNoiseCaves();
+	//AddNoiseOres(); 
+	AddWater();
 
 	bNeedsSaving = true;
 } 
@@ -108,7 +119,7 @@ void AChunk::Load(FIntVector _chunkLoc) {
 void AChunk::Unload() {
 
 	//(new FAutoDeleteAsyncTask<ChunkTask>(this, true))->StartBackgroundTask();
-
+	chunkColumn->RemoveChunk();
 	proceduralMesh->EnsureCompletion();
 
 	for (AActor* actor : loadedActors) {
@@ -201,11 +212,21 @@ void AChunk::ApplyNoiseOnGrid(){
 	FBiomeData* cBiome;
 	FResource* biomeR = grassR;
 	
+	if (!chunkColumn) {
+		UE_LOG(LogTemp, Warning, TEXT("chunkColumn = nullptr"));
+
+	}
+
+	
 
 	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 	auto heatNoiseMap = *chunkColumn->GetHeatNoiseMap();
 	auto rainNoiseMap = *chunkColumn->GetRainNoiseMap();
 	auto hillsNoiseMap = *chunkColumn->GetHillsNoiseMap();
+
+	if (terrainNoiseMap.Num() < 1) {
+		UE_LOG(LogTemp, Warning, TEXT("terrainNoiseMap Num = 0, chunkLoc: %s"), *chunkLoc.ToString());
+	}
 	
 
 	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
@@ -215,16 +236,10 @@ void AChunk::ApplyNoiseOnGrid(){
 	for (int32 x = 0; x < gridDim.X; x++) {
 		for (int32 y = 0; y < gridDim.Y; y++) {
 
-			cBiome = worldGenerator->GetBiome(heatNoiseMap[x][y], rainNoiseMap[x][y]);
-
-			//float biomeNoise = worldGenerator->BiomeNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
+			cBiome = worldGenerator->GetBiome(terrainNoiseMap[x][y], rainNoiseMap[x][y]);
 			biomeR = cBiome->baseBlockResource;
 
-			int32 upAmount = terrainNoiseMap[x][y] * 100;
-			//if (hillsNoiseMap[x][y] > 0.2) {
-				//upAmount += hillsNoiseMap[x][y] * 100;
-			//}
-			// FWorldParams::terrainNoiseHeight;
+			int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainHeight;
 			int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
 			int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
 
@@ -324,16 +339,20 @@ void AChunk::AddWater(){
 
 	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
 
+	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
+
 	for (int32 x = 0; x < gridDim.X; x++) {
 		for (int32 y = 0; y < gridDim.Y; y++) {
-			for (int32 z = 0; z < gridDim.Z; z++) {
 
-				if (blockLoc.Z + z <= 20) {
-					blockGrid[x][y][z].SetResource(waterR);
+			if (terrainNoiseMap[x][y] < 0.2f) {
+				for (int32 z = 0; z < gridDim.Z; z++) {
+
+					if (blockLoc.Z + z <= 20) {
+						blockGrid[x][y][z].SetResource(waterR);
+					}
 				}
-				
-
 			}
+
 
 		}
 	}
@@ -344,8 +363,6 @@ void AChunk::OnGeneratedMesh(){
 
 	if (!bIsFullCreated) {
 
-		auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
-
 		FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
 
 		int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - (chunkLoc.Z * FWorldParams::chunkSize);
@@ -353,18 +370,14 @@ void AChunk::OnGeneratedMesh(){
 		for (int32 x = 0; x < gridDim.X; x++) {
 			for (int32 y = 0; y < gridDim.Y; y++) {
 
-				int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainNoiseHeight;
-				int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
-
-
-				//Plant Vegetetion
-				if (maxZInChunk < FWorldParams::chunkSize) {
+				//Plant Vegetetion 
+				//if (maxZInChunk < FWorldParams::chunkSize) {
 					float rand = FMath::FRand();
 					if (rand > 0.9) {
 						//TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + maxZInChunk));
 					}
 
-				}
+				//}
 			}
 		}
 	}
@@ -600,6 +613,11 @@ FBlock* AChunk::GetBlockIncludeNearby(FIntVector chunkBlockLoc, AChunk* OUT_targ
 	}
 
 	return nullptr;
+}
+
+bool AChunk::IsAirChunk() const{
+
+	return bIsAirChunk;
 }
 
 const FBlockGrid* AChunk::GetGridData() const{

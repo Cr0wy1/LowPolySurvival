@@ -25,8 +25,8 @@ struct LOWPOLYSURVIVAL_API FWorldParams {
 	static const float blockSize;
 	static const int32 chunkSize = 16;
 	static const int32 terrainBlockLevel = 100;
-	static const int32 terrainNoiseHeight = 20;
-	static const float deathZone;
+	static const int32 terrainHeight = 100;
+	static const int32 deathZone;
 	static const float buildHeight;
 };
 

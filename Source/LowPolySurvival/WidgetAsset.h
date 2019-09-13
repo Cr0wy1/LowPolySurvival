@@ -11,6 +11,7 @@
 class UDebugWidget;
 class UEscapeMenuWidget;
 class UChatWidget;
+class UMapWidget;
 /**
  * 
  */
@@ -30,5 +31,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UChatWidget> chatWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UMapWidget> mapWidget_BP;
 };
  
