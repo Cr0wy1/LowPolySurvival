@@ -23,7 +23,7 @@ UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObje
 void UProceduralMeshGeneratorComponent::BeginPlay(){
 	Super::BeginPlay();
 
-	EMeshGenType genType = EMeshGenType::VOXEL;
+	EMeshGenType genType = EMeshGenType::MARCHINGCUBES;
 
 	if (genType == EMeshGenType::MARCHINGCUBES) {
 		meshGen = NewObject<UGridMarchingCubesMeshGen>(this);

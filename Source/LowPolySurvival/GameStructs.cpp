@@ -127,6 +127,7 @@ void FBlockGrid::Init(int32 xSize, int32 ySize, int32 zSize){
 
 		for (size_t y = 0; y < ySize; y++) {
 			grid[x][y].Init(FBlock(), zSize);
+
 		}
 	}
 }

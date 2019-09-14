@@ -112,6 +112,11 @@ UDataTable * UMyGameInstance::GetBiomeTable() const{
 	return biomeDataTable;
 }
 
+UDataTable * UMyGameInstance::GetBaseDecoTable() const{
+
+	return baseDecoDataTable;
+}
+
 
 AWorldGenerator * UMyGameInstance::GetWorldGenerator() const{
 

@@ -109,7 +109,8 @@ USTRUCT(BlueprintType)
 struct LOWPOLYSURVIVAL_API FBlockData {
 	GENERATED_BODY()
 
-	//int32 blockId = 0;
+		//int32 blockId = 0;
+	float noiseValue = 0.0f;
 	bool bIsSolid = false;
 	FColor color = FColor::Green;
 
@@ -282,3 +283,13 @@ struct LOWPOLYSURVIVAL_API FBiomeData : public FTableRowBase {
 };
 
 
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FBaseDecoData : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 id = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMesh* mesh;
+};

@@ -63,6 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
 	UDataTable * biomeDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Datatable")
+	UDataTable * baseDecoDataTable;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WorldGenerator")
 	TSubclassOf<AWorldGenerator> worldGenerator_BP;
 
@@ -86,6 +89,7 @@ public:
 	UDataTable* GetWorldGenTable() const;
 	UDataTable* GetResourceTable() const;
 	UDataTable* GetBiomeTable() const;
+	UDataTable* GetBaseDecoTable() const;
 
 	AWorldGenerator* GetWorldGenerator() const;
 	UWidgetAsset* GetWidgetAsset() const;
