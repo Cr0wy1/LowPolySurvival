@@ -66,7 +66,9 @@ public:
 
 	UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override; //EndPlay is called before BeginDestroy
 	virtual void BeginDestroy() override;
+	
 
 	void EnsureCompletion();
 

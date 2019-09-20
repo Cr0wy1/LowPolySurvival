@@ -25,7 +25,11 @@ void FBlock::SetResource(const FResource * _resource){
 	durability = _resource->hardness;
 	data.bIsSolid = _resource->id;
 	data.color = _resource->color.ToFColor(true);
-	
+
+}
+
+void FBlock::SetNoise(float newNoise) {
+	data.noiseValue = newNoise;
 }
 
 void FBlock::SetBiomeColor(const FLinearColor & biomeColor){

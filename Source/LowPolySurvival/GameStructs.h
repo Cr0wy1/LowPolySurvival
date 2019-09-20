@@ -134,6 +134,7 @@ struct LOWPOLYSURVIVAL_API FBlock {
 	//Return true if durability <= 0 (Block is destroyed)
 	bool ApplyDamage(int32 damageAmount);
 	void SetResource(const FResource* _resource);
+	void SetNoise(float newNoise);
 	void SetBiomeColor(const FLinearColor& biomeColor);
 
 	bool IsValid() const;

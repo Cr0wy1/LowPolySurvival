@@ -101,7 +101,7 @@ void AChunk::Create() {
 		//ApplyNoiseOnGrid();
 	}
 	ApplyNoiseOnGrid3D();
-	//AddNoiseCaves();
+	AddNoiseCaves();
 	//AddNoiseOres(); 
 	//AddWater();
 
@@ -151,11 +151,15 @@ void AChunk::InitBlockGrid(){
 
 	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
 
+	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 	//TODO Testing, remove it
 	for (int32 x = 0; x < dim; x++) {
 		for (int32 y = 0; y < dim; y++) {
+			
 			for (int32 z = 0; z < dim; z++) {
-				blockGrid[x][y][z].data.noiseValue = Noise3D(x + blockLoc.X, y + blockLoc.Y, z + blockLoc.Z, 4, 1);
+				blockGrid[x][y][z].data.noiseValue = Noise3D(x + blockLoc.X, y + blockLoc.Y, terrainNoiseMap[x][y]*1000, 1, 1, 1000) * 0.85f;
+				blockGrid[x][y][z].data.noiseValue += Noise3D(x + blockLoc.X, y + blockLoc.Y, blockLoc.Z, 6, 4) * 0.15f;
+				//blockGrid[x][y][z].data.noiseValue *= 0.5f;
 			}
 		}
 	}
@@ -165,7 +169,7 @@ void AChunk::InitBlockGrid(){
 void AChunk::TopDownTrace(const FIntVector &blockLoc){
 
 	FVector worldLoc = BlockToWorldLocation(FVector(blockLoc));
-	worldLoc.X += FMath::FRand() * 100.0f - 50.0f;
+	worldLoc.X += FMath::FRand() * 100.0f - 50.0f; 
 	worldLoc.Y += FMath::FRand() * 100.0f - 50.0f;
 
 	FHitResult hitResult;
@@ -329,62 +333,50 @@ void AChunk::ApplyNoiseOnGrid3D(){
 				float density = terrainNoiseMap[x][y] + blockGrid[x][y][z].data.noiseValue;
 				//terrainNoiseMap[x][y] = density / 2;
 
-				int32 upAmount = density * FWorldParams::terrainHeight;
+				int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainHeight;
 				int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
 				int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
 
 				int32 blockZ = blockLoc.Z + z;
 
-				if (blockZ > maxZ) {
-					blockGrid[x][y][z].data.noiseValue = density / 2;
-					//continue;
-				}
-				else if (blockZ < maxZ-1) {
-					//blockGrid[x][y][z].data.noiseValue = density;
-					//continue;
-				}
-				else {
+				blockGrid[x][y][z].data.noiseValue = blockGrid[x][y][z].data.noiseValue*0.5f + 0.5f; // scaled to [0.5][1.0f]
 
-				}
-				//else if (z < maxZInChunk) {
-					//blockGrid[x][y][z].data.noiseValue = 1.0f;
-				//}
-				if (blockGrid[x][y][z].data.noiseValue > 0.5f) {
-					blockGrid[x][y][z].SetResource(dirtR);
+				if (blockZ > FWorldParams::terrainBlockLevel) {
+					blockGrid[x][y][z].data.noiseValue *= 1.0f - (float)(blockZ- FWorldParams::terrainBlockLevel) / (FWorldParams::terrainHeight*1);
 					
 				}
-				continue;
-				//blockGrid[x][y][z].data.noiseValue = 1.0f;
-
 				
+				if (blockGrid[x][y][z].data.noiseValue > 0.5f) {
+					//blockGrid[x][y][z].SetResource(dirtR);
 
-				if (blockZ == 0) {
-					blockGrid[x][y][z].SetResource(earthcoreR);
+					if (blockZ == 0) {
+						blockGrid[x][y][z].SetResource(earthcoreR);
 
-				}
-				else if (blockZ < (maxZ - 5)) {
-					blockGrid[x][y][z].SetResource(stoneR);
-
-				}
-				else if (blockZ < (maxZ - 2)) {
-					blockGrid[x][y][z].SetResource(dirtR);
-
-				}
-				else if (blockZ < (maxZ - 1)) {
-					//Top Block
-					blockGrid[x][y][z].SetResource(biomeR);
-					if (cBiome->overrideResourceColor) {
-						blockGrid[x][y][z].SetBiomeColor(cBiome->biomeColor);
 					}
-					//blockGrid[x][y][z].data.noiseValue = FMath::FRand();// terrainNoiseMap[x][y];
+					else if (blockZ < (maxZ - 5)) {
+						blockGrid[x][y][z].SetResource(stoneR);
 
+					}
+					else if (blockZ < (maxZ - 2)) {
+						blockGrid[x][y][z].SetResource(dirtR);
+
+					}
+					else if (blockZ < (maxZ - 1)) {
+						//Top Block
+						blockGrid[x][y][z].SetResource(biomeR);
+						if (cBiome->overrideResourceColor) {
+							blockGrid[x][y][z].SetBiomeColor(cBiome->biomeColor);
+
+						}
+					}
+
+					if (blockZ > (FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 60)) {
+						blockGrid[x][y][z].SetResource(stoneR);
+					}
+					else if (blockZ > (FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 67)) {
+						blockGrid[x][y][z].SetResource(dirtR);
+					}
 				}
-				else {
-					//Noise above top block
-					//blockGrid[x][y][z].data.noiseValue = FMath::FRand();//terrainNoiseMap[x][y];
-				}
-
-
 
 			}
 
@@ -409,10 +401,16 @@ void AChunk::AddNoiseCaves(){
 
 				float noise = worldGenerator->CaveNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
 
-				if (noise < caveNoiseLevel) { 
-					blockGrid[x][y][z].SetResource(airR);
+				
+
+				//if (noise < caveNoiseLevel) { 
+					//float lerpedNoise = FMath::Lerp(blockGrid[x][y][z].data.noiseValue, noise, 0.5f);
+					noise *= 0.15f;
+
+					blockGrid[x][y][z].data.noiseValue -= noise;
+					//blockGrid[x][y][z].SetResource(airR);
 					
-				}
+				//}
 			}
 
 		} 

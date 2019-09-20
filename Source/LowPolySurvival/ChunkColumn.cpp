@@ -19,7 +19,7 @@ void UChunkColumn::FinishDestroy(){
 
 	Unload();
 	
-	UE_LOG(LogTemp, Warning, TEXT("UChunkColumn::FinishDestroy chunkLoc: %s"), *chunkColLoc.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("UChunkColumn::FinishDestroy chunkLoc: %s"), *chunkColLoc.ToString());
 
 	Super::FinishDestroy();
 }

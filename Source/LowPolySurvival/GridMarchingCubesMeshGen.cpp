@@ -329,6 +329,7 @@ void UGridMarchingCubesMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &b
 	}
 
 	MarchingCubes(false); 
+	//TODO maybe remove noramsl calc
 	UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
 	meshGenData.bIsReady = true;
 }

@@ -45,16 +45,28 @@ void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTic
 	}
 }
 
+void UProceduralMeshGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+
+	UE_LOG(LogTemp, Warning, TEXT("EndPlay"));
+
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void UProceduralMeshGeneratorComponent::BeginDestroy(){
+
+	UE_LOG(LogTemp, Warning, TEXT("Begin Destroy"));
 
 	EnsureCompletion();
 	
 	Super::BeginDestroy();
 }
 
+
+
 void UProceduralMeshGeneratorComponent::EnsureCompletion(){
 	if (meshGen) {
-		//meshGen->EnsureCompletion();
+		meshGen->EnsureCompletion();
 	}
 }
 
