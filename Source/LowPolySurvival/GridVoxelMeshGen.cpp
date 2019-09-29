@@ -27,13 +27,12 @@ void UGridVoxelMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid
 	}
 
 	//UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
-	meshGenData.bIsReady = true;
 
 	TASKCOUNTER++;
 	//UE_LOG(LogTemp, Warning, TEXT("VoxelMesh: EndTask %i"), TASKCOUNTER);
 	//UE_LOG(LogTemp, Warning, TEXT("meshData: %s"), *meshGenData.ToString());
 
-
+	Super::DoTaskWork(bUpdateOnly, blockGrid);
 }
 
 void UGridVoxelMeshGen::BuildCube(const FIntVector &blockLoc, const FBlockGrid* grid){

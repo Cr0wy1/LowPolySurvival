@@ -84,6 +84,7 @@ void UChunkLoaderComponent::UpdateLocation(FChunkLoc newCenterChunkLoc){
 
 	}
 
+	OnEnterNewChunk.Broadcast(cChunkLoc);
 }
 
 

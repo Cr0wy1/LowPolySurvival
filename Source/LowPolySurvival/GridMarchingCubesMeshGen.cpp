@@ -322,7 +322,7 @@ void UGridMarchingCubesMeshGen::CreateMarchCubes(const AChunk * chunk){
 }
 
 void UGridMarchingCubesMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid){
-	Super::DoTaskWork(bUpdateOnly, blockGrid);
+	
 
 	if (!bUpdateOnly && params.chunk) {
 		CreateMarchCubes(params.chunk);
@@ -331,7 +331,9 @@ void UGridMarchingCubesMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &b
 	MarchingCubes(false); 
 	//TODO maybe remove noramsl calc
 	UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
-	meshGenData.bIsReady = true;
+	
+
+	Super::DoTaskWork(bUpdateOnly, blockGrid);
 }
 
 

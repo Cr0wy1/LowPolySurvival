@@ -8,6 +8,8 @@
 #include "WidgetAsset.h" 
 #include "UChatWidget.h"
 #include "MapWidget.h"
+#include "RuntimeDrawingLibrary.h"
+#include "Chunk.h"
 
 
 void APlayercharController::BeginPlay() {
@@ -45,7 +47,8 @@ void APlayercharController::SetupInputComponent() {
 	InputComponent->BindAction("EscapeMenu", IE_Pressed, this, &APlayercharController::OnEscapeMenuPressed);
 	InputComponent->BindAction("OpenChat", IE_Pressed, this, &APlayercharController::OnOpenChatPressed);
 	InputComponent->BindAction("OpenMap", IE_Pressed, this, &APlayercharController::OnOpenMapPressed);
-
+	InputComponent->BindAction("ToggleDebugLines", IE_Pressed, this, &APlayercharController::OnToggleDebugLines);
+	
 	
 
 }
@@ -84,6 +87,44 @@ void APlayercharController::OnOpenMapPressed(){
 		mapWidget->OpenUI();
 		mapWidget->RenderMap();
 	}
+}
+
+void APlayercharController::OnToggleDebugLines(){
+
+	bDrawLines = !bDrawLines;
+	if (bDrawLines) {
+		AChunk* chunk = gameInstance->GetWorldGenerator()->GetChunkSafe(cChunkloc);
+		if (chunk) {
+			chunk->DrawDebug(false);
+		}
+	}
+	else {
+		URuntimeDrawingLibrary::FlushPersistentLines(GetWorld());
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("OnToggleDebugLines"));
+
+}
+
+void APlayercharController::TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction & ThisTickFunction){
+	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
+
+	//UE_LOG(LogTemp, Warning, TEXT("controller ticking"));
+
+	//Draw current chunk extends if drawinlines is active
+	if (bDrawLines) {
+		FIntVector chunkLoc = WorldToChunkLocation(GetPawn()->GetActorLocation());
+		if (cChunkloc != chunkLoc) {
+			cChunkloc = chunkLoc;
+			URuntimeDrawingLibrary::FlushPersistentLines(GetWorld());
+			AChunk* chunk = gameInstance->GetWorldGenerator()->GetChunkSafe(cChunkloc);
+			if (chunk) {
+				chunk->DrawDebug(false, true);
+				//URuntimeDrawingLibrary::DrawBox(GetWorld(), GetPawn()->GetActorLocation(), FVector(50, 50, 50), FColor::Green, true, -1.0f, 0, 10);
+			}
+		}
+	}
+
 }
 
 void APlayercharController::CenterMouse() {

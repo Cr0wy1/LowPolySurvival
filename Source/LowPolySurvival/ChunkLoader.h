@@ -9,6 +9,10 @@
 
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnterNewChunk, const FIntVector&, newChunkLoc);
+
+
+
 class AWorldGenerator;
 /**
  * 
@@ -19,6 +23,8 @@ class LOWPOLYSURVIVAL_API UChunkLoaderComponent : public UActorComponent
 	GENERATED_BODY()
 		 
 public:
+
+	FOnEnterNewChunk OnEnterNewChunk;
 
 	UChunkLoaderComponent(const FObjectInitializer & ObjectInitializer);
 

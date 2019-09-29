@@ -298,12 +298,12 @@ void ALowPolySurvivalCharacter::OnHit(){
 			FIntVector blockLoc = WorldToBlockLocation(crosshairResult->hitResult.ImpactPoint + crosshairResult->hitDirection);
 
 			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc), 100, this);
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0,0,1), 100, this);
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 1, 0), 100, this);
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(1, 0, 0), 100, this);
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 0, -1), 100, this);
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, -1, 0), 100, this);  
-			gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(-1, 0, 0), 100, this);
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0,0,1), 100, this);
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 1, 0), 100, this);
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(1, 0, 0), 100, this);
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, 0, -1), 100, this);
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(0, -1, 0), 100, this);  
+			//gameInstance->GetWorldGenerator()->HitBlock(FIntVector(blockLoc) + FIntVector(-1, 0, 0), 100, this);
 			
 		}
 

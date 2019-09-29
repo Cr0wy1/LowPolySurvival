@@ -11,6 +11,8 @@
 
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFinishMeshGen);
+
 class AChunk;
 
 
@@ -60,6 +62,9 @@ protected:
 	GridMeshGenThread* gridMeshGenThread;
 
 public:
+
+	FOnFinishMeshGen OnFinishMeshGen;
+
 	virtual void EnsureCompletion();
 
 	virtual FMeshGenData* CreateMesh(const FBlockGrid &blockGrid, const FGridMeshParams &_params = FGridMeshParams());

@@ -83,7 +83,8 @@ void UChunkColumn::InitTerrainNoiseMaps(){
 UChunkColumn * UChunkColumn::Construct(AWorldGenerator * _worldGenerator, FIntVector _chunkColLoc){
 	_chunkColLoc.Z = 0;
 
-	UChunkColumn* newChunkColumn = NewObject<UChunkColumn>();
+	UChunkColumn* newChunkColumn = NewObject<UChunkColumn>(_worldGenerator);
+	
 	newChunkColumn->Init(_worldGenerator);
 	newChunkColumn->Load(_chunkColLoc);
 

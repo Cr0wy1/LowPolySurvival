@@ -14,9 +14,21 @@ class UMyGameInstance;
 class UProceduralMeshGeneratorComponent;
 class AWorldGenerator;
 class UChunkColumn;
+class UGridNoiseGen;
 struct FWorldInfo;
 struct FBlockData;
 struct FBlock;
+
+
+
+UENUM()
+enum class EChunkGenStage : uint8 {
+	INIT,
+	NOISEGEN,
+	MESHGEN,
+	DECOPLACE,
+	FINISH,
+};
 
 
 
@@ -31,6 +43,8 @@ class LOWPOLYSURVIVAL_API AChunk : public AActor
 private:
 	//Development
 	bool bDrawDebug = false;
+
+	EChunkGenStage chunkGenStage = EChunkGenStage::INIT;
 
 public:	
 
@@ -53,6 +67,8 @@ protected:
 	bool bIsFullCreated = false;
 	bool bIsTerrainGenerated = false;
 
+	UGridNoiseGen* gridNoiseGen;
+
 	UMyGameInstance * gameInstance = nullptr;
 	AWorldGenerator* worldGenerator = nullptr;
 
@@ -73,6 +89,8 @@ protected:
 	void Create();
 
 	void InitBlockGrid();
+	void GenerateNoise();
+	
 
 	void TopDownTrace(const FIntVector &blockLoc);
 
@@ -109,10 +127,16 @@ public:
 	void Load(FIntVector _chunkLoc);
 	void Unload();
 
+	UFUNCTION()
 	void GenerateTerrainMesh();
+
+	void UpdateTerrainMesh();
 	void UpdateTerrainMesh(const FIntVector &chunkBlockLoc);
 
-	void HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer);
+	void DrawDebug(bool bEditorOnly = true, bool bWithBlocks = false);
+
+	//returns true if Block gets destroyed
+	bool HitBlock(FIntVector gridLoc, float damageAmount, AActor* causer);
 	bool SetBlock(FIntVector gridLoc, const FBlock& block);
 	void SetBlockUnsafe(FIntVector gridLoc, const FBlock& block);
 

@@ -59,6 +59,13 @@ bool UGridMeshGen::IsReady() const{
 
 void UGridMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid){
 
+	meshGenData.bIsReady = true;
+
+	FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([&](){
+		OnFinishMeshGen.Broadcast();
+	}, TStatId(), NULL, ENamedThreads::GameThread);
+
+	
 }
 
 

@@ -24,6 +24,10 @@ class LOWPOLYSURVIVAL_API APlayercharController : public APlayerController
 
 protected:
 
+	bool bDrawLines = false;
+
+	FIntVector cChunkloc;
+
 	UMyGameInstance * gameInstance = nullptr;
 
 	UDebugWidget * debugWidget = nullptr;
@@ -40,8 +44,11 @@ protected:
 	void OnEscapeMenuPressed();
 	void OnOpenChatPressed();
 	void OnOpenMapPressed();
+	void OnToggleDebugLines();
 	
 public:
+
+	virtual void TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
 
 	void CenterMouse();
 	

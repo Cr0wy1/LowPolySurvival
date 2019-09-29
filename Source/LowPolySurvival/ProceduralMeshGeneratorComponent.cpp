@@ -15,7 +15,7 @@
 
 UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObjectInitializer & ObjectInitializer) : UProceduralMeshComponent(ObjectInitializer){
 
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	
 	
 }
@@ -25,6 +25,7 @@ void UProceduralMeshGeneratorComponent::BeginPlay(){
 
 	EMeshGenType genType = EMeshGenType::MARCHINGCUBES;
 
+	//TODO meshGen maybe gets garbage collectet during runtime because it is a UObject
 	if (genType == EMeshGenType::MARCHINGCUBES) {
 		meshGen = NewObject<UGridMarchingCubesMeshGen>(this);
 		SetRelativeLocation(FVector(100, 100, 100));
@@ -33,29 +34,27 @@ void UProceduralMeshGeneratorComponent::BeginPlay(){
 		meshGen = NewObject<UGridVoxelMeshGen>(this);
 		SetRelativeLocation(FVector(50, 50, 50));
 	}
-
+	meshGen->OnFinishMeshGen.AddDynamic(this, &UProceduralMeshGeneratorComponent::CreateMesh);
 } 
 
 void UProceduralMeshGeneratorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UE_LOG(LogTemp, Warning, TEXT("ticking"));
 
-	if (meshGen->IsReady() && !bIsMeshGenerated) {
-		CreateMesh(false); 
-		
-	}
 }
 
 void UProceduralMeshGeneratorComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
 
-	UE_LOG(LogTemp, Warning, TEXT("EndPlay"));
+	//UE_LOG(LogTemp, Warning, TEXT("EndPlay"));
 
+	EnsureCompletion();
 
 	Super::EndPlay(EndPlayReason);
 }
 
 void UProceduralMeshGeneratorComponent::BeginDestroy(){
 
-	UE_LOG(LogTemp, Warning, TEXT("Begin Destroy"));
+	//UE_LOG(LogTemp, Warning, TEXT("Begin Destroy"));
 
 	EnsureCompletion();
 	
@@ -86,8 +85,7 @@ void UProceduralMeshGeneratorComponent::GenerateMesh(const AChunk * chunk){
 }
 
 
-void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const FIntVector &chunkBlockLoc){
-	
+void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk){
 	if (!meshGen->IsReady()) return;
 	//meshGen->EnsureCompletion();
 
@@ -99,8 +97,22 @@ void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const F
 	meshGenData = meshGen->CreateMesh(*chunk->GetGridData(), params);
 }
 
+void UProceduralMeshGeneratorComponent::UpdateMesh(const AChunk * chunk, const FIntVector &chunkBlockLoc){
+	
+	UpdateMesh(chunk);
+}
+
+bool UProceduralMeshGeneratorComponent::IsMeshCreated() const{
+	return bIsMeshGenerated;
+}
+
+
+void UProceduralMeshGeneratorComponent::CreateMesh(){
+	CreateMesh(false);
+}
 
 void UProceduralMeshGeneratorComponent::CreateMesh(bool bBorderNormalsOnly){
+	if (bIsMeshGenerated) return;
 	//UE_LOG(LogTemp, Warning, TEXT("Create Mesh!"));
 
 	if (bBorderNormalsOnly) { 

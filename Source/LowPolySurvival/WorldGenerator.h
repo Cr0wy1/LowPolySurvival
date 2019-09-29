@@ -86,8 +86,7 @@ public:
 
 	void CleanAllChunks();
 
-	void HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
-	void RemoveBlock(FIntVector blockLocation);
+
 
 	float BiomeNoise(const FVector2D &loc) const;
 	float TerrainNoise(const FVector2D &loc) const;
@@ -100,16 +99,26 @@ public:
 	const TArray<FNoiseParams> GetNoiseParams() const;
 	const FGenerationParams GetGenerationParams() const;
 
+	//return true if block gets destroyeds
+	bool HitBlock(FIntVector blockLocation, float damageAmount, AActor* causer);
+	void RemoveBlock(FIntVector blockLocation);
 	bool SetBlock(const FBlockLoc &blockLoc, const FBlock &block);
 	const FBlock* GetBlock(const FBlockLoc &blockLoc);
 
+	void UpdateChunk(const FChunkLoc &chunkLoc);
+	void UpdateChunk(const FChunkLoc &chunkLoc, const FIntVector &chunkBlockLoc);
+
 	FBiomeData* GetBiome(float xNoise, float yNoise) const;
 	FBiomeData* GetBiome(const FBlockLoc &blockLoc) const;
+
     AChunk* GetChunk(const FChunkLoc &chunkLoc) const;
+	AChunk* GetChunk(const FVector &worldLoc) const;
 	AChunk* GetChunkFromBlock(const FBlockLoc &blockLoc) const;
 
 	//Check if chunk exist, return nullptr if doesn't
 	AChunk* GetChunkSafe(const FIntVector &chunkLoc) const;
+	AChunk* GetChunkSafe(const FVector &worldLoc) const;
+
 	int32 GetLoadedChunksNum() const;
 
 	FString GetWorldName() const;

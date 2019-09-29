@@ -56,6 +56,10 @@ protected:
 
 	void BeginPlay();
 	
+	UFUNCTION()
+	void CreateMesh();
+
+
 	void CreateMesh(bool bBorderNormalsOnly);
 
 public:
@@ -73,6 +77,9 @@ public:
 	void EnsureCompletion();
 
 	void GenerateMesh(const AChunk* chunk);
+
+	void UpdateMesh(const AChunk* chunk);
 	void UpdateMesh(const AChunk* chunk, const FIntVector &chunkBlockLoc);
 
+	bool IsMeshCreated() const;
 };
