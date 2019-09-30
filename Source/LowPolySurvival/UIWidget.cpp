@@ -36,6 +36,13 @@ void UUIWidget::CloseUI(){
 	bIsUIOpen = false;
 }
 
+UUIWidget* UUIWidget::SetViewportWidget(TSubclassOf<UUserWidget> widgetClass){
+	RemoveFromParent();
+	UUIWidget* createdWidget = CreateWidget<UUIWidget>(GetOwningPlayer(), widgetClass);
+	createdWidget->AddToViewport();
+	return createdWidget;
+}
+
 bool UUIWidget::IsUIOpen() const
 {
 	return bIsUIOpen;

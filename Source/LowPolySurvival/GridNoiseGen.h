@@ -15,6 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFinishNoiseGen);
 
 class UMyGameInstance;
 class UChunkColumn;
+class AWorldGenerator;
 /**
  * 
  */
@@ -33,12 +34,15 @@ protected:
 	UChunkColumn* chunkColumn;
 	FIntVector blockOffset;
 
+	AWorldGenerator* worldGenerator;
+
 	FAsyncTask<GridNoiseGenTask>* task;
 
 	virtual void DoTaskWork();
 
 	void ApplyNoiseOnGrid3D();
 	void AddNoiseCaves();
+	void AddNoiseOres();
 
 public:
 

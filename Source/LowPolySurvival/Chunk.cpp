@@ -129,7 +129,7 @@ void AChunk::Unload() {
 
 void AChunk::GenerateTerrainMesh() {
 
-	if (!bIsTerrainGenerated && bIsTaskFinished) {
+	if (!bIsTerrainGenerated && bIsTaskFinished && bShouldGenerateMesh) {
 		proceduralMesh->GenerateMesh(this); 
 		bIsTerrainGenerated = true;
 	}
@@ -144,7 +144,6 @@ void AChunk::InitBlockGrid(){
 
 	uint8 dim = FWorldParams::chunkSize;
 	gridDim = FIntVector(dim, dim, dim);
-
 	blockGrid.Init(dim, dim, dim);
 	
 }
@@ -155,7 +154,7 @@ void AChunk::GenerateNoise(){
 	if (maxTerrainHeight >= blockZ && FWorldParams::terrainBlockLevel < (blockZ + FWorldParams::chunkSize)) {
 		//ApplyNoiseOnGrid();
 	}
-	ApplyNoiseOnGrid3D();
+	//ApplyNoiseOnGrid3D();
 	//AddNoiseCaves();
 	//AddNoiseOres(); 
 	//AddWater();
@@ -295,162 +294,6 @@ void AChunk::ApplyNoiseOnGrid(){
 	
 }
 
-void AChunk::ApplyNoiseOnGrid3D(){
-	UDataTable* resourceTable = gameInstance->GetResourceTable();
-	FResource* dirtR = resourceTable->FindRow<FResource>("1", FString());
-	FResource* grassR = resourceTable->FindRow<FResource>("2", FString());
-	FResource* stoneR = resourceTable->FindRow<FResource>("3", FString());
-	FResource* earthcoreR = resourceTable->FindRow<FResource>("4", FString());
-	FResource* sandR = resourceTable->FindRow<FResource>("9", FString());
-	FResource* snowR = resourceTable->FindRow<FResource>("10", FString());
-
-	FBiomeData* cBiome;
-	FResource* biomeR = grassR;
-
-	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
-	auto heatNoiseMap = *chunkColumn->GetHeatNoiseMap();
-	auto rainNoiseMap = *chunkColumn->GetRainNoiseMap();
-	auto hillsNoiseMap = *chunkColumn->GetHillsNoiseMap();
-
-	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
-
-	int32 terrainBlockLevelInChunk = FWorldParams::terrainBlockLevel - blockLoc.Z;
-
-	
-
-	for (int32 x = 0; x < gridDim.X; x++) {
-		for (int32 y = 0; y < gridDim.Y; y++) {
-
-			cBiome = worldGenerator->GetBiome(terrainNoiseMap[x][y], rainNoiseMap[x][y]);
-			biomeR = cBiome->baseBlockResource;
-
-			for (int32 z = 0; z < gridDim.Z; z++) {
-
-				FBlock* cBlock = &blockGrid[x][y][z];
-
-				float density = terrainNoiseMap[x][y] + cBlock->data.noiseValue;
-				//terrainNoiseMap[x][y] = density / 2;
-
-				int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainHeight;
-				int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
-				int32 maxZInChunk = (terrainBlockLevelInChunk + upAmount) > FWorldParams::chunkSize ? FWorldParams::chunkSize : terrainBlockLevelInChunk + upAmount;
-
-				int32 blockZ = blockLoc.Z + z;
-
-				cBlock->data.noiseValue = cBlock->data.noiseValue*0.5f + 0.5f; // scaled to [0.5][1.0f]
-
-				if (blockZ > FWorldParams::terrainBlockLevel) {
-					cBlock->data.noiseValue *= 1.0f - (float)(blockZ- FWorldParams::terrainBlockLevel) / (FWorldParams::terrainHeight*1);
-					
-				}
-				
-				if (cBlock->data.noiseValue > 0.5f) {
-					//blockGrid[x][y][z].SetResource(dirtR);
-
-					if (blockZ == 0) {
-						cBlock->SetResource(earthcoreR);
-
-					}
-					else if (blockZ < (maxZ - 5)) {
-						cBlock->SetResource(stoneR);
-
-					}
-					else if (blockZ < (maxZ - 2)) {
-						cBlock->SetResource(dirtR);
-
-					}
-					else if (blockZ < (maxZ - 1)) {
-						//Top Block
-						cBlock->SetResource(biomeR);
-						if (cBiome->overrideResourceColor) {
-							cBlock->SetBiomeColor(cBiome->biomeColor);
-
-						}
-					}
-
-					if (blockZ > (FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 60)) {
-						cBlock->SetResource(stoneR);
-					}
-					else if (blockZ > (FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 67)) {
-						cBlock->SetResource(dirtR);
-					}
-				}
-
-			}
-
-
-		}
-	}
-}
-
-void AChunk::AddNoiseCaves(){
-
-	FResource* airR = FResource::FromId(this, 0);
-
-	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
-	float caveNoiseLevel = 0.3f;
-	 
-	//Check if is earthcore level to ensure not digging holes at this
-	int32 zInit = chunkLoc.Z < 1 ? 1 : 0;
-	
-	for (int32 x = 0; x < gridDim.X; x++) {
-		for (int32 y = 0; y < gridDim.Y; y++) {
-			for (int32 z = zInit; z < gridDim.Z; z++) {
-
-				float noise = worldGenerator->CaveNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
-
-				
-
-				//if (noise < caveNoiseLevel) { 
-					//float lerpedNoise = FMath::Lerp(blockGrid[x][y][z].data.noiseValue, noise, 0.5f);
-					noise *= 0.15f;
-
-					blockGrid[x][y][z].data.noiseValue -= noise;
-					//blockGrid[x][y][z].SetResource(airR);
-					
-				//}
-			}
-
-		} 
-	}
-	
-}
-
-void AChunk::AddNoiseOres(){
-
-	UDataTable* resourceTable = gameInstance->GetResourceTable();
-	FResource* coalR = resourceTable->FindRow<FResource>("5", FString());
-	FResource* ironR = resourceTable->FindRow<FResource>("6", FString());
-	FResource* goldR = resourceTable->FindRow<FResource>("7", FString());
-
-	FIntVector blockLoc = ChunkToBlockLocation(chunkLoc);
-	float oreNoiseLevel = 0.06f;
-
-	for (int32 x = 0; x < gridDim.X; x++) {
-		for (int32 y = 0; y < gridDim.Y; y++) {
-			for (int32 z = 0; z < gridDim.Z; z++) {
-
-				if (blockGrid[x][y][z].resource && blockGrid[x][y][z].resource->id == 3) {
-
-					float noiseCoal = worldGenerator->OreNoise(FVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z + z));
-					float noiseIron = worldGenerator->OreNoise(FVector(blockLoc.X + x * 2, blockLoc.Y + y * 2, blockLoc.Z + z * 2));
-					float noiseGold = worldGenerator->OreNoise(FVector(blockLoc.X + x * 3, blockLoc.Y + y * 3, blockLoc.Z + z * 3));
-
-					if (noiseCoal < 0.08f) {
-						blockGrid[x][y][z].SetResource(coalR);
-					}
-					if (noiseIron < 0.04) {
-						blockGrid[x][y][z].SetResource(ironR);
-					}
-					if (noiseGold < 0.02) {
-						blockGrid[x][y][z].SetResource(goldR);
-					}
-				}
-			}
-
-		}
-	}
-}
 
 void AChunk::AddWater(){
 	UDataTable* resourceTable = gameInstance->GetResourceTable();

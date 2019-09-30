@@ -98,9 +98,6 @@ protected:
 
 	void RandomizeGrid(int32 zLine, int32 blockAmount);
 	void ApplyNoiseOnGrid();
-	void ApplyNoiseOnGrid3D();
-	void AddNoiseCaves();
-	void AddNoiseOres();
 	void AddWater();
 
 	UFUNCTION()

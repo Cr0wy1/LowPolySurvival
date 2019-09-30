@@ -25,6 +25,7 @@ void UGridNoiseGen::DoTaskWork(){
 
 	ApplyNoiseOnGrid3D();
 	AddNoiseCaves();
+	AddNoiseOres();
 
 	bIsReady = true;
 
@@ -40,6 +41,7 @@ void UGridNoiseGen::GenerateNoise(UMyGameInstance* _gameInstance, FBlockGrid * _
 	blockGrid = _blockGrid;
 	blockOffset = _blockOffset;
 	chunkColumn = _chunkColumn;
+	worldGenerator = gameInstance->GetWorldGenerator();
 
 	task = new FAsyncTask<GridNoiseGenTask>(this);
 	task->StartBackgroundTask();
@@ -61,8 +63,6 @@ bool UGridNoiseGen::IsReady() const{
 
 
 void UGridNoiseGen::ApplyNoiseOnGrid3D() {
-
-	AWorldGenerator* worldGenerator = gameInstance->GetWorldGenerator();
 
 	UDataTable* resourceTable = gameInstance->GetResourceTable();
 	FResource* dirtR = resourceTable->FindRow<FResource>("1", FString());
@@ -144,8 +144,6 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 
 void UGridNoiseGen::AddNoiseCaves() {
 
-	AWorldGenerator* worldGenerator = gameInstance->GetWorldGenerator();
-
 	UDataTable* resourceTable = gameInstance->GetResourceTable();
 	FResource* airR = resourceTable->FindRow<FResource>("0", FString());
 
@@ -158,10 +156,7 @@ void UGridNoiseGen::AddNoiseCaves() {
 	for (int32 x = 0; x < blockGrid->dims.X; x++) {
 		for (int32 y = 0; y < blockGrid->dims.Y; y++) {
 			for (int32 z = zInit; z < blockGrid->dims.Z; z++) {
-
 				float noise = worldGenerator->CaveNoise(FVector(blockOffset.X + x, blockOffset.Y + y, blockOffset.Z + z));
-
-
 
 				//if (noise < caveNoiseLevel) { 
 				//float lerpedNoise = FMath::Lerp(blockGrid[x][y][z].data.noiseValue, noise, 0.5f);
@@ -178,7 +173,42 @@ void UGridNoiseGen::AddNoiseCaves() {
 
 }
 
+void UGridNoiseGen::AddNoiseOres() {
 
+	UDataTable* resourceTable = gameInstance->GetResourceTable();
+	FResource* coalR = resourceTable->FindRow<FResource>("5", FString());
+	FResource* ironR = resourceTable->FindRow<FResource>("6", FString());
+	FResource* goldR = resourceTable->FindRow<FResource>("7", FString());
+
+	float oreNoiseLevel = 0.06f;
+
+	for (int32 x = 0; x < blockGrid->dims.X; x++) {
+		for (int32 y = 0; y < blockGrid->dims.Y; y++) {
+			for (int32 z = 0; z < blockGrid->dims.Z; z++) {
+
+				FBlock * cBlock = &(*blockGrid)[x][y][z];
+
+				if (cBlock->resource && cBlock->resource->id == 3) {
+
+					float noiseCoal = worldGenerator->OreNoise(FVector(blockOffset.X + x, blockOffset.Y + y, blockOffset.Z + z));
+					float noiseIron = worldGenerator->OreNoise(FVector(blockOffset.X + x * 2, blockOffset.Y + y * 2, blockOffset.Z + z * 2));
+					float noiseGold = worldGenerator->OreNoise(FVector(blockOffset.X + x * 3, blockOffset.Y + y * 3, blockOffset.Z + z * 3));
+
+					if (noiseCoal < 0.08f) {
+						cBlock->SetResource(coalR);
+					}
+					if (noiseIron < 0.04) {
+						cBlock->SetResource(ironR);
+					}
+					if (noiseGold < 0.02) {
+						cBlock->SetResource(goldR);
+					}
+				}
+			}
+
+		}
+	}
+}
 
 //##### GridNoiseGenTask ######
 GridNoiseGenTask::GridNoiseGenTask(UGridNoiseGen * _gridNoiseGen){

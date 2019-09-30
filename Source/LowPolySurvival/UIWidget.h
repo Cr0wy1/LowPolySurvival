@@ -26,7 +26,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIWidget")
 	void CloseUI();
 
+	UFUNCTION(BlueprintCallable, Category = "UIWidget")
 	virtual void OpenUI();
+
+	//Remove this Widget, create Widget from given classn and add to Owner Controller Viewport
+	UFUNCTION(BlueprintCallable, Category = "UIWidget")
+	virtual UUIWidget* SetViewportWidget(TSubclassOf<UUserWidget> widgetClass);
 
 	bool IsUIOpen() const;
 
