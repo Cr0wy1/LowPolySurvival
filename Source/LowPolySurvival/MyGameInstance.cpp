@@ -76,6 +76,7 @@ void UMyGameInstance::InitDataTables(){
 
 		FSBiome::InitStaticMembers(this);
 		FSBiomeDiagram::InitStaticMembers();
+		FSResource::InitStaticMembers(this);
 	}
 
 }

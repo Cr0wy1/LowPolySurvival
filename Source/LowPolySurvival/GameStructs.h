@@ -8,6 +8,7 @@
 
 
 class UMyGameInstance;
+struct FResource;
 struct FBlock;
 
 
@@ -202,6 +203,26 @@ struct LOWPOLYSURVIVAL_API FSBiome {
 
 };
 
+USTRUCT(BlueprintType)
+struct LOWPOLYSURVIVAL_API FSResource {
+	GENERATED_BODY()
+
+	static FResource* AIR;
+	static FResource* DIRT;
+	static FResource* GRASS;
+	static FResource* STONE;
+	static FResource* EARTHCORE;
+	static FResource* COAL;
+	static FResource* IRON;
+	static FResource* GOLD;
+	static FResource* WATER;
+	static FResource* SAND;
+	static FResource* SNOW;
+
+	static void InitStaticMembers(UMyGameInstance* gameInstance);
+
+};
+
 
 //DataTable Structs
 USTRUCT(BlueprintType)
@@ -220,6 +241,9 @@ struct LOWPOLYSURVIVAL_API FWorldGenInfo : public FTableRowBase {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		EVegetationType type = EVegetationType::NONE;
 };
+
+
+
 
 
 USTRUCT(BlueprintType)

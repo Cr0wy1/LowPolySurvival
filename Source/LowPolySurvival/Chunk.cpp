@@ -15,7 +15,6 @@
 #include "Item.h"
 #include "SaveRegion.h"
 #include "Kismet/GameplayStatics.h"
-#include "Async.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Materials/MaterialInstance.h"
 #include "Engine/StaticMeshActor.h"
@@ -95,7 +94,8 @@ void AChunk::Create() {
 
 	gridNoiseGen = NewObject<UGridNoiseGen>(this);
 	gridNoiseGen->OnFinishNoiseGen.AddDynamic(this, &AChunk::GenerateTerrainMesh);
-	gridNoiseGen->GenerateNoise(gameInstance, &blockGrid, chunkColumn, ChunkToBlockLocation(chunkLoc));
+	gridNoiseGen->GenerateNoise(gameInstance, &blockGrid, chunkColumn, ChunkToBlockLocation(chunkLoc), true);
+	
 	//GenerateNoise();
 	chunkGenStage = EChunkGenStage::MESHGEN;
 
@@ -104,19 +104,18 @@ void AChunk::Create() {
 } 
 
 void AChunk::Load(FIntVector _chunkLoc) {
-	chunkLoc = _chunkLoc;
+	chunkLoc = _chunkLoc; 
 
-	bIsTaskFinished = true;
 	if (!LoadFromFile()) {
 		Create();
 	}
 	
-	//(new FAutoDeleteAsyncTask<ChunkTask>(this, false))->StartBackgroundTask();
 }
 
 void AChunk::Unload() {
 
-	//(new FAutoDeleteAsyncTask<ChunkTask>(this, true))->StartBackgroundTask();
+	// UE_LOG(LogTemp, Warning, TEXT("Chunk destroyed!"));
+
 	chunkColumn->RemoveChunk();
 	proceduralMesh->EnsureCompletion();
 
@@ -129,7 +128,9 @@ void AChunk::Unload() {
 
 void AChunk::GenerateTerrainMesh() {
 
-	if (!bIsTerrainGenerated && bIsTaskFinished && bShouldGenerateMesh) {
+	if (!bIsTerrainGenerated && bShouldGenerateMesh) {
+		//UE_LOG(LogTemp, Warning, TEXT("GenerateTerrainMesh"));
+
 		proceduralMesh->GenerateMesh(this); 
 		bIsTerrainGenerated = true;
 	}
@@ -152,7 +153,7 @@ void AChunk::GenerateNoise(){
 	int32 blockZ = chunkLoc.Z * FWorldParams::chunkSize;
 	int32 maxTerrainHeight = FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel;
 	if (maxTerrainHeight >= blockZ && FWorldParams::terrainBlockLevel < (blockZ + FWorldParams::chunkSize)) {
-		//ApplyNoiseOnGrid();
+		ApplyNoiseOnGrid();
 	}
 	//ApplyNoiseOnGrid3D();
 	//AddNoiseCaves();
@@ -214,6 +215,7 @@ void AChunk::RandomizeGrid(int32 zLine, int32 blockAmount){
 			int32 randZ = FMath::Rand() % blockAmount;
 			for (size_t z = 0; z < blockGrid.dims.Z; z++) {
 				if (z < (zLine + randZ)) {
+					blockGrid[x][y][z].data.noiseValue = FMath::FRand();
 					blockGrid[x][y][z].data.bIsSolid = true;
 				}
 			}
@@ -459,15 +461,6 @@ bool AChunk::LoadFromFile(){
 	return false;
 }
 
-void AChunk::OnEndTask(AChunk* chunk){
-
-	chunk->bIsTaskFinished = true;
-
-	//if (chunk && chunk->bShouldGenerateMesh) {
-
-		chunk->GenerateTerrainMesh();
-	//}
-}
 
 
 void AChunk::UpdateTerrainMesh() {
@@ -682,35 +675,3 @@ FBlock& AChunk::operator[](const FIntVector & chunkBlockLoc){
 const FBlock& AChunk::operator[](const FIntVector & chunkBlockLoc) const{
 	return blockGrid[chunkBlockLoc.X][chunkBlockLoc.Y][chunkBlockLoc.Z];
 }
-
-
-//ChunkTaks
-ChunkTask::ChunkTask(AChunk * _chunk, bool _bSaveInsteadOfLoad){
-	chunk = _chunk;
-	bSaveInsteadOfLoad = _bSaveInsteadOfLoad;
-}
-
-ChunkTask::~ChunkTask(){
-}
-
-void ChunkTask::DoWork(){
-	chunk->bIsTaskFinished = false;
-
-	//if (bSaveInsteadOfLoad) {
-		//chunk->SaveToFile();
-	//}
-	//else {
-		if (!chunk->LoadFromFile()) {
-			chunk->Create();
-		}
-
-		//chunk->GenerateTerrainMesh();
-		//chunk->proceduralMesh->GenerateMesh(chunk);
-		AChunk::OnEndTask(chunk);
-	//}
-	
-
-
-	chunk->bIsTaskFinished = true;
-}
- 

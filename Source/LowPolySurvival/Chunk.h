@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameStructs.h"
-#include "HAL/Runnable.h"
 #include "Chunk.generated.h"
 
 
@@ -38,7 +37,7 @@ class LOWPOLYSURVIVAL_API AChunk : public AActor
 {
 	GENERATED_BODY()
 
-	friend class ChunkTask;
+	friend class ChunkGenThread;
 
 private:
 	//Development
@@ -59,7 +58,6 @@ protected:
 
 	bool bIsAirChunk = false;
 
-	bool bIsTaskFinished = false;
 	bool bShouldGenerateMesh = false;
 	
 	bool bNeedsSaving = false;
@@ -161,26 +159,5 @@ public:
 	FBlock& operator[](const FIntVector &chunkBlockLoc);
 	const FBlock& operator[](const FIntVector &chunkBlockLoc) const;
 
-	static void OnEndTask(AChunk* chunk);
-};
-
-
-class ChunkTask : public FNonAbandonableTask {
-
-	AChunk * chunk;
-
-	//true = save, false = load
-	bool bSaveInsteadOfLoad;
-
-public:
-	ChunkTask(AChunk * _chunk, bool _bSaveInsteadOfLoad);
-	~ChunkTask();
-
-	void DoWork();
-
-
-	FORCEINLINE TStatId GetStatId() const {
-		RETURN_QUICK_DECLARE_CYCLE_STAT(ExampleAutoDeleteAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
+	
 };

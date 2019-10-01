@@ -6,26 +6,30 @@
 #include "WorldGenerator.h"
 #include "ChunkColumn.h"
 
-void UGridNoiseGen::DoTaskWork(){
+void UGridNoiseGen::GenerateNoiseS(UMyGameInstance* _gameInstance, FBlockGrid* _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset, bool bThreading) {
 
+}
+
+void UGridNoiseGen::DoTaskWork(){
 
 	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 	//TODO Testing, remove it
 	for (int32 x = 0; x < blockGrid->dims.X; x++) {
 		for (int32 y = 0; y < blockGrid->dims.Y; y++) {
-
 			for (int32 z = 0; z < blockGrid->dims.Z; z++) {
-				(*blockGrid)[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, terrainNoiseMap[x][y] * 1000, 1, 1, 1000) * 0.85f;
-				(*blockGrid)[x][y][z].data.noiseValue += Noise3D(x + blockOffset.X, y + blockOffset.Y, blockOffset.Z, 6, 4) * 0.15f;
+				//bufferGrid[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 1, 1.0f, 1);
+				(*blockGrid)[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 1, 1.0f, 1);// *0.85f;
+				//(*blockGrid)[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, terrainNoiseMap[x][y] * 1000, 1, 0.1f, 1000) * 0.85f;
+				//(*blockGrid)[x][y][z].data.noiseValue += Noise3D(x + blockOffset.X, y + blockOffset.Y, blockOffset.Z, 6, 4) * 0.15f;
 				//blockGrid[x][y][z].data.noiseValue *= 0.5f;
 			}
 		}
 	}
-
+	
 
 	ApplyNoiseOnGrid3D();
-	AddNoiseCaves();
-	AddNoiseOres();
+	//AddNoiseCaves();
+	//AddNoiseOres();
 
 	bIsReady = true;
 
@@ -36,18 +40,28 @@ void UGridNoiseGen::DoTaskWork(){
 	
 }
 
-void UGridNoiseGen::GenerateNoise(UMyGameInstance* _gameInstance, FBlockGrid * _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset){
+void UGridNoiseGen::GenerateNoise(UMyGameInstance* _gameInstance, FBlockGrid * _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset, bool bThreading) {
 	gameInstance = _gameInstance;
 	blockGrid = _blockGrid;
 	blockOffset = _blockOffset;
 	chunkColumn = _chunkColumn;
 	worldGenerator = gameInstance->GetWorldGenerator();
 
-	task = new FAsyncTask<GridNoiseGenTask>(this);
-	task->StartBackgroundTask();
+	bufferGrid.Init(16, 16, 16);
+
+	if (bThreading) {
+		task = new FAsyncTask<GridNoiseGenTask>(this);
+		task->StartBackgroundTask();
+	}
+	else {
+		DoTaskWork();
+	}
+
 }
 
 void UGridNoiseGen::EnsureCompletion(){
+	//UE_LOG(LogTemp, Warning, TEXT("Ensure completation"));
+
 	if (task) {
 		task->EnsureCompletion();
 		if (task->Cancel()) {
@@ -64,16 +78,8 @@ bool UGridNoiseGen::IsReady() const{
 
 void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 
-	UDataTable* resourceTable = gameInstance->GetResourceTable();
-	FResource* dirtR = resourceTable->FindRow<FResource>("1", FString());
-	FResource* grassR = resourceTable->FindRow<FResource>("2", FString());
-	FResource* stoneR = resourceTable->FindRow<FResource>("3", FString());
-	FResource* earthcoreR = resourceTable->FindRow<FResource>("4", FString());
-	FResource* sandR = resourceTable->FindRow<FResource>("9", FString());
-	FResource* snowR = resourceTable->FindRow<FResource>("10", FString());
-
 	FBiomeData* cBiome;
-	FResource* biomeR = grassR;
+	FResource* biomeR = FSResource::GRASS;
 
 	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
 	auto heatNoiseMap = *chunkColumn->GetHeatNoiseMap();
@@ -105,17 +111,18 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 
 				if (cBlock->data.noiseValue > 0.5f) {
 					//blockGrid[x][y][z].SetResource(dirtR);
-
+					//cBlock->SetResource(FSResource::STONE);
+					//return;
 					if (blockZ == 0) {
-						cBlock->SetResource(earthcoreR);
+						cBlock->SetResource(FSResource::EARTHCORE);
 
 					}
 					else if (blockZ < (maxZ - 5)) {
-						cBlock->SetResource(stoneR);
+						cBlock->SetResource(FSResource::STONE);
 
 					}
 					else if (blockZ < (maxZ - 2)) {
-						cBlock->SetResource(dirtR);
+						cBlock->SetResource(FSResource::DIRT);
 
 					}
 					else if (blockZ < (maxZ - 1)) {
@@ -128,10 +135,10 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 					}
 
 					if (blockZ >(FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 60)) {
-						cBlock->SetResource(stoneR);
+						cBlock->SetResource(FSResource::STONE);
 					}
 					else if (blockZ > (FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 67)) {
-						cBlock->SetResource(dirtR);
+						cBlock->SetResource(FSResource::DIRT);
 					}
 				}
 
@@ -143,10 +150,6 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 }
 
 void UGridNoiseGen::AddNoiseCaves() {
-
-	UDataTable* resourceTable = gameInstance->GetResourceTable();
-	FResource* airR = resourceTable->FindRow<FResource>("0", FString());
-
 	float caveNoiseLevel = 0.3f;
 
 	//Check if is earthcore level to ensure not digging holes at this
@@ -175,11 +178,6 @@ void UGridNoiseGen::AddNoiseCaves() {
 
 void UGridNoiseGen::AddNoiseOres() {
 
-	UDataTable* resourceTable = gameInstance->GetResourceTable();
-	FResource* coalR = resourceTable->FindRow<FResource>("5", FString());
-	FResource* ironR = resourceTable->FindRow<FResource>("6", FString());
-	FResource* goldR = resourceTable->FindRow<FResource>("7", FString());
-
 	float oreNoiseLevel = 0.06f;
 
 	for (int32 x = 0; x < blockGrid->dims.X; x++) {
@@ -195,13 +193,13 @@ void UGridNoiseGen::AddNoiseOres() {
 					float noiseGold = worldGenerator->OreNoise(FVector(blockOffset.X + x * 3, blockOffset.Y + y * 3, blockOffset.Z + z * 3));
 
 					if (noiseCoal < 0.08f) {
-						cBlock->SetResource(coalR);
+						cBlock->SetResource(FSResource::COAL);
 					}
 					if (noiseIron < 0.04) {
-						cBlock->SetResource(ironR);
+						cBlock->SetResource(FSResource::IRON);
 					}
 					if (noiseGold < 0.02) {
-						cBlock->SetResource(goldR);
+						cBlock->SetResource(FSResource::GOLD);
 					}
 				}
 			}

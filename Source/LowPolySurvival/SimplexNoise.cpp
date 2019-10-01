@@ -48,6 +48,7 @@ unsigned char USimplexNoise::perm[512] = { 151,160,137,91,90,15,
 
 void USimplexNoise::setNoiseSeed(const int32& newSeed)
 {
+	
 	TArray<bool> availableSeeds;
 	availableSeeds.Init(true, 256);
 	FMath::RandInit(newSeed);
@@ -314,7 +315,7 @@ float USimplexNoise::SimplexNoise3D(float x, float y, float z)
 	// Add contributions from each corner to get the final noise value.
 	// The result is scaled to stay just inside [-1,1]
 	float value = 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
-	return (value + 1) * 0.5f; //scale value to [0, 1]
+	return (value + 1.0f) * 0.5f; //scale value to [0, 1]
 }
 
 

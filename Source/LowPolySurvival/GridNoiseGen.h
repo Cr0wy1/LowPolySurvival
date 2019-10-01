@@ -29,6 +29,8 @@ protected:
 
 	bool bIsReady = false;
 
+	FBlockGrid bufferGrid;
+
 	UMyGameInstance * gameInstance;
 	FBlockGrid* blockGrid;
 	UChunkColumn* chunkColumn;
@@ -46,9 +48,11 @@ protected:
 
 public:
 
-	FOnFinishNoiseGen OnFinishNoiseGen;
+	static void GenerateNoiseS(UMyGameInstance* _gameInstance, FBlockGrid* _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset, bool bThreading = true);
 
-	void GenerateNoise(UMyGameInstance* _gameInstance, FBlockGrid* _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset);
+	FOnFinishNoiseGen OnFinishNoiseGen; 
+
+	void GenerateNoise(UMyGameInstance* _gameInstance, FBlockGrid* _blockGrid, UChunkColumn* _chunkColumn, FIntVector _blockOffset, bool bThreading = true);
 
 	virtual void EnsureCompletion();
 

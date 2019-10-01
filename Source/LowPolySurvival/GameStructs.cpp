@@ -114,6 +114,34 @@ void FSBiome::InitStaticMembers(UMyGameInstance * gameInstance){
 	OCEAN = biomeTable->FindRow<FBiomeData>("13", FString());
 }
 
+FResource* FSResource::AIR = nullptr;
+FResource* FSResource::DIRT = nullptr;
+FResource* FSResource::GRASS = nullptr;
+FResource* FSResource::STONE = nullptr;
+FResource* FSResource::EARTHCORE = nullptr;
+FResource* FSResource::COAL = nullptr;
+FResource* FSResource::IRON = nullptr;
+FResource* FSResource::GOLD = nullptr;
+FResource* FSResource::WATER = nullptr;
+FResource* FSResource::SAND = nullptr;
+FResource* FSResource::SNOW = nullptr;
+
+void FSResource::InitStaticMembers(UMyGameInstance * gameInstance) {
+
+	UDataTable* resourceTable = gameInstance->GetResourceTable();
+	AIR = resourceTable->FindRow<FResource>("0", FString());
+	DIRT = resourceTable->FindRow<FResource>("1", FString());
+	GRASS = resourceTable->FindRow<FResource>("2", FString());
+	STONE = resourceTable->FindRow<FResource>("3", FString());
+	EARTHCORE = resourceTable->FindRow<FResource>("4", FString());
+	COAL = resourceTable->FindRow<FResource>("5", FString());
+	IRON = resourceTable->FindRow<FResource>("6", FString());
+	GOLD = resourceTable->FindRow<FResource>("7", FString());
+	WATER = resourceTable->FindRow<FResource>("8", FString());
+	SAND = resourceTable->FindRow<FResource>("9", FString());
+	SNOW = resourceTable->FindRow<FResource>("10", FString());
+}
+
 FBlockGrid::FBlockGrid(){
 }
 
@@ -165,3 +193,5 @@ TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex){
 const TArray<TArray<FBlock>>& FBlockGrid::operator[](int32 xIndex) const{
 	return grid[xIndex];
 }
+
+
