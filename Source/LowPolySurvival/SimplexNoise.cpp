@@ -316,6 +316,7 @@ float USimplexNoise::SimplexNoise3D(float x, float y, float z)
 	// The result is scaled to stay just inside [-1,1]
 	float value = 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
 	return (value + 1.0f) * 0.5f; //scale value to [0, 1]
+	return value;
 }
 
 

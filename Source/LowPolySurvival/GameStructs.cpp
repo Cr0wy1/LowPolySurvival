@@ -44,6 +44,14 @@ bool FBlock::IsAir() const{
 	return !resource || resource->id == 0;
 }
 
+bool FBlock::IsSolid() const{
+	return resource && resource->type == EResourceType::SOLID;
+}
+
+bool FBlock::IsFluid() const{
+	return resource && resource->type == EResourceType::FLUID;
+}
+
 FBlock FBlock::FromId(AActor * owner, int32 resourceId){
 	FBlock block;
 	block.SetResource(FResource::FromId(owner, resourceId));

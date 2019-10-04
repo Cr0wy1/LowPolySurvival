@@ -334,7 +334,7 @@ void AChunk::OnGeneratedMesh(){
 
 				float rand = FMath::FRand();
 				if (rand > 0.7) {
-					//TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z));
+					TopDownTrace(FIntVector(blockLoc.X + x, blockLoc.Y + y, blockLoc.Z));
 				}
 			}
 		}

@@ -17,11 +17,17 @@ void UGridNoiseGen::DoTaskWork(){
 	for (int32 x = 0; x < blockGrid->dims.X; x++) {
 		for (int32 y = 0; y < blockGrid->dims.Y; y++) {
 			for (int32 z = 0; z < blockGrid->dims.Z; z++) {
+				float noiseValue = 0.0f;
 				//bufferGrid[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 1, 1.0f, 1);
-				(*blockGrid)[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 1, 1.0f, 1);// *0.85f;
+				noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 3, 1.0f, 1); //flat base layer																												  //to make sure under terrainBlockLevel is not air
+				noiseValue = noiseValue *0.5f + 0.5f; // scaled to [0.5][1.0f]
+
+				//(*blockGrid)[x][y][z].data.noiseValue += FMath::Pow( Noise3D(x + blockOffset.X, y + blockOffset.Y, z + blockOffset.Z, 1, 2.0f, 1), 2) * -0.5f;
 				//(*blockGrid)[x][y][z].data.noiseValue = Noise3D(x + blockOffset.X, y + blockOffset.Y, terrainNoiseMap[x][y] * 1000, 1, 0.1f, 1000) * 0.85f;
 				//(*blockGrid)[x][y][z].data.noiseValue += Noise3D(x + blockOffset.X, y + blockOffset.Y, blockOffset.Z, 6, 4) * 0.15f;
 				//blockGrid[x][y][z].data.noiseValue *= 0.5f;
+
+				(*blockGrid)[x][y][z].data.noiseValue = noiseValue;
 			}
 		}
 	}
@@ -30,6 +36,7 @@ void UGridNoiseGen::DoTaskWork(){
 	ApplyNoiseOnGrid3D();
 	//AddNoiseCaves();
 	//AddNoiseOres();
+	AddWater();
 
 	bIsReady = true;
 
@@ -93,21 +100,31 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 			cBiome = worldGenerator->GetBiome(terrainNoiseMap[x][y], rainNoiseMap[x][y]);
 			biomeR = cBiome->baseBlockResource;
 
+			float upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainHeight;
+			float maxZ = upAmount + FWorldParams::terrainBlockLevel;
+
 			for (int32 z = 0; z < blockGrid->dims.Z; z++) {
 
 				FBlock * cBlock = &(*blockGrid)[x][y][z];
-
-				int32 upAmount = terrainNoiseMap[x][y] * FWorldParams::terrainHeight;
-				int32 maxZ = FWorldParams::terrainBlockLevel + upAmount;
-
 				int32 blockZ = blockOffset.Z + z;
 
-				cBlock->data.noiseValue = cBlock->data.noiseValue*0.5f + 0.5f; // scaled to [0.5][1.0f]
 
-				if (blockZ > FWorldParams::terrainBlockLevel) {
-					cBlock->data.noiseValue *= 1.0f - (float)(blockZ - FWorldParams::terrainBlockLevel) / (FWorldParams::terrainHeight * 1);
+				float deltaBlockZ = blockZ - FWorldParams::terrainBlockLevel;
 
+				float heightPercent = deltaBlockZ / upAmount;
+				if (upAmount <= 0.0f) {
+					heightPercent = (deltaBlockZ-upAmount ) / FMath::Abs(upAmount);
+					
 				}
+
+				//2D terrainNoiseMap gen
+				//if (blockZ > maxZ) {
+					//cBlock->SetResource(FSResource::STONE);
+					//cBlock->data.noiseValue = 0.0f;
+				//}
+
+				cBlock->data.noiseValue *= 1.0f - heightPercent;
+
 
 				if (cBlock->data.noiseValue > 0.5f) {
 					//blockGrid[x][y][z].SetResource(dirtR);
@@ -132,7 +149,10 @@ void UGridNoiseGen::ApplyNoiseOnGrid3D() {
 							cBlock->SetBiomeColor(cBiome->biomeColor);
 
 						}
+						
 					}
+
+					cBlock->SetResource(FSResource::GRASS);
 
 					if (blockZ >(FWorldParams::terrainHeight + FWorldParams::terrainBlockLevel - 60)) {
 						cBlock->SetResource(FSResource::STONE);
@@ -204,6 +224,25 @@ void UGridNoiseGen::AddNoiseOres() {
 				}
 			}
 
+		}
+	}
+}
+
+void UGridNoiseGen::AddWater() {
+	auto terrainNoiseMap = *chunkColumn->GetTerrainNoiseMap();
+
+	for (int32 x = 0; x < blockGrid->dims.X; x++) {
+		for (int32 y = 0; y < blockGrid->dims.Y; y++) {
+
+			for (int32 z = 0; z < blockGrid->dims.Z; z++) {
+
+				int32 blockZ = blockOffset.Z + z;
+
+				if (blockZ <= 100 && (*blockGrid)[x][y][z].IsAir()) {
+					(*blockGrid)[x][y][z].SetResource(FSResource::WATER);
+					(*blockGrid)[x][y][z].data.noiseValue = 1.0f;
+				}
+			}
 		}
 	}
 }

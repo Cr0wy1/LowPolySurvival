@@ -45,6 +45,7 @@ protected:
 	void ApplyNoiseOnGrid3D();
 	void AddNoiseCaves();
 	void AddNoiseOres();
+	void AddWater();
 
 public:
 

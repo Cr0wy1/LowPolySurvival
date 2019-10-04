@@ -23,7 +23,9 @@ UProceduralMeshGeneratorComponent::UProceduralMeshGeneratorComponent(const FObje
 void UProceduralMeshGeneratorComponent::BeginPlay(){
 	Super::BeginPlay();
 
-	EMeshGenType genType = EMeshGenType::MARCHINGCUBES;
+	int32 rand = FMath::Rand() % 100;
+	
+	EMeshGenType genType = EMeshGenType::VOXEL;
 
 	//TODO meshGen maybe gets garbage collectet during runtime because it is a UObject
 	if (genType == EMeshGenType::MARCHINGCUBES) {

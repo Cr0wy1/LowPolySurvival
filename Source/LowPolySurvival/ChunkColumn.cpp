@@ -58,23 +58,17 @@ void UChunkColumn::InitTerrainNoiseMaps(){
 	//USimplexNoise::setNoiseSeed(worldGenerator->GetSeed() + 3000);
 	USimplexNoise::NoiseOctaves(hillsNoiseMap, blockLoc.X, blockLoc.Y, size, size, 2, 0.1f, 0.5);
 
+	int32 randOffset = FMath::Rand();
+
 	for (int32 x = 0; x < size; x++) {
 		for (int32 y = 0; y < size; y++) { 
 
-			//terrainNoiseMap[x][y] = terrainNoiseMap[x][y] * 0.3f;
-			//terrainNoiseMap[x][y] = FMath::Pow(terrainNoiseMap[x][y], 3) * 0.2f;
-			hillsNoiseMap[x][y] = FMath::Pow(terrainNoiseMap[x][y], 6);
+			terrainNoiseMap[x][y] *= 0.2f;
+			terrainNoiseMap[x][y] += FMath::Pow( Noise(blockLoc.X+x, (blockLoc.Y+y)*2, 3, 1), 10) * -1.0f; //add holes
+			terrainNoiseMap[x][y] += FMath::Pow(Noise(blockLoc.X + x+ 1000, blockLoc.Y + y+ 1000, 3, 0.5), 6) * 0.5f; //add small hills
+			terrainNoiseMap[x][y] += FMath::Pow(Noise(blockLoc.X + x + 10000, blockLoc.Y + y + 10000, 3, 0.5), 10) * 2.0f; //add big hills
 
-			//terrainNoiseMap[x][y] = FMath::Lerp(terrainNoiseMap[x][y], hillsNoiseMap[x][y], 0.5f);
-			//terrainNoiseMap[x][y] += hillsNoiseMap[x][y];
-			 
-			if (terrainNoiseMap[x][y] < 0.2f) { 
-				//terrainNoiseMap[x][y] = 0.19f;
-			 } 
-
-			//terrainNoiseMap[x][y] *= 0.3f;
-			//terrainNoiseMap[x][y] = finalNoise;//worldGenerator->TerrainNoise(FVector2D(blockLoc.X + x, blockLoc.Y + y));
-
+			FMath::Clamp(terrainNoiseMap[x][y], -1.0f, 1.0f);
 		}
 	}
 

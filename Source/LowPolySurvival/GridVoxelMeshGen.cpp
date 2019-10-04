@@ -5,11 +5,8 @@
 #include "MyGameInstance.h"
 #include "Chunk.h"
 
-static int32 TASKCOUNTER = 0;
-
 void UGridVoxelMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid) {
 
-	//UE_LOG(LogTemp, Warning, TEXT("VoxelMesh: BeginTask"));
 	meshGenData.Reset();
 
 	const FBlockGrid* grid = params.chunk->GetGridData();
@@ -21,16 +18,15 @@ void UGridVoxelMeshGen::DoTaskWork(bool bUpdateOnly, const FBlockGrid &blockGrid
 				if ((*grid)[x][y][z].data.bIsSolid) {
 					BuildCube(FIntVector(x, y, z), grid);
 				}
+				else if((*grid)[x][y][z].IsFluid()) {
+					BuildCube(FIntVector(x, y, z), grid);
+				}
 
 			}
 		}
 	}
 
 	//UMeshGenerationLibrary::CalculateNormalsAndTangents(meshGenData, 0.0f);
-
-	TASKCOUNTER++;
-	//UE_LOG(LogTemp, Warning, TEXT("VoxelMesh: EndTask %i"), TASKCOUNTER);
-	//UE_LOG(LogTemp, Warning, TEXT("meshData: %s"), *meshGenData.ToString());
 
 	Super::DoTaskWork(bUpdateOnly, blockGrid);
 }

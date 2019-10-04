@@ -140,6 +140,8 @@ struct LOWPOLYSURVIVAL_API FBlock {
 
 	bool IsValid() const;
 	bool IsAir() const;
+	bool IsSolid() const;
+	bool IsFluid() const;
 
 	static FBlock FromId(AActor* owner, int32 resourceId);
 
